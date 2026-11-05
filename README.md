@@ -1,4 +1,6 @@
-# JONAH: Three Days Below
+# Jonas: 3 Days Below
+
+<p align="center"><img src="logo.png" width="420" alt="Jonas: 3 Days Below"></p>
 
 Survival em pixel art inspirado no relato bíblico de Jonas: três dias e três noites dentro do grande peixe.
 
@@ -7,6 +9,8 @@ Survival em pixel art inspirado no relato bíblico de Jonas: três dias e três 
 - 25 receitas de crafting e interações com o cenário (respiradouros, nervos, esporos, bile)
 - 9 lembranças e 6 reflexões
 - Salvamento automático e 3 espaços de salvamento
+- Trilha sonora procedural, combate com rolamento e combos
+- Dicas guiadas no Dia 1 (dá para desligar em Ajustes)
 - Missões narrativas dos três dias e oração final inspirada em Jonas 2
 
 ## Jogar
