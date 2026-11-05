@@ -3,7 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="JONAH: Three Days Below — survival em pixel art sobre Jonas dentro do grande peixe.">
+<meta name="description" content="Survival em pixel art: três dias e três noites dentro do grande peixe. Sobreviva, relembre a história de Jonas e encontre o caminho de volta. Jogue grátis no navegador.">
+<link rel="canonical" href="https://criativelucas.github.io/jonah-three-days-below/">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Jonas: 3 Days Below">
+<meta property="og:title" content="Jonas: 3 Days Below">
+<meta property="og:description" content="Survival em pixel art: três dias e três noites dentro do grande peixe. Jogue grátis no navegador, no PC ou no celular.">
+<meta property="og:url" content="https://criativelucas.github.io/jonah-three-days-below/">
+<meta property="og:image" content="https://criativelucas.github.io/jonah-three-days-below/og.jpg">
+<meta property="og:image:secure_url" content="https://criativelucas.github.io/jonah-three-days-below/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Logo de Jonas: 3 Days Below sobre uma baleia nadando sob a lua cheia">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jonas: 3 Days Below">
+<meta name="twitter:description" content="Survival em pixel art: três dias e três noites dentro do grande peixe.">
+<meta name="twitter:image" content="https://criativelucas.github.io/jonah-three-days-below/og.jpg">
 <meta name="theme-color" content="#120810">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Jonas: 3 Days Below</title>
@@ -159,6 +178,21 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 /* overlay cards */
 #overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,3,8,.72);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px;overflow:auto;z-index:10}
 #overlay.clear{background:transparent}
+#overlay.titlebg{background:linear-gradient(rgba(10,3,8,.25),rgba(10,3,8,.78)),url(frames/tela_titulo.webp) center/cover no-repeat,#0a0308}
+#overlay.pbgon{place-items:end center;padding-bottom:max(9vh,40px);background:#05020a}
+#overlay .pbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78);animation:kb 9s ease-out both}
+#overlay.pbgon .prayer{position:relative;padding:14px 18px;background:rgba(8,3,10,.62);border:2px solid var(--line)}
+.card.wide{width:min(760px,100%)}
+.card .cimg{margin:-22px -24px 2px;max-height:46vh;aspect-ratio:1280/575;overflow:hidden;background:#05020a;border-bottom:3px solid var(--line)}
+.card .cimg img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 0%;transform-origin:center 20%;animation:kb 7s ease-out both}
+@keyframes kb{from{transform:scale(1.06)}to{transform:scale(1)}}
+#cutImg{position:absolute;inset:0;background:#05020a;opacity:0;transition:opacity .4s}
+#cutImg.on{opacity:1}
+#cutImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .9s}
+#cutImg img.on{opacity:1;animation:kb 6s ease-out both}
+#cutImg::after{content:"";position:absolute;inset:auto 0 0 0;height:34%;background:linear-gradient(transparent,rgba(5,2,10,.85))}
+@media (max-aspect-ratio:1/1){#cutImg img,#overlay .pbg{object-fit:contain}}
+details.mem .mthumb{object-position:center 0%;display:block;width:100%;aspect-ratio:1280/575;object-fit:cover;margin:0 0 8px;border:2px solid #1f5c62}
 .card{width:min(560px,100%);padding:22px 24px;display:flex;flex-direction:column;gap:12px;animation:cin .35s steps(5)}
 @keyframes cin{from{transform:translateY(12px);opacity:0}}
 .card .kick{font-family:var(--f-label);font-size:11px;letter-spacing:.14em;color:var(--acid)}
@@ -390,7 +424,7 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
     <div id="tip" class="px" hidden></div>
   </div>
   <div id="menu" hidden></div>
-  <div id="cut" hidden><div id="cutCap" aria-live="polite"></div><button id="cutSkip">Pular ▸</button></div>
+  <div id="cut" hidden><div id="cutImg"><img alt=""><img alt=""></div><div id="cutCap" aria-live="polite"></div><button id="cutSkip">Pular ▸</button></div>
   <div id="overlay" hidden></div>
 </div>
 
@@ -807,6 +841,13 @@ const MEMS = {
 const MEM_ACT = { 1: ['chamado', 'jope', 'vento', 'sino', 'sorte', 'mar'], 2: ['orgulho', 'inimigo', 'clemente', 'moeda', 'calado', 'porao'], 3: ['culpa', 'algas', 'votos', 'guardado', 'perdao', 'voto'] };
 const ACT_NAME = { 1: 'O que aconteceu', 2: 'Os erros de Jonas', 3: 'Culpa, entrega e perdão' };
 const MEM_TOTAL = 18;
+const MEM_IMG = {}; [1, 2, 3].forEach(d => MEM_ACT[d].forEach((k, i) => MEM_IMG[k] = `dia${d}_mem0${i + 1}_${k}`));
+const REFL_IMG = [null, 'dia1_ref_tarsis', 'dia2_ref_marinheiros', 'dia1_ref_porao', 'dia2_ref_hebreu', 'dia3_ref_peixe', 'dia3_ref_templo', 'dia1_ref_vento', 'dia2_ref_dormindo', 'dia3_ref_culpa'];
+const FRAME_URL = id => `frames/${id}.webp`;
+const FIMG = {};
+function loadFrame(id) { if (FIMG[id]) return FIMG[id]; const im = new Image(); const f = { im, ok: false, bad: false }; im.onload = () => { f.ok = true; }; im.onerror = () => { f.bad = true; }; im.src = FRAME_URL(id); FIMG[id] = f; return f; }
+const frameOk = id => !!(FIMG[id] && FIMG[id].ok);
+const imgTag = (id, cls = '') => `<img ${cls ? `class="${cls}" ` : ''}src="${FRAME_URL(id)}" alt="" loading="lazy" onerror="this.remove()">`;
 const memCount = d => MEM_ACT[d].filter(k => mems.has(k)).length;
 const REFLECTS = [
   null,
@@ -1343,7 +1384,7 @@ function startEvent(id) { DIR.ev = id; DIR.t = 0; const E = EVENTS[id]; DIR.dur 
   if (id === 'blackout') { for (let k = 0; k < 2; k++) { const sp = findSpot(P.x, P.y, 110, 180); if (sp) spawnMob('sombra', sp.x, sp.y); } }
   if (isContract(id)) sfx('roar'); else if (EVENTS[id].lvl >= 1) sfx('event'); }
 function endEvent(id) { if (isContract(id)) { setContract(false); if (day === 2) contrCount++; }
-  if (id === 'grande' && day === 1) { flags.bigDone = true; const g = folds.find(f => f.key === 'G1'); if (g) { g.closed = false; burst(g.x, g.y, '#e392a3', 40); } toast('A contração rasgou a membrana. Uma passagem se abriu a leste.', 'good'); } }
+  if (id === 'grande' && day === 1) { flags.bigDone = true; const g = folds.find(f => f.key === 'G1'); if (g) { g.closed = false; burst(g.x, g.y, '#e392a3', 40); } toast('A contração rasgou a membrana. Uma passagem se abriu a leste.', 'good'); setTimeout(() => { if (state === 'play' && $('#overlay').hidden) showCard({ img: 'dia1_grande_contracao', kick: 'A GRANDE CONTRAÇÃO', title: 'A membrana se rasga', body: 'A baleia inteira se contorce. Quando tudo para, a membrana que fechava o caminho está rasgada. Uma passagem se abriu a leste.', btn: 'Seguir em frente' }); }, 700); } }
 function directorTick(dt) { if (day === 4) { windX = windY = 0; tideLevel = 0; return; }
   const rg = regionOf(P.x, P.y), quiet = rg && rg.id === 'silencio';
   if (quiet && DIR.phase === 'run' && DIR.ev !== 'calm') { endEvent(DIR.ev); DIR.ev = 'calm'; DIR.t = 0; DIR.dur = 30; }
@@ -1418,7 +1459,7 @@ function setupNodes() { if (day === 4) { setupNodes4(); return; }
     const nl = []; const ox = Math.floor(p.out.x / TS), oy = Math.floor(p.out.y / TS); for (let y = oy - 3; y <= oy + 3; y++) for (let x = ox - 3; x <= ox + 3; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0 && regionMap[idx(x, y)] < REGIONS.length && !solid[idx(x, y)]) nl.push(idx(x, y)); if (nl.length) placeNode('nerve', nl, { gap: 12, data: { fold: p.fold } }); }
 }
 const QUESTS4 = [
-  { id: 'enter', t: 'Entre em Nínive pelo portão oeste', target: () => ({ x: 22 * TS, y: 37.5 * TS }), check: () => inCityT(Math.floor(P.x / TS), Math.floor(P.y / TS)) },
+  { id: 'enter', t: 'Entre em Nínive pelo portão oeste', target: () => ({ x: 22 * TS, y: 37.5 * TS }), check: () => inCityT(Math.floor(P.x / TS), Math.floor(P.y / TS)), done: () => showCard({ img: 'ninive_cidade', kick: 'NÍNIVE', title: 'A grande cidade', body: 'Ruas cheias, mercados barulhentos, portões guardados por touros alados. Ninguém aqui conhece o Deus de Jonas. Ele respira fundo: é hora de falar.', btn: 'Seguir para as praças' }) },
   { id: 'proclaim', t: 'Anuncie a mensagem nas três praças', req: ['enter'], sub: () => `${flags.procl || 0}/3 praças`, target: () => nodes.find(n => n.k === 'plaza' && !(flags.proc || {})[n.pi]), check: () => (flags.procl || 0) >= 3 },
   { id: 'king', t: 'Vá ao palácio e fale com o rei', req: ['proclaim'], target: () => nodes.find(n => n.k === 'king'), check: () => flags.kingDone },
   { id: 'hill', t: 'Saia pelo portão leste e suba a colina', req: ['king'], target: () => nodes.find(n => n.k === 'site'), check: () => flags.booth },
@@ -1434,17 +1475,17 @@ const QUESTS = {
     { id: 'rest', t: 'Volte ao abrigo e descanse', req: ['mem1'], target: () => shelter, sub: () => 'Interaja com o abrigo para encerrar o dia', check: () => flags.rested },
   ],
   2: [
-    { id: 'explore', t: 'Procure uma saída: explore três regiões', sub: () => ['costelas', 'lago', 'cilios'].map(k => (visited.has(k) ? '■ ' : '□ ') + RG[k].n.split(' ').slice(-1)[0]).join('  '), check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)) },
+    { id: 'explore', t: 'Procure uma saída: explore três regiões', sub: () => ['costelas', 'lago', 'cilios'].map(k => (visited.has(k) ? '■ ' : '□ ') + RG[k].n.split(' ').slice(-1)[0]).join('  '), check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia2_explorar', kick: 'AS PROFUNDEZAS', title: 'Nenhuma saída à vista', body: 'Jonas percorreu as três regiões, e a baleia parece não ter fim. Se existe uma saída, ela está mais para dentro.', btn: 'Continuar' }) },
     { id: 'tool', t: 'Crie algo para atravessar o ácido', sub: () => 'Ponte, botas ou sandálias (aba Travessia)', check: () => crafted.ponte || crafted.botas || crafted.sandalias },
     { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças`, target: () => memNode(), check: () => memCount(2) >= 6 },
     { id: 'pattern', t: 'Observe o padrão das contrações', sub: () => `${Math.min(contrCount, 2)}/2 contrações`, check: () => contrCount >= 2, done: () => { flags.pattern = true; toast('Jonas agora sente o ritmo. O mostrador avisa a próxima contração.', 'good'); } },
     { id: 'central', t: 'Alcance a Câmara Central', req: ['explore', 'tool'], target: () => ({ x: RG.central.x * TS, y: RG.central.y * TS }), sub: () => qDone('nineve') && qDone('pattern') ? 'A saída deve estar lá' : 'Conclua as outras missões antes', check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'central' && qDone('nineve') && qDone('pattern'); }, done: () => climax2() },
   ],
   3: [
-    { id: 'revisit', t: 'Revisite as regiões transformadas', sub: () => `${['costelas', 'lago', 'cilios'].filter(k => visited.has(k)).length}/3`, check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)) },
+    { id: 'revisit', t: 'Revisite as regiões transformadas', sub: () => `${['costelas', 'lago', 'cilios'].filter(k => visited.has(k)).length}/3`, check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia3_ajoelhar', kick: 'DAS PROFUNDEZAS À LUZ', title: 'Parar de procurar', body: 'As regiões mudaram e não há porta em lugar nenhum. Pela primeira vez, Jonas para de procurar uma saída e se ajoelha.', btn: 'Continuar' }) },
     { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças`, target: () => memNode(), check: () => memCount(3) >= 6, done: () => { const g = folds.find(f => f.key === 'G3'); if (g) { g.closed = false; burst(g.x, g.y, '#62f4e2', 40); } toast(`Uma passagem se abriu: ${RG.cilios.n}.`, 'good'); } },
     { id: 'gauntlet', t: 'Atravesse a passagem final', req: ['mems'], target: () => { const g = folds.find(f => f.key === 'G3'); return g && !flags.gEntered ? g : { x: RG.silencio.x * TS, y: RG.silencio.y * TS }; }, check: () => flags.gauntlet },
-    { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; } },
+    { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; }, done: () => showCard({ img: 'dia3_camara_silencio', kick: 'A CÂMARA DO SILÊNCIO', title: 'Silêncio', body: 'Nenhum som, nenhum movimento. Só um feixe de luz caindo sobre uma pedra lisa, como um altar.', btn: 'Aproximar-se' }) },
     { id: 'pray', t: 'Ajoelhe-se e ore', req: ['silence'], target: () => nodes.find(n => n.k === 'altar'), check: () => flags.prayed },
   ],
   4: QUESTS4,
@@ -1476,10 +1517,10 @@ function startDay(n, data) {
   save();
   invDirty = true; updateDock(); buildQuests(); buildHotbar(); updateDayUI();
   $('#hud').hidden = false;
-  showCard({ kick: DAYS[day].kick, title: `Dia ${day} — ${DAYS[day].name}`, body: DAYS[day].body, btn: 'Começar o dia' });
+  showCard({ img: day === 4 ? 'ninive_titulo' : `dia${day}_titulo`, kick: DAYS[day].kick, title: `Dia ${day} — ${DAYS[day].name}`, body: DAYS[day].body, btn: 'Começar o dia' });
 }
-function endDay() { if (day === 1) playCut('sleep', () => showCard({ kick: 'FIM DO DIA 1', title: 'Jonas adormece', body: 'Pela primeira vez desde a tempestade, Jonas fecha os olhos sem medo de afundar. Lá fora, ou lá dentro, a baleia continua respirando.', btn: 'Seguir para o Dia 2', fn: () => startDay(2) })); }
-function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => playCut('dive', () => showCard({ kick: 'A SAÍDA QUE NÃO EXISTE', title: 'A baleia mergulha', body: 'A Câmara Central estremece. O que parecia uma passagem se fecha numa parede de carne, e o chão vira ácido. Jonas recua até um canto quieto, longe dos perigos, e entende que o desafio não é encontrar uma porta.', btn: 'Seguir para o Dia 3', fn: () => startDay(3) })), 900); }
+function endDay() { if (day === 1) playCut('sleep', () => showCard({ img: 'dia1_sono', kick: 'FIM DO DIA 1', title: 'Jonas adormece', body: 'Pela primeira vez desde a tempestade, Jonas fecha os olhos sem medo de afundar. Lá fora, ou lá dentro, a baleia continua respirando.', btn: 'Seguir para o Dia 2', fn: () => startDay(2) })); }
+function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => playCut('dive', () => showCard({ img: 'dia2_sono', kick: 'A SAÍDA QUE NÃO EXISTE', title: 'A baleia mergulha', body: 'A Câmara Central estremece. O que parecia uma passagem se fecha numa parede de carne, e o chão vira ácido. Jonas recua até um canto quieto, longe dos perigos, e entende que o desafio não é encontrar uma porta.', btn: 'Seguir para o Dia 3', fn: () => startDay(3) })), 900); }
 
 /* ================= SPECIAL INTERACTIONS ================= */
 function interactTarget() { let best = null, bd = 1e9;
@@ -1507,9 +1548,9 @@ function interact() { if (state !== 'play' || paused) return; const t = interact
   if (n.uses <= 0) { if (D.regrow) { n.hidden = true; n.rg = D.regrow; } else n.gone = true; } }
 function special(n) { const D = NODES[n.k];
   if (n.k === 'bottle') { n.gone = true; sfx('pick'); showCard({ kick: 'A GARRAFA MISTERIOSA', title: 'Uma mensagem enrolada', body: pickM(BOTTLES), btn: 'Guardar a rolha', fn: () => addItem('concha', 1) }); return; }
-  if (n.k === 'chest') { n.gone = true; sfx('mem'); showCard({ kick: 'O TESOURO DECEPCIONANTE', title: 'Um baú dourado!', body: 'Jonas força a tampa, o coração acelerado. Dentro há… uma sandália. Uma só. Talvez com corda e gosma ela sirva para alguma coisa (aba Travessia).', btn: 'Pegar a sandália', fn: () => addItem('sandalia', 1) }); return; }
-  if (n.k === 'memory') { n.gone = true; const act = MEM_ACT[day] || []; const id = act.find(k => !mems.has(k)); sfx('mem'); burst(n.x, n.y - 10, '#62f4e2', 30); if (!id) { toast('Uma lembrança já conhecida.'); return; } mems.add(id); if (Object.keys(MEMS).every(k => mems.has(k))) unlock('memorias'); if (buddy) buddy.happy = 2; const M = MEMS[id]; showCard({ kick: `LEMBRANÇA ${memCount(day)}/${act.length} · ${ACT_NAME[day].toUpperCase()}`, title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
-  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); if (refl.size >= 9) unlock('reflexoes'); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
+  if (n.k === 'chest') { n.gone = true; sfx('mem'); showCard({ img: 'dia2_bau', kick: 'O TESOURO DECEPCIONANTE', title: 'Um baú dourado!', body: 'Jonas força a tampa, o coração acelerado. Dentro há… uma sandália. Uma só. Talvez com corda e gosma ela sirva para alguma coisa (aba Travessia).', btn: 'Pegar a sandália', fn: () => addItem('sandalia', 1) }); return; }
+  if (n.k === 'memory') { n.gone = true; const act = MEM_ACT[day] || []; const id = act.find(k => !mems.has(k)); sfx('mem'); burst(n.x, n.y - 10, '#62f4e2', 30); if (!id) { toast('Uma lembrança já conhecida.'); return; } mems.add(id); if (Object.keys(MEMS).every(k => mems.has(k))) unlock('memorias'); if (buddy) buddy.happy = 2; const M = MEMS[id]; showCard({ img: MEM_IMG[id], kick: `LEMBRANÇA ${memCount(day)}/${act.length} · ${ACT_NAME[day].toUpperCase()}`, title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
+  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); if (refl.size >= 9) unlock('reflexoes'); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ img: REFL_IMG[n.rf], kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
   if (n.k === 'bile') { if (hasKnife()) { addItem('bile', 1); sfx('pick'); burst(n.x, n.y - 6, '#b9dc3c', 6); spendNode(n); } else popBile(n); return; }
   if (n.k === 'nerve') { triggerNerve(n); return; }
   if (n.k === 'spore') { sfx('mem'); burst(n.x, n.y - 6, '#62f4e2', 16); if (equip.light) { const it = ITEMS[equip.light.id]; equip.light.dur = Math.min(it.fuel, equip.light.dur + it.fuel * .4); toast(`Os esporos renovam a luz da ${it.n.toLowerCase()}.`, 'good'); invDirty = true; } else { P.spore = 25; toast('Os esporos grudam em Jonas e brilham por um tempo.', 'good'); } spendNode(n); return; }
@@ -1517,16 +1558,16 @@ function special(n) { const D = NODES[n.k];
   if (n.k === 'plaza') { flags.proc = flags.proc || {}; if (flags.proc[n.pi]) { toast('Esta praça já ouviu a mensagem.'); return; } flags.proc[n.pi] = 1; flags.procl = (flags.procl || 0) + 1; sfx('mem'); burst(n.x, n.y - 14, '#ffe170', 20);
     for (const m of nodes) if (m.k === 'npc' && (flags.procl >= 3 || dist(m.x, m.y, n.x, n.y) < 13 * TS)) m.conv = true;
     const R3 = ['Um mercador larga a balança no meio da conta. Uma mãe puxa o filho para perto. Ninguém ri do estrangeiro com cheiro de peixe.', 'Os anciãos se entreolham. Alguém rasga a própria roupa. A notícia corre mais rápido do que Jonas consegue andar.', 'Do maior ao menor, a cidade inteira se veste de pano de saco e começa a jejuar. Até o gado fica sem comer.'];
-    showCard({ kick: `PROCLAMAÇÃO · ${flags.procl}/3`, title: 'Jonas ergue a voz', quote: 'Daqui a quarenta dias Nínive será destruída.', ref: 'Jonas 3:4', body: R3[flags.procl - 1], btn: 'Continuar' }); return; }
+    showCard({ img: `ninive_proclamacao_${flags.procl}`, kick: `PROCLAMAÇÃO · ${flags.procl}/3`, title: 'Jonas ergue a voz', quote: 'Daqui a quarenta dias Nínive será destruída.', ref: 'Jonas 3:4', body: R3[flags.procl - 1], btn: 'Continuar' }); return; }
   if (n.k === 'king') { if (qState.king !== 'active') { toast(n.conv ? 'O rei está sentado na cinza, em silêncio.' : 'Os guardas não deixam um estrangeiro falar com o rei. Ainda.'); return; }
     n.conv = true; sfx('mem');
-    showCard({ kick: 'O REI DE NÍNIVE', title: 'O trono fica vazio', body: 'A notícia chega ao palácio. O rei se levanta do trono, tira o manto, cobre-se de pano de saco e senta-se na cinza. Então manda anunciar: ninguém coma, ninguém beba; todos clamem a Deus e deixem a violência.', quote: 'Quem sabe Deus volte atrás e nós não pereçamos.', ref: 'Jonas 3:9', btn: 'Continuar',
-      fn: () => showCard({ kick: 'JONAS 3:10 – 4:1', title: 'A cidade é poupada', body: 'Deus viu o que eles fizeram e como deixaram o mau caminho, e não trouxe o mal que tinha anunciado. Jonas, porém, ficou profundamente contrariado. Era exatamente isso que ele temia desde Jope.', btn: 'Sair da cidade', fn: () => { flags.kingDone = true; questTick(); } }) }); return; }
+    showCard({ img: 'ninive_rei', kick: 'O REI DE NÍNIVE', title: 'O trono fica vazio', body: 'A notícia chega ao palácio. O rei se levanta do trono, tira o manto, cobre-se de pano de saco e senta-se na cinza. Então manda anunciar: ninguém coma, ninguém beba; todos clamem a Deus e deixem a violência.', quote: 'Quem sabe Deus volte atrás e nós não pereçamos.', ref: 'Jonas 3:9', btn: 'Continuar',
+      fn: () => showCard({ img: 'ninive_poupada', kick: 'JONAS 3:10 – 4:1', title: 'A cidade é poupada', body: 'Deus viu o que eles fizeram e como deixaram o mau caminho, e não trouxe o mal que tinha anunciado. Jonas, porém, ficou profundamente contrariado. Era exatamente isso que ele temia desde Jope.', btn: 'Sair da cidade', fn: () => { flags.kingDone = true; questTick(); } }) }); return; }
   if (n.k === 'site') { if (qState.hill !== 'active') { toast('Daqui dá para ver a cidade inteira.'); return; } if (flags.booth) return; flags.booth = true; n.built = true; sfx('craft'); P.x = n.x + 4; P.y = n.y + 10; P.fx = -1; P.fy = 0; P.face = 's'; P.flip = true;
-    showCard({ kick: 'JONAS 4:5', title: 'A enramada', body: 'Jonas saiu da cidade, fez uma enramada de galhos a leste e sentou-se à sombra, esperando para ver o que aconteceria com Nínive.', btn: 'Esperar', fn: () => { flags.epi = 'night'; flags.epiT = 0; questTick(); } }); return; }
+    showCard({ img: 'ninive_enramada', kick: 'JONAS 4:5', title: 'A enramada', body: 'Jonas saiu da cidade, fez uma enramada de galhos a leste e sentou-se à sombra, esperando para ver o que aconteceria com Nínive.', btn: 'Esperar', fn: () => { flags.epi = 'night'; flags.epiT = 0; questTick(); } }); return; }
   if (n.k === 'altar') { if (qState.pray !== 'active') { toast('Ainda não. Algo precisa acontecer antes.'); return; } pray(); } }
 function openTrade() { const offers = TRADES[day]; const html = offers.map((o, i) => { const side = obj => Object.entries(obj).map(([k, v]) => `<span class="chip${k in o.g && count(k) < v && obj === o.g ? ' miss' : ''}">${iconImg(k, 2)} ${v} ${ITEMS[k].n}</span>`).join(''); return `<div class="trade"><div class="side">${side(o.g)}</div><span class="lbl">por</span><div class="side">${side(o.r)}</div><button class="mk" data-tr="${i}" ${hasAll(o.g) ? '' : 'disabled'}>Trocar</button></div>`; }).join('');
-  showCard({ kick: 'O MERCADOR IMPROVÁVEL', title: 'Um caranguejo de chapéu', body: '“Trocas justas, preços absurdos. Conchas, por favor.”', html, btn: 'Até logo' });
+  showCard({ img: 'extra_mercador', kick: 'O MERCADOR IMPROVÁVEL', title: 'Um caranguejo de chapéu', body: '“Trocas justas, preços absurdos. Conchas, por favor.”', html, btn: 'Até logo' });
   document.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => { const o = offers[+b.dataset.tr]; if (!hasAll(o.g)) return; for (const k in o.g) take(k, o.g[k]); for (const k in o.r) addItem(k, o.r[k], true); sfx('craft'); GST.trades++; saveAch(); if (GST.trades >= 3) unlock('mercador'); toast('Troca feita. O caranguejo parece satisfeito.', 'good'); openTrade(); }); }
 /* ================= ONBOARDING ================= */
 const TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches;
@@ -1559,25 +1600,33 @@ const EPI = { night: 0, heat: 0 };
 function epiTick(dt) { if (!flags.epi || flags.epi === 'done') return; flags.epiT = (flags.epiT || 0) + dt; const t = flags.epiT, site = nodes.find(n => n.k === 'site'); let plant = nodes.find(n => n.k === 'plantN'), worm = nodes.find(n => n.k === 'worm');
   switch (flags.epi) {
     case 'night': EPI.night = Math.min(1, t / 3); if (t >= 3.4) { flags.epi = 'grow'; flags.epiT = 0; if (!plant) nodes.push({ k: 'plantN', x: site.x, y: site.y + 1, grow: 0, wither: 0, ph: 0, uses: 1, max: 1 }); } break;
-    case 'grow': EPI.night = Math.max(.55, 1 - t * .2); plant.grow = Math.min(1, t / 2.6); if (t > .2 && Math.random() < .3) burst(plant.x + rr(-12, 12), plant.y - rr(4, 18), '#b9dc3c', 1); if (t >= 3) { flags.epi = 'glad'; sfx('mem'); showCard({ kick: 'JONAS 4:6', title: 'Uma planta para dar sombra', body: 'Durante a noite, o Senhor Deus fez crescer uma planta sobre a enramada, para dar sombra à cabeça de Jonas e aliviar o seu mal. Jonas ficou muito alegre por causa da planta.', btn: 'Dormir', fn: () => { flags.epi = 'dawn'; flags.epiT = 0; } }); } break;
+    case 'grow': EPI.night = Math.max(.55, 1 - t * .2); plant.grow = Math.min(1, t / 2.6); if (t > .2 && Math.random() < .3) burst(plant.x + rr(-12, 12), plant.y - rr(4, 18), '#b9dc3c', 1); if (t >= 3) { flags.epi = 'glad'; sfx('mem'); showCard({ img: 'ninive_planta', kick: 'JONAS 4:6', title: 'Uma planta para dar sombra', body: 'Durante a noite, o Senhor Deus fez crescer uma planta sobre a enramada, para dar sombra à cabeça de Jonas e aliviar o seu mal. Jonas ficou muito alegre por causa da planta.', btn: 'Dormir', fn: () => { flags.epi = 'dawn'; flags.epiT = 0; } }); } break;
     case 'dawn': EPI.night = Math.max(0, .55 - t * .3); if (t >= 2.2) { flags.epi = 'worm'; flags.epiT = 0; if (!worm) nodes.push({ k: 'worm', x: site.x + 34, y: site.y + 4, ph: 0, uses: 1, max: 1 }); } break;
     case 'worm': EPI.night = 0; if (worm) { worm.x = lerp(worm.x, plant.x + 6, Math.min(1, dt * .9)); worm.y = lerp(worm.y, plant.y + 1, Math.min(1, dt * .9)); } plant.wither = clamp((t - 2) / 3, 0, 1); if (t >= 5.6) { flags.epi = 'heat'; flags.epiT = 0; const wi = nodes.indexOf(worm); if (wi >= 0) nodes.splice(wi, 1); } break;
-    case 'heat': EPI.heat = Math.min(1, t / 4); windX = -18 * EPI.heat; shakeA = Math.max(shakeA, EPI.heat * .8); if (t >= 5.2) { flags.epi = 'ask'; showCard({ kick: 'JONAS 4:7–9', title: 'O verme e o vento leste', body: 'Ao amanhecer, um verme atacou a planta e ela secou. Quando o sol nasceu, um vento quente soprou do leste e o sol queimou a cabeça de Jonas até ele desfalecer. Deus lhe perguntou se era razoável ficar tão irado por causa de uma planta. Jonas respondeu que sim, que tinha toda a razão.', btn: 'Ouvir', fn: finalQuestion }); } break;
+    case 'heat': EPI.heat = Math.min(1, t / 4); windX = -18 * EPI.heat; shakeA = Math.max(shakeA, EPI.heat * .8); if (t >= 5.2) { flags.epi = 'ask'; showCard({ img: 'ninive_verme_vento', kick: 'JONAS 4:7–9', title: 'O verme e o vento leste', body: 'Ao amanhecer, um verme atacou a planta e ela secou. Quando o sol nasceu, um vento quente soprou do leste e o sol queimou a cabeça de Jonas até ele desfalecer. Deus lhe perguntou se era razoável ficar tão irado por causa de uma planta. Jonas respondeu que sim, que tinha toda a razão.', btn: 'Ouvir', fn: finalQuestion }); } break;
   } }
-function finalQuestion() { EPI.heat = .4; showCard({ kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'O livro termina aqui, com a pergunta no ar. Ninguém registrou a resposta de Jonas.', btn: 'Fim', fn: credits }); }
+function finalQuestion() { EPI.heat = .4; showCard({ img: 'ninive_pergunta', kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'O livro termina aqui, com a pergunta no ar. Ninguém registrou a resposta de Jonas.', btn: 'Fim', fn: credits }); }
 /* ================= CUTSCENES ================= */
 let CUT = null;
 const CUTS = {
   intro: { dur: 11.2, caps: [[.3, 'Jonas fugiu para Társis, para longe da presença do Senhor.', 'Jonas 1:3'], [2.4, 'Mas o Senhor lançou um grande vento sobre o mar.', 'Jonas 1:4'], [4.3, 'Lançaram Jonas ao mar, e o mar se acalmou.', 'Jonas 1:15'], [6.7, 'E o Senhor preparou um grande peixe para engolir Jonas.', 'Jonas 1:17'], [10.3, '', '']] },
   sleep: { dur: 5, caps: [[.4, 'Jonas dorme. Lá fora, ou lá dentro, a baleia continua respirando.', ''], [4.4, '', '']] },
   dive: { dur: 5.4, caps: [[.4, 'A baleia mergulha fundo, e a passagem que parecia uma saída se fecha.', ''], [4.8, '', '']] },
+  exit: { dur: 8, caps: [[.4, 'E o Senhor falou ao peixe…', 'Jonas 2:10'], [3, 'A baleia sobe à superfície.', ''], [5.4, '…e o peixe vomitou Jonas na terra seca.', '']] },
 };
-function playCut(name, done) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; CUT = { name, t: 0, done, prev: state, ci: -1, parts: [] }; state = 'cut'; paused = true; $('#hud').hidden = true; $('#cut').hidden = false; $('#cutCap').className = ''; audioInit(); }
-function endCut() { if (!CUT) return; const c = CUT; CUT = null; $('#cut').hidden = true; $('#cutCap').className = ''; state = c.prev === 'cut' ? 'play' : c.prev; if (state === 'play') $('#hud').hidden = false; c.done && c.done(); }
+const CUTS_IMG = {
+  intro: { dur: 16.4, fr: ['abertura_01_fuga', 'abertura_02_tempestade', 'abertura_03_lancado', 'abertura_04_afundando', 'abertura_05_engolido'], caps: [[.3, 'Jonas fugiu para Társis, para longe da presença do Senhor.', 'Jonas 1:3'], [3.5, 'Mas o Senhor lançou um grande vento sobre o mar.', 'Jonas 1:4'], [6.7, 'Lançaram Jonas ao mar, e o mar se acalmou.', 'Jonas 1:15'], [9.9, 'E o Senhor preparou um grande peixe para engolir Jonas.', 'Jonas 1:17'], [13.4, '', '']] },
+  sleep: { dur: 6, fr: ['dia1_sono'], caps: [[.4, 'Jonas dorme. Lá fora, ou lá dentro, a baleia continua respirando.', ''], [5.2, '', '']] },
+  dive: { dur: 7, fr: ['dia2_climax_dentro', 'dia2_climax_fora'], caps: [[.3, 'A passagem que parecia uma saída se fecha numa parede de carne.', ''], [3.4, 'A baleia mergulha fundo.', '']] },
+  exit: { dur: 10, fr: ['final_01_ordem', 'final_02_subida', 'final_03_praia'], caps: [[.3, 'E o Senhor falou ao peixe…', 'Jonas 2:10'], [3.4, 'A baleia sobe à superfície.', ''], [6.6, '…e o peixe vomitou Jonas na terra seca.', '']] },
+};
+function cutImgSet(id) { const box = $('#cutImg'); if (!box) return; const ims = box.querySelectorAll('img'); if (!id) { box.classList.remove('on'); ims.forEach(i => i.classList.remove('on')); return; } box.classList.add('on'); const cur = [...ims].find(i => i.classList.contains('on')); const nx = cur === ims[0] ? ims[1] : ims[0]; nx.src = FRAME_URL(id); nx.classList.remove('on'); void nx.offsetWidth; nx.classList.add('on'); if (cur) cur.classList.remove('on'); }
+function playCut(name, done) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; const alt = CUTS_IMG[name] && CUTS_IMG[name].fr.every(frameOk) ? CUTS_IMG[name] : null; CUT = { name, t: 0, done, prev: state, ci: -1, parts: [], alt }; cutImgSet(null); if (alt) $('#cutImg').classList.add('on'); state = 'cut'; paused = true; $('#hud').hidden = true; $('#cut').hidden = false; $('#cutCap').className = ''; audioInit(); }
+function endCut() { if (!CUT) return; const c = CUT; CUT = null; cutImgSet(null); $('#cut').hidden = true; $('#cutCap').className = ''; state = c.prev === 'cut' ? 'play' : c.prev; if (state === 'play') $('#hud').hidden = false; c.done && c.done(); }
 $('#cutSkip').onclick = () => endCut();
-function cutTick(dt) { const c = CUT; if (!c) return; c.t += dt; const sc = CUTS[c.name];
-  let ci = -1; sc.caps.forEach((cp, i) => { if (c.t >= cp[0]) ci = i; }); if (ci !== c.ci) { c.ci = ci; const cp = sc.caps[ci], el = $('#cutCap'); if (cp && cp[1]) { el.innerHTML = `${cp[1]}${cp[2] ? `<cite>${cp[2]}</cite>` : ''}`; el.className = 'on'; } else el.className = ''; }
-  if (c.name === 'intro' && c.t > 6.2 && !c.boom) { c.boom = 1; sfx('roar'); } if (c.name === 'intro' && Math.random() < dt * 1.2 && c.t < 4.5) sfx('splash');
+function cutTick(dt) { const c = CUT; if (!c) return; c.t += dt; const sc = c.alt || CUTS[c.name];
+  let ci = -1; sc.caps.forEach((cp, i) => { if (c.t >= cp[0]) ci = i; }); if (ci !== c.ci) { c.ci = ci; if (c.alt && ci >= 0) cutImgSet(c.alt.fr[Math.min(ci, c.alt.fr.length - 1)]); const cp = sc.caps[ci], el = $('#cutCap'); if (cp && cp[1]) { el.innerHTML = `${cp[1]}${cp[2] ? `<cite>${cp[2]}</cite>` : ''}`; el.className = 'on'; } else el.className = ''; }
+  if (c.name === 'intro' && c.t > (c.alt ? 9.9 : 6.2) && !c.boom) { c.boom = 1; sfx('roar'); } if (c.name === 'intro' && Math.random() < dt * 1.2 && c.t < 4.5) sfx('splash');
   if (c.t >= sc.dur) endCut(); }
 function drawWhaleSil(x, y, sc, ang, mouth) { ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(ang); ctx.scale(sc, sc);
   ctx.fillStyle = '#1b2244'; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.quadraticCurveTo(-58, -26, -10, -28); ctx.quadraticCurveTo(50, -26, 80, -6); ctx.lineTo(112, -22); ctx.lineTo(106, 0); ctx.lineTo(114, 18); ctx.lineTo(80, 6); ctx.quadraticCurveTo(40, 26, -10, 24); ctx.quadraticCurveTo(-56, 22, -60, 0); ctx.fill();
@@ -1586,6 +1635,7 @@ function drawWhaleSil(x, y, sc, ang, mouth) { ctx.save(); ctx.translate(Math.rou
   if (mouth > 0) { ctx.fillStyle = '#0a0612'; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(-10, -4 - mouth * 10); ctx.lineTo(-10, 6 + mouth * 10); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#c9c0a8'; for (let k = 0; k < 8; k++) ctx.fillRect(-56 + k * 6, -2 - mouth * 6 * (k / 8), 1, 3); }
   ctx.fillStyle = '#f3e6cf'; ctx.fillRect(-26, -19, 3, 3); ctx.fillStyle = '#0a0612'; ctx.fillRect(-25, -18, 2, 2); ctx.restore(); }
 function drawCut() { const c = CUT; if (!c) return; const t = c.t, W = VW, H = VH; ctx.imageSmoothingEnabled = false;
+  if (c.alt || c.name === 'exit') { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0d2a52'); g.addColorStop(1, '#05020a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); if (!c.alt) { ctx.fillStyle = 'rgba(255,240,200,' + clamp(t / 6, 0, .5).toFixed(2) + ')'; ctx.fillRect(0, 0, W, H * clamp(t / 7, 0, 1)); } return; }
   if (c.name === 'intro') {
     if (t < 6.2) { const storm = t < 4.6 ? 1 : Math.max(.15, 1 - (t - 4.6) * .6); const sea = Math.round(H * .58);
       const sky = ['#0b0816', '#110d22', '#18122e', '#211839', '#2a1e44']; for (let i = 0; i < 5; i++) { ctx.fillStyle = sky[i]; ctx.fillRect(0, Math.round(i * sea / 5), W, Math.ceil(sea / 5) + 1); }
@@ -1639,7 +1689,7 @@ function newGameCard() { let sel = 'normal', rnd = false;
   $('#mapT').onclick = function () { rnd = !rnd; this.textContent = rnd ? 'Aleatório' : 'Clássico'; this.classList.toggle('alt', !rnd); sfx('pick'); }; }
 function endRunAch() { if (deaths === 0) unlock('sem_desmaio'); if (playTime < 2700) unlock('rapido'); if (DIFF === 'dificil') unlock('pesadelo'); }
 function credits() { unlock('ninive'); flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
-  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
+  showCard({ img: 'creditos', kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
 function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
   if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
 function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
@@ -1661,17 +1711,17 @@ function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(d
   if (day === 3 && qState.gauntlet === 'active') { const g = tun['cilios>silencio']; const near = t => { const p = g[Math.floor(t * (g.length - 1))]; return dist(P.x, P.y, p.x * TS, p.y * TS) < 40; }; if (!flags.gEntered && near(.48)) { flags.gEntered = true; forceEvent('storm', 1); toast('A baleia reage à presença de Jonas na passagem.', 'bad'); } if (near(.86) || (regionOf(P.x, P.y) || {}).id === 'silencio') flags.gauntlet = true; }
 }
 function pray() { paused = true; flags.praying = true; state = 'pray'; let i = 0; const ov = $('#overlay');
-  const show = () => { if (i >= PRAYER.length) { flags.prayed = true; flags.praying = false; ending(); return; } ov.hidden = false; ov.className = 'clear'; ov.innerHTML = `<div class="prayer" role="status">${PRAYER[i][0]}<cite>${PRAYER[i][1]}</cite></div>`; i++; prayT = setTimeout(show, 4200); };
+  const show = () => { if (i >= PRAYER.length) { flags.prayed = true; flags.praying = false; ending(); return; } ov.hidden = false; const pid = `oracao_0${i + 1}`; ov.className = 'clear' + (frameOk(pid) ? ' pbgon' : ''); ov.innerHTML = `${frameOk(pid) ? `<img class="pbg" src="${FRAME_URL(pid)}" alt="">` : ''}<div class="prayer" role="status">${PRAYER[i][0]}<cite>${PRAYER[i][1]}</cite></div>`; i++; prayT = setTimeout(show, frameOk(pid) ? 5200 : 4200); };
   ov.onclick = () => { clearTimeout(prayT); show(); };
   show(); }
 let prayT = 0;
 function ending() { endRunAch(); state = 'ending'; paused = true; $('#hud').hidden = true; const ov = $('#overlay'); ov.onclick = null; ov.className = 'clear'; ov.hidden = true; endT = 0;
-  setTimeout(() => showCard({ kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Seguir para o Epílogo: Nínive', fn: () => startDay(4) }, { label: 'Tela inicial', fn: titleScreen }] }), 2600); }
+  setTimeout(() => playCut('exit', () => showCard({ img: 'final_04_terra_firme', kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL}</b>lembranças</div></div>`, buttons: [{ label: 'Seguir para o Epílogo: Nínive', fn: () => startDay(4) }, { label: 'Tela inicial', fn: titleScreen }] })), 1200); }
 const fmtTime = s => `${Math.floor(s / 60)}m${String(Math.floor(s % 60)).padStart(2, '0')}`;
 function die() { deaths++; const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < DF().lose) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
   const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(REGIONS[0].x * TS, REGIONS[0].y * TS, 6); if (sp) { P.x = sp.x; P.y = sp.y; }
   P.hp = 60; P.food = Math.max(P.food, 45); P.latched = null; for (const m of mobs) { if (m.latched) m.latched = false; if (dist(m.x, m.y, P.x, P.y) < 150) m.dead = m.gone = true; }
-  showCard({ kick: 'JONAS DESMAIOU', title: 'A escuridão por um instante', body: `Ele acorda ${shelter ? 'no abrigo' : 'entre os destroços'}, dolorido. ${lost.length ? 'Perdeu pelo caminho: ' + lost.join(', ') + '.' : 'Nada se perdeu.'}`, btn: 'Levantar' }); }
+  showCard({ img: 'extra_desmaio', kick: 'JONAS DESMAIOU', title: 'A escuridão por um instante', body: `Ele acorda ${shelter ? 'no abrigo' : 'entre os destroços'}, dolorido. ${lost.length ? 'Perdeu pelo caminho: ' + lost.join(', ') + '.' : 'Nada se perdeu.'}`, btn: 'Levantar' }); }
 
 /* ================= PLAYER ================= */
 const keys = {};
@@ -1989,8 +2039,8 @@ function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null,
     buildHotbar(); renderMenu(true); }); }
 function renderQuestTab(b) { const qs = QUESTS[day]; let lockShown = false;
   const items = qs.map(q => { const st = qState[q.id]; if (!st) { if (lockShown) return ''; lockShown = true; return `<div class="qi lock"><b></b><span>Ainda desconhecido… conclua as missões acima.</span></div>`; } return `<div class="qi ${st === 'done' ? 'done' : 'act'}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }).join('');
-  const memHtml = [1, 2, 3].map(d => `<span class="lbl" style="margin-top:6px">Dia ${d} · ${ACT_NAME[d]}</span>` + MEM_ACT[d].map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}</summary><p>${MEMS[k].d}</p></details>` : `<div class="mem unk">Lembrança ainda não encontrada</div>`).join('')).join('');
-  b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL} encontradas</span><h3>Lembranças</h3>${memHtml}<span class="lbl" style="margin-top:8px">${refl.size}/9 momentos</span><h3>Reflexões</h3>${REFLECTS.map((R_, i) => !R_ ? '' : refl.has(i) ? `<details class="mem"><summary>${R_.ref}</summary><p>“${R_.q}”<br><br>${R_.d}</p></details>` : `<div class="mem unk">Lugar de reflexão ainda não encontrado</div>`).join('')}</div></div>`; }
+  const memHtml = [1, 2, 3].map(d => `<span class="lbl" style="margin-top:6px">Dia ${d} · ${ACT_NAME[d]}</span>` + MEM_ACT[d].map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}</summary><p>${imgTag(MEM_IMG[k], 'mthumb')}${MEMS[k].d}</p></details>` : `<div class="mem unk">Lembrança ainda não encontrada</div>`).join('')).join('');
+  b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL} encontradas</span><h3>Lembranças</h3>${memHtml}<span class="lbl" style="margin-top:8px">${refl.size}/9 momentos</span><h3>Reflexões</h3>${REFLECTS.map((R_, i) => !R_ ? '' : refl.has(i) ? `<details class="mem"><summary>${R_.ref}</summary><p>${imgTag(REFL_IMG[i], 'mthumb')}“${R_.q}”<br><br>${R_.d}</p></details>` : `<div class="mem unk">Lugar de reflexão ainda não encontrado</div>`).join('')}</div></div>`; }
 function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); let u = ''; try { u = c.toDataURL(); } catch (e) {}
   const tg = currentTarget(), q = QUESTS[day].find(q => qState[q.id] === 'active' && q.target);
   b.innerHTML = `<div class="mapwrap"><div class="mapbox"><img src="${u}" width="${MW * 5}" height="${MH * 5}" alt="Mapa revelado do interior da baleia"></div><div class="mapside"><span class="lbl">Legenda</span>
@@ -2047,7 +2097,7 @@ function drawMini(target = mctx) { if (!miniImg) miniImg = mctx.createImageData(
 
 /* ================= CARDS ================= */
 function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); paused = true; ov.hidden = false; ov.className = o.cls || ''; ov.onclick = null;
-  ov.innerHTML = `<div class="card px" role="dialog" aria-modal="true">${o.kick ? `<div class="kick">${o.kick}</div>` : ''}${o.logo ? `<img id="logoImg" src="${LOGO_SRC}" width="640" height="465" alt="Jonas: 3 Days Below">` : o.big ? `<h1>${o.title}</h1>` : `<h2>${o.title}</h2>`}${o.sub ? `<div class="sub">${o.sub}</div>` : ''}${o.quote ? `<blockquote>${o.quote}<cite>${o.ref}</cite></blockquote>` : ''}${o.body ? `<p>${o.body}</p>` : ''}${o.html || ''}<div class="btns">${(o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }]).map((b, i) => `<button class="btn ${i ? 'alt' : ''}" data-b="${i}">${b.label}</button>`).join('')}</div></div>`;
+  ov.innerHTML = `<div class="card px${o.img ? ' wide' : ''}" role="dialog" aria-modal="true">${o.img ? `<div class="cimg"><img src="${FRAME_URL(o.img)}" alt="" onerror="this.parentElement.remove();this.closest('.card')&&this.closest('.card').classList.remove('wide')"></div>` : ''}${o.kick ? `<div class="kick">${o.kick}</div>` : ''}${o.logo ? `<img id="logoImg" src="${LOGO_SRC}" width="640" height="465" alt="Jonas: 3 Days Below">` : o.big ? `<h1>${o.title}</h1>` : `<h2>${o.title}</h2>`}${o.sub ? `<div class="sub">${o.sub}</div>` : ''}${o.quote ? `<blockquote>${o.quote}<cite>${o.ref}</cite></blockquote>` : ''}${o.body ? `<p>${o.body}</p>` : ''}${o.html || ''}<div class="btns">${(o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }]).map((b, i) => `<button class="btn ${i ? 'alt' : ''}" data-b="${i}">${b.label}</button>`).join('')}</div></div>`;
   const bs = o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }];
   ov.querySelectorAll('[data-b]').forEach(b => b.onclick = e => { e.stopPropagation(); audioInit(); closeCard(); const f = bs[+b.dataset.b].fn; if (f) f(); });
   const lg = ov.querySelector('#logo'); if (lg) { const avail = lg.parentElement.clientWidth || 300; const k = Math.max(1, Math.min(3, Math.floor(avail / LOGO_W))); lg.style.width = LOGO_W * k + 'px'; lg.style.height = LOGO_H * k + 'px'; drawLogo(lg, T); }
@@ -2055,7 +2105,7 @@ function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); pa
 function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; if (state === 'play') paused = false; }
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
   const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: newGameCard }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: `Conquistas ${Object.keys(ACH).length}/${ACHS.length}`, fn: achCard }); btns.push({ label: 'Como jogar', fn: () => howTo() });
-  showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAS', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
+  showCard({ cls: 'titlebg', kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAS', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
 function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p><p>Tem controle de Xbox ou PlayStation? É só conectar. Em Ajustes dá para mudar teclas, aumentar o texto e reduzir tremores.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
 function bigMap() { openMenu('map'); }
@@ -2167,7 +2217,9 @@ function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Mat
 addEventListener('resize', resize);
 let last = 0;
 function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { gpTick(dt); update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'cut') drawCut(); else if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
-function boot(data) {
+const ALL_FRAMES = [...CUTS_IMG.intro.fr, 'tela_titulo', 'dia1_titulo', ...CUTS_IMG.sleep.fr, ...Object.values(MEM_IMG), ...REFL_IMG.filter(Boolean), 'dia1_grande_contracao', 'dia2_titulo', 'dia2_explorar', 'dia2_bau', ...CUTS_IMG.dive.fr, 'dia2_sono', 'dia3_titulo', 'dia3_ajoelhar', 'dia3_camara_silencio', 'oracao_01', 'oracao_02', 'oracao_03', 'oracao_04', 'oracao_05', ...CUTS_IMG.exit.fr, 'final_04_terra_firme', 'ninive_titulo', 'ninive_cidade', 'ninive_proclamacao_1', 'ninive_proclamacao_2', 'ninive_proclamacao_3', 'ninive_rei', 'ninive_poupada', 'ninive_enramada', 'ninive_planta', 'ninive_verme_vento', 'ninive_pergunta', 'creditos', 'extra_mercador', 'extra_desmaio'];
+function preloadFrames() { let i = 0; const next = () => { if (i >= ALL_FRAMES.length) return; const f = loadFrame(ALL_FRAMES[i++]); const go = () => setTimeout(next, 0); if (f.ok || f.bad) go(); else { f.im.addEventListener('load', go, { once: true }); f.im.addEventListener('error', go, { once: true }); } }; for (let k = 0; k < 4; k++) next(); }
+function boot(data) { preloadFrames();
   resize(); freshRun();
   ['hp', 'food', 'light'].forEach(k => { const el = $('#i' + k[0].toUpperCase() + k.slice(1)); el.src = iconURL(k); el.width = ICON[k].width * 2; el.height = ICON[k].height * 2; });
   // title backdrop: day-1 world
