@@ -394,6 +394,23 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
 .phint{display:block;margin-top:14px;text-align:center}
 @keyframes blinkH{50%{opacity:.35}}
 #overlay.praying{cursor:pointer}
+#overlay.roll{display:block;padding:0;overflow:hidden;background:#05020a;cursor:pointer}
+#overlay.roll .pbg{filter:brightness(.34);animation:none}
+.rollwrap{position:absolute;inset:0;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+.rolltxt{position:absolute;left:50%;top:0;width:min(560px,calc(100% - 32px));transform:translate(-50%,100vh);text-align:center;color:#e2d0ad;text-shadow:2px 2px 0 #05020a;animation:rollup var(--dur,80s) linear forwards}
+@keyframes rollup{to{transform:translate(-50%,calc(-100% - 6vh))}}
+.rolltxt img{display:block;width:min(340px,80%);margin:0 auto 18px;image-rendering:auto}
+.rolltxt h3{margin:46px 0 14px;font-family:var(--f-label);font-size:12px;letter-spacing:.18em;color:var(--acid);font-weight:400}
+.rolltxt .rl{margin:0 0 16px}
+.rolltxt .rl b{display:block;font-family:var(--f-display);font-size:clamp(26px,5vw,34px);font-weight:400;color:var(--bone);line-height:1}
+.rolltxt .rl span{display:block;margin-top:4px;font-size:14px;line-height:1.45;color:#cbb894}
+.rolltxt .big{margin:60px 0 10px;font-family:var(--f-display);font-size:clamp(40px,8vw,64px);color:var(--bone);line-height:.95}
+.rolltxt blockquote{margin:30px auto 0;max-width:46ch;font-size:19px;line-height:1.45;color:var(--bone)}
+.rolltxt blockquote cite{display:block;margin-top:6px;font-family:var(--f-label);font-size:11px;font-style:normal;color:var(--glow)}
+.rolltxt .stats3{margin-top:18px}
+.rollbar{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;gap:8px;z-index:2}
+.rollhint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-family:var(--f-label);font-size:11px;letter-spacing:.08em;color:var(--glow);white-space:nowrap;z-index:2}
+@media (prefers-reduced-motion:reduce){.rollwrap{overflow:auto;-webkit-mask-image:none;mask-image:none}.rolltxt{position:relative;transform:translateX(-50%);padding:70px 0 90px}}
 #cutCap{position:absolute;left:50%;bottom:calc(46px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(680px,calc(100vw - 32px));text-align:center;font-size:clamp(18px,3.2vw,26px);line-height:1.35;color:var(--bone);text-shadow:2px 2px 0 var(--ink),-1px -1px 0 var(--ink);transition:opacity .5s steps(5);opacity:0}
 #cutCap.on{opacity:1}
 #cutCap cite{display:block;margin-top:6px;font-family:var(--f-label);font-size:11px;font-style:normal;color:var(--glow)}
@@ -1611,7 +1628,8 @@ function epiTick(dt) { if (!flags.epi || flags.epi === 'done') return; flags.epi
     case 'worm': EPI.night = 0; if (worm) { worm.x = lerp(worm.x, plant.x + 6, Math.min(1, dt * .9)); worm.y = lerp(worm.y, plant.y + 1, Math.min(1, dt * .9)); } plant.wither = clamp((t - 2) / 3, 0, 1); if (t >= 5.6) { flags.epi = 'heat'; flags.epiT = 0; const wi = nodes.indexOf(worm); if (wi >= 0) nodes.splice(wi, 1); } break;
     case 'heat': EPI.heat = Math.min(1, t / 4); windX = -18 * EPI.heat; shakeA = Math.max(shakeA, EPI.heat * .8); if (t >= 5.2) { flags.epi = 'ask'; showCard({ img: 'ninive_verme_vento', kick: 'JONAS 4:7–9', title: 'O verme e o vento leste', body: 'Ao amanhecer, um verme atacou a planta e ela secou. Quando o sol nasceu, um vento quente soprou do leste e o sol queimou a cabeça de Jonas até ele desfalecer. Deus lhe perguntou se era razoável ficar tão irado por causa de uma planta. Jonas respondeu que sim, que tinha toda a razão.', btn: 'Ouvir', fn: finalQuestion }); } break;
   } }
-function finalQuestion() { EPI.heat = .4; showCard({ img: 'ninive_pergunta', kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'O livro termina aqui, com a pergunta no ar. Ninguém registrou a resposta de Jonas.', btn: 'Fim', fn: credits }); }
+function finalQuestion() { EPI.heat = .4; showCard({ img: 'ninive_pergunta', kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'Jonas tinha aprendido isso no fundo do mar, sem perceber. Agora Deus mostra a ele do alto da colina.', btn: 'Continuar', fn: lessonCard }); }
+function lessonCard() { EPI.heat = 0; showCard({ img: 'final_04_terra_firme', kick: 'A LIÇÃO DE JONAS', title: 'Ninguém está longe demais', quote: 'A salvação vem do Senhor.', ref: 'Jonas 2:9', body: 'Jonas fugiu, afundou e foi salvo sem merecer. Nínive também. O mesmo Deus que não desistiu de um profeta teimoso não desistiu de uma cidade inteira. Quem recebeu misericórdia é chamado a desejar misericórdia para os outros, até para os inimigos. Não existe mar fundo demais, nem cidade longe demais, para o amor de Deus.', btn: 'Ver os créditos', fn: credits }); }
 /* ================= CUTSCENES ================= */
 let CUT = null;
 const CUTS = {
@@ -1698,8 +1716,46 @@ function newGameCard() { let sel = 'normal', rnd = false;
   document.querySelectorAll('.diff').forEach(b => b.onclick = () => { sel = b.dataset.df; document.querySelectorAll('.diff').forEach(x => x.setAttribute('aria-pressed', x === b)); sfx('pick'); });
   $('#mapT').onclick = function () { rnd = !rnd; this.textContent = rnd ? 'Aleatório' : 'Clássico'; this.classList.toggle('alt', !rnd); sfx('pick'); }; }
 function endRunAch() { if (deaths === 0) unlock('sem_desmaio'); if (playTime < 2700) unlock('rapido'); if (DIFF === 'dificil') unlock('pesadelo'); }
-function credits() { unlock('ninive'); flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
-  showCard({ img: 'creditos', kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
+const CREDITS = [
+  ['h', 'CRIAÇÃO E DIREÇÃO'], ['r', 'Lucas Souza', 'que também passou três dias e três noites dentro deste projeto'],
+  ['h', 'ROTEIRO ORIGINAL'], ['r', 'O livro de Jonas', 'capítulos 1 a 4, com revisões não solicitadas de uma baleia'],
+  ['h', 'PROGRAMAÇÃO E PIXEL POR PIXEL'], ['r', 'Lucas Souza e Claude', 'nenhum bug engoliu o jogo… quase nenhum'],
+  ['h', 'ELENCO'],
+  ['r', 'Jonas', 'fugiu de todas as gravações, mas voltou para a última'],
+  ['r', 'O Grande Peixe', 'no papel de cenário, transporte, hotel e professor'],
+  ['r', 'O Mercador Improvável', 'caranguejo de chapéu de palha; ainda acha que três conchas por um trapo é preço justo'],
+  ['r', 'Caranguejo de Lata', 'não tem parentesco com o mercador; pelo menos é o que ele diz'],
+  ['r', 'O Capitão', 'o único homem que conseguiu acordar um profeta'],
+  ['r', 'Os Marinheiros', 'remaram mais do que o contrato exigia'],
+  ['r', 'A Sombra da Fuga', 'interpretada por todos os nossos medos'],
+  ['r', 'O Rei de Nínive', 'trocou o trono por um monte de cinza e não se arrepende'],
+  ['r', 'Os Ninivitas', 'mais de cento e vinte mil figurantes, e muitos animais de pano de saco'],
+  ['r', 'A Planta', 'uma noite de sombra, uma vida de lição'],
+  ['r', 'O Verme', 'vilão de uma cena só, mas que cena'],
+  ['r', 'O Vento Leste', 'sem comentários'],
+  ['h', 'TRILHA SONORA'], ['r', 'O coração da baleia', 'gravado ao vivo, de dentro'],
+  ['h', 'AGRADECIMENTOS ESPECIAIS'],
+  ['r', 'A sandália do baú dourado', 'que até hoje procura o seu par'],
+  ['r', 'Quem escreve as mensagens nas garrafas', 'a gente ainda não sabe quem é'],
+  ['r', 'A alga cozida', 'que salvou mais vidas do que deveria'],
+  ['r', 'Você', 'por ter ido até o fim, e sem fugir para Társis'],
+  ['h', 'AVISO'], ['r', 'Nenhuma baleia foi ferida', 'durante a produção deste jogo. Já os piolhos-de-baleia…'],
+];
+let rollEnd = null;
+function credits() { unlock('ninive'); flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0; rollCredits(finalCard); }
+function rollCredits(done) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); state = 'ending'; paused = true; $('#hud').hidden = true; ov.hidden = false; ov.className = 'roll';
+  const memN = Object.keys(MEMS).filter(k => mems.has(k)).length;
+  const body = CREDITS.map(([k, a, b]) => k === 'h' ? `<h3>${a}</h3>` : `<div class="rl"><b>${a}</b>${b ? `<span>${b}</span>` : ''}</div>`).join('');
+  ov.innerHTML = `${frameOk('creditos') ? `<img class="pbg" src="${FRAME_URL('creditos')}" alt="">` : ''}<div class="rollwrap"><div class="rolltxt"><img src="${LOGO_SRC}" alt="Jonas: Três Dias Abaixo">${body}<h3>SUA JORNADA</h3><div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${memN}/${MEM_TOTAL}</b>lembranças</div></div><blockquote>“Na minha angústia clamei ao Senhor, e ele me respondeu.”<cite>Jonas 2:2</cite></blockquote><div class="big">Obrigado por jogar</div></div></div><div class="rollbar"><button class="btn alt" id="rollSkip">Pular ▸</button></div><div class="rollhint">Clique ou toque para acelerar</div>`;
+  const txt = ov.querySelector('.rolltxt'); let fin = false; const end = () => { if (fin) return; fin = true; rollEnd = null; ov.onclick = null; done && done(); }; rollEnd = end;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { ov.querySelector('.rollhint').textContent = 'Role para ler os créditos'; $('#rollSkip').textContent = 'Continuar ▸'; }
+  else { requestAnimationFrame(() => { txt.style.setProperty('--dur', Math.max(35, (txt.offsetHeight + innerHeight) / 50) + 's'); }); txt.addEventListener('animationend', end); }
+  let fast = false; ov.onclick = e => { if (e.target.closest('#rollSkip')) return; fast = !fast; const a = txt.getAnimations ? txt.getAnimations()[0] : null; if (a) a.playbackRate = fast ? 5 : 1; ov.querySelector('.rollhint').textContent = fast ? 'Clique ou toque para voltar ao normal' : 'Clique ou toque para acelerar'; };
+  $('#rollSkip').onclick = e => { e.stopPropagation(); audioInit(); end(); };
+  setTimeout(() => { try { $('#rollSkip').focus({ preventScroll: true }); } catch (e) {} }, 60); }
+function finalCard() { const memN = Object.keys(MEMS).filter(k => mems.has(k)).length;
+  showCard({ img: 'creditos', kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira perdoada e uma lição para levar: ninguém está longe demais da misericórdia de Deus.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${memN}/${MEM_TOTAL}</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
 function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
   if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
 function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
@@ -2197,6 +2253,7 @@ addEventListener('keydown', e => { if (rebinding) { e.preventDefault(); if (e.co
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(e.code) && (state === 'play' || state === 'cut')) e.preventDefault();
   const ovOpen = !$('#overlay').hidden;
   if (e.code === 'Escape' && ovOpen && state === 'play') { closeCard(); return; }
+  if (rollEnd && ovOpen) { if (e.code === 'Escape') { e.preventDefault(); rollEnd(); } else if (['Enter', 'Space'].includes(e.code) && document.activeElement !== $('#rollSkip')) { e.preventDefault(); $('#overlay').onclick && $('#overlay').onclick({ target: $('#overlay') }); } return; }
   if (state === 'pray' && ovOpen && ['Space', 'Enter', 'KeyE', 'KeyK'].includes(e.code)) { e.preventDefault(); if (!e.repeat && $('#overlay').onclick) $('#overlay').onclick(); return; }
   if (ovOpen) return;
   if (state === 'cut') { if (['Space', 'Enter', 'KeyE', 'KeyK'].includes(e.code)) { e.preventDefault(); if (!e.repeat) cutAdvance(); } else if (e.code === 'Escape') { e.preventDefault(); endCut(); } return; }
