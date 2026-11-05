@@ -47,7 +47,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 #daySub{max-width:130px;font-size:12px;color:var(--bone-dim);line-height:1.2}
 #pulse{font-family:var(--f-label);font-size:10px;color:var(--blood);margin-top:4px}
 #miniWrap{padding:4px;cursor:pointer}
-#mini{display:block;width:224px;height:160px;image-rendering:pixelated}
+#mini{display:block;width:252px;height:182px;image-rendering:pixelated}
 /* quests */
 #quests{width:248px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
 #quests h3{margin:0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--acid);cursor:pointer}
@@ -141,7 +141,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 @media (max-width:760px){
   .bar{width:92px}
   #stats{padding:6px 8px;gap:4px}
-  #mini{width:134px;height:96px}
+  #mini{width:150px;height:108px}
   #dial{width:56px;height:56px}
   #dayName{font-size:22px}#daySub{display:none}
   #quests{width:min(220px,52vw);padding:8px}
@@ -398,7 +398,7 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const TS = 16, MW = 112, MH = 80;
+const TS = 16; let MW = 144, MH = 104;
 let VW = 384, VH = 216, SCALE = 4;
 const cv = $('#view'), ctx = cv.getContext('2d');
 const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -785,16 +785,29 @@ const NODES = {
   palm: { decor: true }, well: { decor: true }, stall: { decor: true }, pot: { decor: true }, sheep: { decor: true }, tuft: { decor: true }, plantN: { decor: true }, worm: { decor: true },
 };
 const MEMS = {
-  sino: { n: 'O sino do navio', d: 'O sino tocava sem parar enquanto as ondas cresciam. Os marinheiros clamavam, cada um ao seu deus. Jonas dormia no porão, como se nada pudesse alcançá-lo ali embaixo.' },
-  tabua: { n: 'Uma tábua de argila', d: 'Nínive, a grande cidade. A palavra chegou clara: levante-se e vá. Jonas se levantou, mas desceu para Jope.' },
-  moeda: { n: 'A moeda de Jope', d: 'Com ela Jonas pagou a passagem para Társis, na direção oposta. Fugir parecia simples: bastava um barco e um mar entre ele e a missão.' },
-  cordame: { n: 'Cordame partido', d: '“Lancem-me ao mar”, ele disse aos marinheiros. A tempestade era por causa dele, e ele sabia.' },
-  remo: { n: 'Um remo quebrado', d: 'Os marinheiros remaram com força para voltar à terra e poupá-lo. Não conseguiram. Até eles tiveram mais compaixão do que Jonas tinha por Nínive.' },
-  jope: { n: 'A rede de Jope', opt: true, d: 'No porto de Jope, os pescadores remendavam redes e ninguém perguntou a Jonas para onde ia. Ele pagou rápido, embarcou rápido e não olhou para trás.' },
-  vento: { n: 'Uma vela queimada pelo raio', opt: true, d: 'Foi o Senhor quem lançou um grande vento sobre o mar. Os marinheiros sabiam ler o céu: aquela tempestade tinha endereço.' },
-  sorte: { n: 'Os dados dos marinheiros', opt: true, d: 'Lançaram sortes para saber por causa de quem o mal tinha vindo. A sorte caiu sobre Jonas. Ele não precisou de dados para saber.' },
-  fechada: { n: 'Uma concha fechada', d: 'As águas o cercaram, o abismo o envolveu, as algas se enrolaram na sua cabeça. Foi ali, no fundo, que ele parou de fugir.' },
+  chamado: { n: 'A palavra', d: '“Levanta-te, vai à grande cidade de Nínive e clama contra ela.” A ordem veio clara. Nínive, a cidade do inimigo. Jonas ouviu e ficou muito tempo parado.' },
+  jope: { n: 'O porto de Jope', d: 'Em vez de ir para o leste, Jonas desceu até a costa. Achou um navio para Társis, o lugar mais distante que conhecia, e pagou a passagem.' },
+  vento: { n: 'O grande vento', d: 'No mar aberto, o céu fechou de repente. O navio rangia como se fosse partir. Os marinheiros jogaram a carga fora, e nada adiantou.' },
+  sino: { n: 'O sino e o sono', d: 'O sino tocava e cada marinheiro clamava ao seu deus. Jonas dormia no porão. O capitão o sacudiu: “Levanta-te e clama ao teu Deus!”' },
+  sorte: { n: 'A sorte lançada', d: 'Lançaram sortes para descobrir o culpado. As pedras rolaram no convés molhado e caíram em Jonas. Todos se viraram para ele.' },
+  mar: { n: 'Lançado ao mar', d: '“Lancem-me ao mar, e ele se acalmará.” Os marinheiros remaram até não poder mais, depois o lançaram. O mar parou. Do fundo subiu uma sombra imensa.' },
+  orgulho: { n: 'O profeta respeitado', d: 'Em Israel, Jonas era ouvido. Suas palavras se cumpriam. Mas Nínive não o deixaria maior. Ele se pergunta se fugiu por medo ou por orgulho.' },
+  inimigo: { n: 'O nome do inimigo', d: 'Desde menino ele ouvia o que os assírios faziam. Para Jonas, Nínive não era gente. Era inimigo. No fundo, ele queria que a cidade caísse.' },
+  clemente: { n: 'O que ele sabia', d: 'Jonas sabia que Deus é clemente e tardio em irar-se. Era isso que o assustava: se Nínive se arrependesse, seria perdoada.' },
+  moeda: { n: 'O preço da fuga', d: 'Ele pagou caro para ir na direção errada. E outros pagaram junto: a carga perdida dos marinheiros, o medo deles, a vida de todos em risco.' },
+  calado: { n: 'O que ele calou', d: 'Desde o primeiro trovão Jonas sabia que a culpa era dele. Ficou calado enquanto os outros oravam a deuses que não respondiam.' },
+  porao: { n: 'Dormir na tempestade', d: 'Os pagãos oravam e o profeta dormia. Não era cansaço. Era o jeito de não sentir nada e fingir que a tempestade não era com ele.' },
+  culpa: { n: 'É por minha causa', d: '“Eu sei que é por minha causa que veio esta tempestade.” Agora Jonas repete isso sem desculpas. Não foi o vento, nem os marinheiros. Foi ele.' },
+  algas: { n: 'As algas na cabeça', d: 'As águas o cercaram até a alma, as algas se enrolaram na sua cabeça. Ele quis controlar o próprio caminho e lá embaixo não controlava nem o fôlego.' },
+  votos: { n: 'Os votos dos marinheiros', d: 'Quando o mar se acalmou, os marinheiros temeram o Senhor e fizeram votos. Mesmo pela desobediência de Jonas, Deus alcançou aqueles homens.' },
+  guardado: { n: 'Guardado', d: 'O peixe não foi acaso: foi preparado. Jonas achou que estava sendo devorado. Estava sendo guardado pelo Deus de quem fugiu.' },
+  perdao: { n: 'Perdão', d: 'Jonas não pede uma saída. Pede perdão: pela fuga, pelo ódio a Nínive, pelo silêncio no navio. As palavras saem tortas, mas saem.' },
+  voto: { n: 'O que prometi', d: '“O que prometi, cumprirei.” Se sair dali, ele vai a Nínive. Não por coragem, mas porque cansou de fugir. O peito fica leve.' },
 };
+const MEM_ACT = { 1: ['chamado', 'jope', 'vento', 'sino', 'sorte', 'mar'], 2: ['orgulho', 'inimigo', 'clemente', 'moeda', 'calado', 'porao'], 3: ['culpa', 'algas', 'votos', 'guardado', 'perdao', 'voto'] };
+const ACT_NAME = { 1: 'O que aconteceu', 2: 'Os erros de Jonas', 3: 'Culpa, entrega e perdão' };
+const MEM_TOTAL = 18;
+const memCount = d => MEM_ACT[d].filter(k => mems.has(k)).length;
 const REFLECTS = [
   null,
   { q: 'Jonas se levantou para fugir para Társis, para longe da presença do Senhor.', ref: 'Jonas 1:3', d: 'Ele fugiu de quem está em todo lugar. A pergunta pesa mais do que o escuro: para onde, exatamente, ele achou que ia?' },
@@ -803,6 +816,9 @@ const REFLECTS = [
   { q: '“Sou hebreu e temo ao Senhor, o Deus do céu, que fez o mar e a terra.”', ref: 'Jonas 1:9', d: 'Ele disse isso em voz alta, no meio da tempestade, enquanto fugia do mesmo Deus que acabava de descrever.' },
   { q: 'O Senhor preparou um grande peixe para engolir Jonas.', ref: 'Jonas 1:17', d: 'Preparou. A baleia não foi acidente nem castigo cego. Até aqui, alguém estava esperando por ele.' },
   { q: 'Fui expulso da tua presença; contudo, tornarei a ver o teu santo templo.', ref: 'Jonas 2:4', d: 'No mesmo fôlego, a queixa e a esperança. Jonas ainda não saiu, mas já olha para cima.' },
+  { q: 'O Senhor lançou um grande vento sobre o mar.', ref: 'Jonas 1:4', d: 'A tempestade não veio do acaso. Às vezes Deus fala alto porque alguém se recusou a ouvir baixo.' },
+  { q: '“Que fazes aí dormindo? Levanta-te e clama ao teu Deus!”', ref: 'Jonas 1:6', d: 'Um capitão estrangeiro teve de lembrar o profeta de orar. Jonas sabia falar de Deus, mas tinha parado de falar com ele.' },
+  { q: '“Eu sei que é por minha causa que esta grande tempestade veio sobre vocês.”', ref: 'Jonas 1:12', d: 'Assumir a culpa foi o primeiro passo de volta. Não foi o fim da história: foi o começo do caminho.' },
 ];
 const PRAYER = [
   ['Na minha angústia clamei ao Senhor, e ele me respondeu.', 'Jonas 2:2'],
@@ -834,22 +850,20 @@ const LVL = ['Baixo', 'Leve', 'Médio', 'Alto'];
 const LVLCOL = ['#62f4e2', '#c6e34a', '#f2a640', '#e2463c'];
 const DAYS = [null,
   { name: 'O Despertar', kick: 'DIA 1 · SOBREVIVER', body: 'Escuridão. Cheiro de sal e de algo vivo. Jonas abre os olhos entre as tábuas partidas do navio, e o chão sob ele respira. Antes de qualquer coisa, ele precisa de luz e de um lugar seguro.' },
-  { name: 'As Profundezas', kick: 'DIA 2 · DESCOBRIR', body: 'A grande contração rasgou caminho para o interior. Em algum lugar adiante deve haver uma saída. Jonas decide procurá-la, e a cada passo as lembranças de Nínive voltam.' },
-  { name: 'Das Profundezas à Luz', kick: 'DIA 3 · RENDER-SE', body: 'A fuga falhou outra vez. No silêncio, Jonas entende que não existe porta que ele possa abrir sozinho. A baleia mudou por dentro. Ele também.' },
+  { name: 'As Profundezas', kick: 'DIA 2 · DESCOBRIR', body: 'Durante a noite a baleia se contorceu e arrastou Jonas para uma parte mais funda do seu corpo. Ele improvisa um abrigo novo e decide procurar uma saída. Mas agora as lembranças que voltam não são do que aconteceu: são do que ele fez.' },
+  { name: 'Das Profundezas à Luz', kick: 'DIA 3 · RENDER-SE', body: 'O mergulho jogou Jonas num canto quieto e desconhecido. A fuga falhou outra vez. No silêncio, ele entende que não existe porta que possa abrir sozinho. A baleia mudou por dentro. Ele também.' },
   { name: 'Nínive', kick: 'EPÍLOGO · OBEDECER', body: 'O peixe devolveu Jonas à praia. Pela segunda vez, a palavra chegou: levante-se e vá a Nínive. Desta vez, ele foi. A cidade é tão grande que leva três dias para atravessá-la.' },
 ];
 
 /* ================= WORLD ================= */
 const WALL = 0, FLOOR = 1, ACID = 2;
-const REGIONS_WHALE = [
-  { id: 'destrocos', n: 'Destroços do Navio', x: 16, y: 42, r: 8 },
-  { id: 'juncao', n: 'Garganta', x: 38, y: 40, r: 5 },
-  { id: 'costelas', n: 'Galeria das Costelas', x: 54, y: 18, r: 10 },
-  { id: 'lago', n: 'Lago Ácido', x: 55, y: 60, r: 11 },
-  { id: 'cilios', n: 'Floresta de Cílios', x: 84, y: 28, r: 10 },
-  { id: 'central', n: 'Câmara Central', x: 84, y: 64, r: 7 },
-  { id: 'silencio', n: 'Câmara do Silêncio', x: 103, y: 56, r: 5 },
-];
+const WH_BASE = [['destrocos', 21, 54, 10], ['juncao', 49, 52, 6], ['costelas', 70, 23, 13], ['lago', 71, 77, 14], ['cilios', 108, 36, 13], ['central', 108, 82, 9], ['silencio', 133, 72, 6]];
+const WH_NAMES = [null,
+  ['Destroços do Navio', 'Garganta', 'Galeria das Costelas', 'Lago Ácido', 'Floresta de Cílios', 'Câmara Central', 'Câmara do Silêncio'],
+  ['Bolsa de Ar', 'Válvula Estreita', 'Catedral de Ossos', 'Pântano de Bile', 'Jardim de Corais', 'Câmara Central', 'Câmara do Silêncio'],
+  ['Recanto Quieto', 'Passagem Funda', 'Cemitério de Costelas', 'Mar Interior', 'Bosque de Cílios', 'Câmara Central', 'Câmara do Silêncio']];
+function whaleLayout(d) { return WH_BASE.map(([id, x, y, r], i) => ({ id, n: WH_NAMES[d][i], x: d === 2 ? 143 - x : x, y: d === 3 ? 103 - y : y, r })); }
+let REGIONS_WHALE = whaleLayout(1);
 const REGIONS_NIN = [
   { id: 'deserto', n: 'Deserto diante de Nínive', x: 10, y: 37, r: 8 },
   { id: 'portao', n: 'Portão Oeste', x: 23, y: 37, r: 3 },
@@ -858,6 +872,7 @@ const REGIONS_NIN = [
   { id: 'colina', n: 'Colina a leste da cidade', x: 96, y: 37, r: 8 },
 ];
 let REGIONS = REGIONS_WHALE, RG = {};
+function setSize(w, h) { if (MW === w && MH === h) return; MW = w; MH = h; reveal = null; try { mini.width = MW; mini.height = MH; miniImg = null; } catch (e) {} }
 function setRegions(list) { REGIONS = list; RG = {}; list.forEach((r, i) => { r.i = i; RG[r.id] = r; }); }
 setRegions(REGIONS_WHALE);
 const PLAZAS = [{ x: 34, y: 23 }, { x: 49, y: 51 }, { x: 64, y: 23 }];
@@ -879,7 +894,7 @@ function makeFold(pts, t, type, key, rad = 3.2) { const p = pts[Math.floor(t * (
   for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) { if (!inB(x, y)) continue; const i = idx(x, y); if (tiles[i] !== WALL && foldAt[i] < 0 && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) { foldAt[i] = f.id; f.tiles.push(i); } }
   folds.push(f); return f; }
 function acidAt(pts, t, rad) { const p = pts[Math.floor(t * (pts.length - 1))]; for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) tiles[idx(x, y)] = ACID; }
-function genNineveh() { setRegions(REGIONS_NIN); R = mulberry(4040);
+function genNineveh() { setSize(112, 80); setRegions(REGIONS_NIN); R = mulberry(4040);
   tiles = new Uint8Array(MW * MH).fill(FLOOR); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = []; tun = {}; bridgeMap = new Uint8Array(MW * MH); pave = new Uint8Array(MW * MH); wkind = new Uint8Array(MW * MH); reveal = new Uint8Array(MW * MH);
   const W_ = (x, y, k = 1) => { if (inB(x, y)) { tiles[idx(x, y)] = WALL; wkind[idx(x, y)] = k; } }, P_ = (x, y) => { if (inB(x, y)) pave[idx(x, y)] = 1; };
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const e = Math.min(x, y, MW - 1 - x, MH - 1 - y); if (e < 3 + vnoise(x * .15, y * .15, 77) * 4) W_(x, y, 0); }
@@ -905,8 +920,8 @@ function validWorld(d) { const sp = nearestFree(RG.destrocos.x * TS, RG.destroco
 function findSeed() { for (let k = 0; k < 40; k++) { SEED = 1000 + Math.floor(Math.random() * 1e8); let ok = true; for (const d of [1, 2, 3]) { genWorld(d); if (!validWorld(d)) { ok = false; break; } } if (ok) return SEED; } SEED = 20261105; return SEED; }
 function genWorld(day) {
   if (day === 4) { genNineveh(); return; }
-  setRegions(REGIONS_WHALE); pave = wkind = null;
-  R = mulberry(SEED);
+  setSize(144, 104); REGIONS_WHALE = whaleLayout(day); setRegions(REGIONS_WHALE); pave = wkind = null;
+  R = mulberry(SEED + day * 7919);
   tiles = new Uint8Array(MW * MH); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = [];
   for (const r of REGIONS) carveBlob(r.x, r.y, r.r, r.i);
   tun = {};
@@ -914,7 +929,7 @@ function genWorld(day) {
   // side pockets (open only during contractions)
   const pocketDefs = [['destrocos', 2.4], ['costelas', -.9], ['lago', 1.9], ['cilios', -2.2]];
   const pocketTun = [];
-  for (const [id, ang] of pocketDefs) { const r = RG[id]; const px = clamp(r.x + Math.cos(ang) * (r.r + 6), 4, MW - 5), py = clamp(r.y + Math.sin(ang) * (r.r + 5), 4, MH - 5); carveBlob(px, py, 2.4, 50 + r.i); const pts = carveTunnel(r, { x: px, y: py }, 1.2); pocketTun.push({ id, px, py, pts }); }
+  for (const [id, ang0] of pocketDefs) { const r = RG[id]; const ang = day === 2 ? Math.PI - ang0 : day === 3 ? -ang0 : ang0; const px = clamp(r.x + Math.cos(ang) * (r.r + 6), 4, MW - 5), py = clamp(r.y + Math.sin(ang) * (r.r + 5), 4, MH - 5); carveBlob(px, py, 2.4, 50 + r.i); const pts = carveTunnel(r, { x: px, y: py }, 1.2); pocketTun.push({ id, px, py, pts }); }
   if (day >= 3) { tun['destrocos>lago'] = carveTunnel(RG.destrocos, RG.lago, 1.6); }
   smooth();
   for (let x = 0; x < MW; x++) { tiles[idx(x, 0)] = WALL; tiles[idx(x, MH - 1)] = WALL; } for (let y = 0; y < MH; y++) { tiles[idx(0, y)] = WALL; tiles[idx(MW - 1, y)] = WALL; }
@@ -933,6 +948,9 @@ function genWorld(day) {
   makeFold(g, .44, 'gate', 'G3', 2.8);
   makeFold(tun['juncao>costelas'], .5, 'close'); makeFold(tun['lago>cilios'], .5, 'close'); makeFold(tun['cilios>central'], .5, 'close');
   makeFold(g, .62, 'close', null, 2.6); makeFold(g, .8, 'close', null, 2.4);
+  { const st = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 10); if (st) { const seen = new Uint8Array(MW * MH), q = [[Math.floor(st.x / TS), Math.floor(st.y / TS)]]; seen[idx(q[0][0], q[0][1])] = 1;
+    while (q.length) { const [x, y] = q.pop(); for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + a, ny = y + b; if (!inB(nx, ny)) continue; const i = idx(nx, ny); if (seen[i] || tiles[i] === WALL) continue; seen[i] = 1; q.push([nx, ny]); } }
+    for (let i = 0; i < MW * MH; i++) if (!seen[i] && tiles[i] !== WALL) { tiles[i] = WALL; foldAt[i] = -1; regionMap[i] = 255; } for (const f of folds) f.tiles = f.tiles.filter(i => tiles[i] !== WALL); } }
   // tide: floor within 2 tiles of acid
   for (let y = 2; y < MH - 2; y++) for (let x = 2; x < MW - 2; x++) { const i = idx(x, y); if (tiles[i] !== FLOOR || foldAt[i] >= 0) continue; const rg = REGIONS[regionMap[i]]; if (rg && (rg.id === 'destrocos' || rg.id === 'silencio' || rg.id === 'juncao')) continue; let near = false; for (let j = -2; j <= 2 && !near; j++) for (let k = -2; k <= 2; k++) if (tiles[idx(x + k, y + j)] === ACID) { near = true; break; } if (near) tideMap[i] = 1; }
   bridgeMap = new Uint8Array(MW * MH);
@@ -950,7 +968,7 @@ function nearestFree(px, py, maxR = 6) { const tx = Math.floor(px / TS), ty = Ma
 /* ground prerender */
 function renderGround() {
   const W = MW * TS, H = MH * TS; ground = C(W, H); const g = ground.getContext('2d'); const id = g.createImageData(W, H), d = id.data;
-  const NIN = day === 4;
+  const NIN = day === 4; const TINT = day === 2 ? [.78, .84, 1.22] : day === 3 ? [1.1, 1.0, .9] : null;
   const FL = NIN ? [[0xc4, 0x9c, 0x5e], [0xcf, 0xa9, 0x6a], [0xd9, 0xb7, 0x7a], [0xe3, 0xc4, 0x8a], [0xe9, 0xcf, 0x98], [0xf0, 0xd9, 0xa6]] : [[0x52, 0x18, 0x26], [0x61, 0x1e, 0x2f], [0x70, 0x26, 0x37], [0x80, 0x2f, 0x41], [0x91, 0x3a, 0x4d], [0xa3, 0x48, 0x5b]];
   const PV = [[0x8f, 0x80, 0x6c], [0xa3, 0x93, 0x7c], [0xb4, 0xa4, 0x8b], [0xc4, 0xb5, 0x9b]], GR = [[0x8a, 0x9a, 0x4e], [0x9c, 0xab, 0x58], [0xae, 0xb8, 0x62], [0xc0, 0xbf, 0x72], [0xcf, 0xc5, 0x80], [0xdb, 0xcc, 0x8c]];
   const depth = new Uint8Array(MW * MH).fill(9);
@@ -982,6 +1000,7 @@ function renderGround() {
         c = n > .74 ? [0x4c, 0x17, 0x28] : n > .52 ? [0x3a, 0x10, 0x1f] : n > .3 ? [0x2c, 0x0b, 0x17] : [0x1f, 0x07, 0x10];
         if (dep >= 3) c = [Math.round(c[0] * .55), Math.round(c[1] * .55), Math.round(c[2] * .6)];
       }
+      if (TINT) c = [Math.min(255, c[0] * TINT[0]), Math.min(255, c[1] * TINT[1]), Math.min(255, c[2] * TINT[2])];
       const o = (Y * W + X) * 4; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; } }
   g.putImageData(id, 0, 0);
   const DR = mulberry(555);
@@ -1340,10 +1359,13 @@ function directorTick(dt) { if (day === 4) { windX = windY = 0; tideLevel = 0; r
     const E = EVENTS[nx]; if (E.warn) { DIR.phase = 'warn'; DIR.warnT = E.warn; DIR.pend = nx; sfx('warn'); } else startEvent(nx); }
 }
 function nextContractionIn() { if (DIR.phase === 'warn' && isContract(DIR.pend)) return DIR.warnT; let t = DIR.dur - DIR.t; if (isContract(DIR.ev) && DIR.phase === 'run') return 0; for (const k of DIR.queue) { if (isContract(k)) return t + EVENTS[k].warn; t += EVENTS[k].warn + (EVENTS[k].dur[0] + EVENTS[k].dur[1]) / 2; } return null; }
+function unstick(msg) { const ok = p => p && !boxHit(p.x, p.y, P.r) && !isSolidP(p.x, p.y);
+  let sp = ok(P.safe) ? P.safe : null; if (!sp) sp = nearestFree(P.x, P.y, 10); if (!ok(sp) && shelter) sp = nearestFree(shelter.x, shelter.y + 18, 6); if (!ok(sp)) sp = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 10);
+  if (sp) { P.x = sp.x; P.y = sp.y; P.kx = P.ky = 0; P.roll = 0; } P.stuckT = 0; if (msg) toast(msg, 'bad'); }
 function setContract(on) { for (const f of folds) { if (f.type === 'close') f.closed = on; else if (f.type === 'open') f.closed = !on && !(f.tempOpen > 0); }
-  for (const f of folds) { if (!f.closed) continue; const pt = Math.floor(P.x / TS), pty = Math.floor(P.y / TS); if (f.tiles.includes(idx(pt, pty)) || boxHit(P.x, P.y, P.r)) { const sp = nearestFree(P.x, P.y, 8); if (sp) { P.x = sp.x; P.y = sp.y; } hurtPlayer(6, f.x, f.y); toast('A dobra se fecha e empurra Jonas.', 'bad'); }
+  for (const f of folds) { if (!f.closed) continue; const pt = Math.floor(P.x / TS), pty = Math.floor(P.y / TS); if (f.tiles.includes(idx(pt, pty)) || boxHit(P.x, P.y, P.r)) { unstick(); hurtPlayer(6, f.x, f.y); P.kx = P.ky = 0; toast('A dobra se fecha e empurra Jonas.', 'bad'); }
     for (const m of mobs) if (f.tiles.includes(idx(Math.floor(m.x / TS), Math.floor(m.y / TS)))) { const sp = nearestFree(m.x, m.y, 6); if (sp) { m.x = sp.x; m.y = sp.y; } } }
-  if (!on) for (const p of pockets) if (dist(P.x, P.y, p.x, p.y) < p.r) { P.x = p.out.x; P.y = p.out.y; toast('A bolsa se fecha e expulsa Jonas.'); }
+  if (!on) for (const p of pockets) if (dist(P.x, P.y, p.x, p.y) < p.r) { P.x = p.out.x; P.y = p.out.y; P.safe = null; if (boxHit(P.x, P.y, P.r)) unstick(); toast('A bolsa se fecha e expulsa Jonas.'); }
 }
 
 /* ================= NODES & DAY SETUP ================= */
@@ -1381,14 +1403,17 @@ function setupNodes() { if (day === 4) { setupNodes4(); return; }
   const C0 = { x: RG.destrocos.x * TS, y: RG.destrocos.y * TS };
   placeNode('hull', lists.destrocos, { gap: 40, far: { x: C0.x, y: C0.y, d: 40 } });
   // memories & story
-  const memByDay = { 1: [['sino', 'juncao'], ['jope', 'destrocos']], 2: [['tabua', 'costelas'], ['moeda', 'cilios'], ['vento', 'lago']], 3: [['cordame', 'costelas'], ['remo', 'lago'], ['fechada', 'cilios'], ['sorte', 'central']] };
-  for (const [m, reg] of memByDay[day]) { if (mems.has(m)) continue; const r = RG[reg]; const near = lists[reg].filter(i => { const x = i % MW, y = Math.floor(i / MW); return Math.hypot(x - r.x, y - r.y) < r.r * .7; }); placeNode('memory', near.length ? near : lists[reg], { gap: 30, data: { mem: m } }); }
-  const REFL_BY_DAY = { 1: [[1, 'destrocos'], [3, 'juncao']], 2: [[2, 'lago'], [4, 'cilios']], 3: [[5, 'costelas'], [6, 'lago']] };
-  for (const [rf, reg] of REFL_BY_DAY[day]) placeNode('reflect', lists[reg], { gap: 30, data: { rf, used: refl.has(rf) }, far: reg === 'destrocos' ? { x: C0.x, y: C0.y, d: 50 } : null });
+  const MEM_REG = { 1: ['destrocos', 'juncao', 'costelas', 'costelas', 'cilios', 'central'], 2: ['costelas', 'costelas', 'cilios', 'cilios', 'lago', 'juncao'], 3: ['costelas', 'costelas', 'lago', 'cilios', 'central', 'juncao'] };
+  const farFrom = (list, d) => { const l = list.filter(i => Math.hypot(i % MW - RG.destrocos.x, Math.floor(i / MW) - RG.destrocos.y) > d); return l.length > 4 ? l : list; };
+  const outer = (list, r) => { const l = list.filter(i => Math.hypot(i % MW - r.x, Math.floor(i / MW) - r.y) > r.r * .45); return l.length > 4 ? l : list; };
+  const need = MEM_ACT[day].length - memCount(day);
+  MEM_REG[day].slice(0, need).forEach(reg => { let n = placeNode('memory', farFrom(outer(lists[reg], RG[reg]), 7), { gap: 120, data: { mem: 1 } }); for (const alt of ['costelas', 'cilios', 'juncao', 'lago', 'central']) { if (n) break; n = placeNode('memory', lists[alt], { gap: 30, data: { mem: 1 } }); } });
+  const REFL_BY_DAY = { 1: [[1, 'destrocos'], [3, 'juncao'], [7, 'cilios']], 2: [[2, 'lago'], [4, 'cilios'], [8, 'costelas']], 3: [[5, 'costelas'], [6, 'lago'], [9, 'central']] };
+  for (const [rf, reg] of REFL_BY_DAY[day]) placeNode('reflect', outer(lists[reg], RG[reg]), { gap: 30, data: { rf, used: refl.has(rf) }, far: reg === 'destrocos' ? { x: C0.x, y: C0.y, d: 50 } : null });
   if (day === 1) placeNode('bottle', lists.destrocos, { gap: 26 });
   if (day === 2) { placeNode('bottle', lists.lago); placeNode('chest', lists.costelas, { gap: 30 }); }
   if (day === 3) { const r = RG.silencio; const near = lists.silencio.filter(i => Math.hypot(i % MW - r.x, Math.floor(i / MW) - r.y) < 2.5); placeNode('altar', near.length ? near : lists.silencio, { gap: 10 }); }
-  for (const id in spec) for (const [k, n] of spec[id]) for (let c = 0; c < n; c++) placeNode(k, lists[id], { gap: k === 'rib' ? 70 : k === 'cilia' ? 16 : 22, far: id === 'destrocos' ? { x: C0.x, y: C0.y, d: 26 } : null });
+  for (const id in spec) for (const [k, n0] of spec[id]) { const n = k === 'vent' ? n0 : Math.round(n0 * 1.5); for (let c = 0; c < n; c++) placeNode(k, lists[id], { gap: k === 'rib' ? 70 : k === 'cilia' ? 16 : 22, far: id === 'destrocos' ? { x: C0.x, y: C0.y, d: 26 } : null }); }
   for (const p of pockets) { const list = []; for (let y = Math.floor(p.y / TS) - 2; y <= Math.floor(p.y / TS) + 2; y++) for (let x = Math.floor(p.x / TS) - 2; x <= Math.floor(p.x / TS) + 2; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0) list.push(idx(x, y)); if (list.length) placeNode('cache', list, { gap: 8 });
     const nl = []; const ox = Math.floor(p.out.x / TS), oy = Math.floor(p.out.y / TS); for (let y = oy - 3; y <= oy + 3; y++) for (let x = ox - 3; x <= ox + 3; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0 && regionMap[idx(x, y)] < REGIONS.length && !solid[idx(x, y)]) nl.push(idx(x, y)); if (nl.length) placeNode('nerve', nl, { gap: 12, data: { fold: p.fold } }); }
 }
@@ -1405,19 +1430,19 @@ const QUESTS = {
     { id: 'light', t: 'A escuridão engole tudo. Faça uma fonte de luz', sub: () => 'Tocha ou fogueira, na aba Luz (C)', check: () => crafted.tocha || crafted.fogueira },
     { id: 'shelter', t: 'O chão treme. Construa um abrigo seguro', sub: () => 'Aba Sobrevivência. Madeira 4, tecido 3, corda 2', check: () => !!shelter },
     { id: 'quake', t: 'Sobreviva à grande contração', req: ['shelter'], sub: () => DIR.ev === 'grande' ? 'Aguente firme!' : 'Ela está vindo…', check: () => flags.bigDone, start: () => forceEvent('grande', 6) },
-    { id: 'mem1', t: 'Algo além da passagem lembra a tempestade', req: ['quake'], target: () => memNode('sino'), check: () => mems.has('sino') },
+    { id: 'mem1', t: 'Siga as lembranças: o que aconteceu?', req: ['quake'], sub: () => `${memCount(1)}/6 lembranças · procure nos cantos mais distantes`, target: () => memNode(), check: () => memCount(1) >= 6 },
     { id: 'rest', t: 'Volte ao abrigo e descanse', req: ['mem1'], target: () => shelter, sub: () => 'Interaja com o abrigo para encerrar o dia', check: () => flags.rested },
   ],
   2: [
     { id: 'explore', t: 'Procure uma saída: explore três regiões', sub: () => ['costelas', 'lago', 'cilios'].map(k => (visited.has(k) ? '■ ' : '□ ') + RG[k].n.split(' ').slice(-1)[0]).join('  '), check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)) },
     { id: 'tool', t: 'Crie algo para atravessar o ácido', sub: () => 'Ponte, botas ou sandálias (aba Travessia)', check: () => crafted.ponte || crafted.botas || crafted.sandalias },
-    { id: 'nineve', t: 'Encontre lembranças de Nínive', sub: () => `${['tabua', 'moeda'].filter(m => mems.has(m)).length}/2`, target: () => memNode('tabua') || memNode('moeda'), check: () => mems.has('tabua') && mems.has('moeda') },
+    { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças`, target: () => memNode(), check: () => memCount(2) >= 6 },
     { id: 'pattern', t: 'Observe o padrão das contrações', sub: () => `${Math.min(contrCount, 2)}/2 contrações`, check: () => contrCount >= 2, done: () => { flags.pattern = true; toast('Jonas agora sente o ritmo. O mostrador avisa a próxima contração.', 'good'); } },
     { id: 'central', t: 'Alcance a Câmara Central', req: ['explore', 'tool'], target: () => ({ x: RG.central.x * TS, y: RG.central.y * TS }), sub: () => qDone('nineve') && qDone('pattern') ? 'A saída deve estar lá' : 'Conclua as outras missões antes', check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'central' && qDone('nineve') && qDone('pattern'); }, done: () => climax2() },
   ],
   3: [
     { id: 'revisit', t: 'Revisite as regiões transformadas', sub: () => `${['costelas', 'lago', 'cilios'].filter(k => visited.has(k)).length}/3`, check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)) },
-    { id: 'mems', t: 'Reúna três lembranças da jornada', sub: () => `${['cordame', 'remo', 'fechada'].filter(m => mems.has(m)).length}/3`, target: () => memNode('cordame') || memNode('remo') || memNode('fechada'), check: () => ['cordame', 'remo', 'fechada'].every(m => mems.has(m)), done: () => { const g = folds.find(f => f.key === 'G3'); if (g) { g.closed = false; burst(g.x, g.y, '#62f4e2', 40); } toast('Uma passagem se abriu na Floresta de Cílios.', 'good'); } },
+    { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças`, target: () => memNode(), check: () => memCount(3) >= 6, done: () => { const g = folds.find(f => f.key === 'G3'); if (g) { g.closed = false; burst(g.x, g.y, '#62f4e2', 40); } toast(`Uma passagem se abriu: ${RG.cilios.n}.`, 'good'); } },
     { id: 'gauntlet', t: 'Atravesse a passagem final', req: ['mems'], target: () => { const g = folds.find(f => f.key === 'G3'); return g && !flags.gEntered ? g : { x: RG.silencio.x * TS, y: RG.silencio.y * TS }; }, check: () => flags.gauntlet },
     { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; } },
     { id: 'pray', t: 'Ajoelhe-se e ore', req: ['silence'], target: () => nodes.find(n => n.k === 'altar'), check: () => flags.prayed },
@@ -1426,15 +1451,15 @@ const QUESTS = {
 };
 let qState = {};
 const qDone = id => qState[id] === 'done';
-const memNode = m => nodes.find(n => n.k === 'memory' && n.mem === m && !n.gone);
+const memNode = () => { let b = null, bd = 1e9; for (const n of nodes) if (n.k === 'memory' && !n.gone) { const d = dist(n.x, n.y, P.x, P.y); if (d < bd) { bd = d; b = n; } } return b; };
 function questTick() { let changed = false; for (const q of QUESTS[day]) { if (qState[q.id] === 'done') continue; if (q.req && !q.req.every(qDone)) continue; if (!qState[q.id]) { qState[q.id] = 'active'; changed = true; if (q.start) q.start(); } if (q.check()) { qState[q.id] = 'done'; changed = true; sfx('quest'); toast('✓ ' + q.t, 'good'); if (q.done) q.done(); if (state === 'play') writeSlot('auto', true); } } if (changed) buildQuests(); }
 
 function startDay(n, data) {
-  day = n; state = 'play';
+  day = n; state = 'play'; reveal = null;
   genWorld(day);
   mobs = []; pickups = []; fx = []; proj = []; visited = new Set(); qState = {}; contrCount = 0; merchant = null; tideLevel = 0;
   flags = Object.assign({}, { merchantT: rr(110, 200), bottleRead: flags && flags.bottleRead }, data && data.flags || {});
-  const keep = day === 4 ? [] : structs.filter(s => s.k === 'shelter' || s.k === 'fire'); structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
+  const keep = day === 1 ? structs.filter(s => s.k === 'shelter' || s.k === 'fire') : []; structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
   shelter = null;
   for (const s of keep) { if (tileAt(s.x, s.y) !== FLOOR) continue; if (s.k === 'shelter') { shelter = s; solid[idx(Math.floor(s.x / TS), Math.floor(s.y / TS))] = 1; } structs.push(s); }
   if (day >= 2 && day < 4 && !shelter) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); solid[idx(Math.floor(sp.x / TS), Math.floor(sp.y / TS))] = 1; } }
@@ -1483,8 +1508,8 @@ function interact() { if (state !== 'play' || paused) return; const t = interact
 function special(n) { const D = NODES[n.k];
   if (n.k === 'bottle') { n.gone = true; sfx('pick'); showCard({ kick: 'A GARRAFA MISTERIOSA', title: 'Uma mensagem enrolada', body: pickM(BOTTLES), btn: 'Guardar a rolha', fn: () => addItem('concha', 1) }); return; }
   if (n.k === 'chest') { n.gone = true; sfx('mem'); showCard({ kick: 'O TESOURO DECEPCIONANTE', title: 'Um baú dourado!', body: 'Jonas força a tampa, o coração acelerado. Dentro há… uma sandália. Uma só. Talvez com corda e gosma ela sirva para alguma coisa (aba Travessia).', btn: 'Pegar a sandália', fn: () => addItem('sandalia', 1) }); return; }
-  if (n.k === 'memory') { n.gone = true; mems.add(n.mem); if (mems.size >= 9) unlock('memorias'); sfx('mem'); if (buddy) buddy.happy = 2; const M = MEMS[n.mem]; burst(n.x, n.y - 10, '#62f4e2', 30); showCard({ kick: 'LEMBRANÇA', title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
-  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); if (refl.size >= 6) unlock('reflexoes'); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
+  if (n.k === 'memory') { n.gone = true; const act = MEM_ACT[day] || []; const id = act.find(k => !mems.has(k)); sfx('mem'); burst(n.x, n.y - 10, '#62f4e2', 30); if (!id) { toast('Uma lembrança já conhecida.'); return; } mems.add(id); if (Object.keys(MEMS).every(k => mems.has(k))) unlock('memorias'); if (buddy) buddy.happy = 2; const M = MEMS[id]; showCard({ kick: `LEMBRANÇA ${memCount(day)}/${act.length} · ${ACT_NAME[day].toUpperCase()}`, title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
+  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); if (refl.size >= 9) unlock('reflexoes'); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
   if (n.k === 'bile') { if (hasKnife()) { addItem('bile', 1); sfx('pick'); burst(n.x, n.y - 6, '#b9dc3c', 6); spendNode(n); } else popBile(n); return; }
   if (n.k === 'nerve') { triggerNerve(n); return; }
   if (n.k === 'spore') { sfx('mem'); burst(n.x, n.y - 6, '#62f4e2', 16); if (equip.light) { const it = ITEMS[equip.light.id]; equip.light.dur = Math.min(it.fuel, equip.light.dur + it.fuel * .4); toast(`Os esporos renovam a luz da ${it.n.toLowerCase()}.`, 'good'); invDirty = true; } else { P.spore = 25; toast('Os esporos grudam em Jonas e brilham por um tempo.', 'good'); } spendNode(n); return; }
@@ -1598,8 +1623,8 @@ let ACH = {}, GST = { kills: 0, trades: 0 }; try { ACH = JSON.parse(localStorage
 const ACHS = [
   ['primeira_luz', 'Primeira luz', 'Crie a primeira tocha.'], ['abrigo', 'Lar estranho', 'Monte um abrigo dentro da baleia.'], ['combo', 'Golpe final', 'Derrote uma criatura com o terceiro golpe do combo.'],
   ['respiradouro', 'Voo curto', 'Seja lançado por um respiradouro.'], ['mercador', 'Freguês', 'Faça 3 trocas com o Mercador Improvável.'], ['sandalia', 'Calçado abençoado', 'Crie as Sandálias reforçadas.'],
-  ['cacador', 'Caçador das profundezas', 'Derrote 50 criaturas (somando todas as partidas).'], ['bestiario', 'Naturalista', 'Veja todas as 18 criaturas.'], ['memorias', 'Memória completa', 'Encontre as 9 lembranças.'],
-  ['reflexoes', 'Coração quieto', 'Visite os 6 lugares de reflexão.'], ['sem_desmaio', 'Fôlego de baleia', 'Chegue ao fim do Dia 3 sem desmaiar.'], ['rapido', 'Viagem curta', 'Chegue ao fim do Dia 3 em menos de 45 minutos.'],
+  ['cacador', 'Caçador das profundezas', 'Derrote 50 criaturas (somando todas as partidas).'], ['bestiario', 'Naturalista', 'Veja todas as 18 criaturas.'], ['memorias', 'Memória completa', 'Encontre as 18 lembranças.'],
+  ['reflexoes', 'Coração quieto', 'Visite os 9 lugares de reflexão.'], ['sem_desmaio', 'Fôlego de baleia', 'Chegue ao fim do Dia 3 sem desmaiar.'], ['rapido', 'Viagem curta', 'Chegue ao fim do Dia 3 em menos de 45 minutos.'],
   ['pesadelo', 'Coragem', 'Chegue ao fim do Dia 3 no modo Pesadelo.'], ['ninive', 'Pregador relutante', 'Conclua o epílogo em Nínive.'],
 ];
 function saveAch() { try { localStorage.setItem('jonah-ach', JSON.stringify(ACH)); localStorage.setItem('jonah-gst', JSON.stringify(GST)); } catch (e) {} }
@@ -1628,7 +1653,7 @@ function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(d
     if (n.puff > .45) { if (dist(n.x, n.y, P.x, P.y) < 13 && !(P.ventT > 0)) { let fx_ = P.fx, fy_ = P.fy; if (isSolidP(P.x + fx_ * 40, P.y + fy_ * 40)) { fx_ = -fx_; fy_ = -fy_; } P.kx = fx_ * 360; P.ky = fy_ * 360; P.iframe = Math.max(P.iframe, .35); P.ventT = .6; unlock('respiradouro'); floatTxt('Fuuu!', P.x, P.y - 24, '#f3e6cf'); if (!flags.ventTip) { flags.ventTip = true; toast('Respiradouros lançam Jonas longe. Use-os para atravessar o ácido!', 'mem'); } }
       for (const m of mobs) if (!m.npc && dist(m.x, m.y, n.x, n.y) < 13) { m.kx = rr(-1, 1) * 260; m.ky = rr(-1, 1) * 260; m.stun = .5; } } }
   P.ventT = Math.max(0, (P.ventT || 0) - dt);
-  for (const f of folds) if (f.tempOpen > 0) { f.tempOpen -= dt; if (f.tempOpen <= 0) { f.tempOpen = 0; if (!isContract(DIR.ev)) { f.closed = true; for (const p of pockets) if (p.fold === f.id && dist(P.x, P.y, p.x, p.y) < p.r) { P.x = p.out.x; P.y = p.out.y; toast('A bolsa se fecha e expulsa Jonas.'); } const pt = idx(Math.floor(P.x / TS), Math.floor(P.y / TS)); if (f.tiles.includes(pt)) { const sp = nearestFree(P.x, P.y, 8); if (sp) { P.x = sp.x; P.y = sp.y; } } } } }
+  for (const f of folds) if (f.tempOpen > 0) { f.tempOpen -= dt; if (f.tempOpen <= 0) { f.tempOpen = 0; if (!isContract(DIR.ev)) { f.closed = true; for (const p of pockets) if (p.fold === f.id && dist(P.x, P.y, p.x, p.y) < p.r) { P.x = p.out.x; P.y = p.out.y; P.safe = null; if (boxHit(P.x, P.y, P.r)) unstick(); toast('A bolsa se fecha e expulsa Jonas.'); } const pt = idx(Math.floor(P.x / TS), Math.floor(P.y / TS)); if (f.tiles.includes(pt)) { const sp = nearestFree(P.x, P.y, 8); if (sp) { P.x = sp.x; P.y = sp.y; } } } } }
   for (const n of nodes) if (n.hidden) { n.rg -= dt * (DIR.ev === 'bloom' && n.k === 'mush' ? 3 : 1); if (n.rg <= 0) { n.hidden = false; n.uses = n.max; } }
   // fires
   for (const s of structs) if (s.k === 'fire' && s.fuel > 0) s.fuel -= dt;
@@ -1663,7 +1688,8 @@ function playerTick(dt) {
   const feet = equip.feet ? ITEMS[equip.feet.id] : null; const acid = isAcidAt(P.x, P.y);
   let spd = 62 * (feet && feet.spd || 1) * (P.latched ? .55 : 1) * (acid ? .78 : 1);
   P.kx *= Math.pow(.002, dt); P.ky *= Math.pow(.002, dt);
-  moveEnt(P, mx * spd * dt + P.kx * dt + windX * dt, my * spd * dt + P.ky * dt + windY * dt);
+  const bx = P.x, by = P.y; moveEnt(P, mx * spd * dt + P.kx * dt + windX * dt, my * spd * dt + P.ky * dt + windY * dt);
+  if (P.moving && bx === P.x && by === P.y && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => boxHit(P.x + a * 2, P.y + b * 2, P.r))) { P.trapT = (P.trapT || 0) + dt; if (P.trapT > .8) { P.trapT = 0; P.safe = null; unstick('Jonas se soltou da carne.'); } } else P.trapT = 0;
   P.anim += P.moving ? dt * 8 : 0;
   if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .3 / (feet && feet.spd || 1); sfx(acid ? 'stepAcid' : 'step'); } }
   if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * DF().dmg * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
@@ -1677,6 +1703,9 @@ function playerTick(dt) {
   const rad = Math.ceil(Math.max(5, lightR() / TS + 2)); const tx = Math.floor(P.x / TS), ty = Math.floor(P.y / TS);
   for (let j = -rad; j <= rad; j++) for (let i = -rad; i <= rad; i++) if (inB(tx + i, ty + j) && i * i + j * j <= rad * rad) reveal[idx(tx + i, ty + j)] = 1;
   const rg = regionOf(P.x, P.y); if (rg && !visited.has(rg.id)) { visited.add(rg.id); showRegion(rg.n); }
+  // anti-stuck: remember the last clear spot; if Jonas ends up inside a wall, put him back
+  if (boxHit(P.x, P.y, P.r)) { P.stuckT = (P.stuckT || 0) + dt; if (P.stuckT > .2) unstick('Jonas escorregou de volta para um lugar seguro.'); }
+  else { P.stuckT = 0; const ti = idx(Math.floor(P.x / TS), Math.floor(P.y / TS)); if (foldAt[ti] < 0 && tiles[ti] === FLOOR && !(P.roll > 0)) P.safe = { x: P.x, y: P.y }; }
 }
 let regionTimer = 0;
 function showRegion(n) { const el = $('#region'); el.textContent = n; el.classList.add('on'); clearTimeout(regionTimer); regionTimer = setTimeout(() => el.classList.remove('on'), 2400); }
@@ -1960,9 +1989,8 @@ function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null,
     buildHotbar(); renderMenu(true); }); }
 function renderQuestTab(b) { const qs = QUESTS[day]; let lockShown = false;
   const items = qs.map(q => { const st = qState[q.id]; if (!st) { if (lockShown) return ''; lockShown = true; return `<div class="qi lock"><b></b><span>Ainda desconhecido… conclua as missões acima.</span></div>`; } return `<div class="qi ${st === 'done' ? 'done' : 'act'}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }).join('');
-  const all = ['sino', 'jope', 'tabua', 'moeda', 'vento', 'cordame', 'remo', 'fechada', 'sorte'];
-  const memHtml = all.map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}${MEMS[k].opt ? ' · extra' : ''}</summary><p>${MEMS[k].d}</p></details>` : `<div class="mem unk">${MEMS[k].opt ? 'Lembrança extra' : 'Lembrança'} ainda não encontrada</div>`).join('');
-  b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${mems.size}/9 encontradas</span><h3>Lembranças</h3>${memHtml}<span class="lbl" style="margin-top:8px">${refl.size}/6 momentos</span><h3>Reflexões</h3>${REFLECTS.map((R_, i) => !R_ ? '' : refl.has(i) ? `<details class="mem"><summary>${R_.ref}</summary><p>“${R_.q}”<br><br>${R_.d}</p></details>` : `<div class="mem unk">Lugar de reflexão ainda não encontrado</div>`).join('')}</div></div>`; }
+  const memHtml = [1, 2, 3].map(d => `<span class="lbl" style="margin-top:6px">Dia ${d} · ${ACT_NAME[d]}</span>` + MEM_ACT[d].map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}</summary><p>${MEMS[k].d}</p></details>` : `<div class="mem unk">Lembrança ainda não encontrada</div>`).join('')).join('');
+  b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL} encontradas</span><h3>Lembranças</h3>${memHtml}<span class="lbl" style="margin-top:8px">${refl.size}/9 momentos</span><h3>Reflexões</h3>${REFLECTS.map((R_, i) => !R_ ? '' : refl.has(i) ? `<details class="mem"><summary>${R_.ref}</summary><p>“${R_.q}”<br><br>${R_.d}</p></details>` : `<div class="mem unk">Lugar de reflexão ainda não encontrado</div>`).join('')}</div></div>`; }
 function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); let u = ''; try { u = c.toDataURL(); } catch (e) {}
   const tg = currentTarget(), q = QUESTS[day].find(q => qState[q.id] === 'active' && q.target);
   b.innerHTML = `<div class="mapwrap"><div class="mapbox"><img src="${u}" width="${MW * 5}" height="${MH * 5}" alt="Mapa revelado do interior da baleia"></div><div class="mapside"><span class="lbl">Legenda</span>
@@ -2036,22 +2064,24 @@ function bigMap() { openMenu('map'); }
 const SLOT_KEYS = ['auto', '1', '2', '3'];
 function packBits(a) { let s = ''; for (let i = 0; i < a.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) if (a[i + j]) b |= 1 << j; s += String.fromCharCode(b); } return btoa(s); }
 function unpackBits(str, n) { const a = new Uint8Array(n); try { const s = atob(str || ''); for (let i = 0; i < s.length; i++) { const b = s.charCodeAt(i); for (let j = 0; j < 8; j++) if ((b >> j) & 1) a[i * 8 + j] = 1; } } catch (e) {} return a; }
-function serialize() { return { v: 2, t: Date.now(), diff: DIFF, seed: SEED, deaths, day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
+function serialize() { return { v: 3, t: Date.now(), diff: DIFF, seed: SEED, deaths, day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
 function save() { writeSlot('auto', true); }
 function snap() { return state === 'play' ? serialize() : null; }
 function writeSlot(k, quiet) { if (state !== 'play' || !P) return false; try { localStorage.setItem('jonah-slot-' + k, JSON.stringify(serialize())); if (!quiet) toast(k === 'auto' ? 'Jogo salvo.' : `Jogo salvo no espaço ${k}.`, 'good'); return true; } catch (e) { if (!quiet) toast('Não foi possível salvar neste navegador.', 'bad'); return false; } }
-function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-slot-' + k) || 'null'); return d && d.v === 2 ? d : null; } catch (e) { return null; } }
+function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-slot-' + k) || 'null'); return d && (d.v === 2 || d.v === 3) ? d : null; } catch (e) { return null; } }
 function latestSlot() { let best = null; for (const k of SLOT_KEYS) { const d = readSlot(k); if (d && (!best || d.t > best.d.t)) best = { k, d }; } return best; }
 function nodeSolids(n) { const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
 function loadGame(d) { EPI.night = 0; EPI.heat = 0; if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
   freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0; DIFF = d.diff || 'normal'; SEED = d.seed || 20261105; deaths = d.deaths || 0;
   P.hp = d.P.hp; P.food = d.P.food; P.fx = d.P.fx || 0; P.fy = d.P.fy == null ? 1 : d.P.fy;
-  genWorld(day); reveal = unpackBits(d.reveal, MW * MH);
+  genWorld(day); const OLD = d.v !== 3 && d.day !== 4; reveal = OLD ? new Uint8Array(MW * MH) : unpackBits(d.reveal, MW * MH);
   mobs = []; pickups = []; fx = []; proj = []; merchant = null; tideLevel = 0;
   flags = d.flags || {}; qState = d.qState || {}; contrCount = d.contrCount || 0; visited = new Set(d.visited || []);
-  structs = d.structs || []; shelter = structs.find(s => s.k === 'shelter') || null; if (shelter) solid[idx(Math.floor(shelter.x / TS), Math.floor(shelter.y / TS))] = 1;
-  for (const i of d.bridges || []) if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; structs.push({ k: 'bridge', i }); }
-  nodes = d.nodes || []; for (const n of nodes) nodeSolids(n);
+  structs = OLD ? [] : d.structs || []; shelter = structs.find(s => s.k === 'shelter') || null;
+  if (OLD && day < 4 && (day > 1 || (d.structs || []).some(s => s.k === 'shelter'))) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); } }
+  if (shelter) solid[idx(Math.floor(shelter.x / TS), Math.floor(shelter.y / TS))] = 1;
+  if (!OLD) for (const i of d.bridges || []) if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; structs.push({ k: 'bridge', i }); }
+  if (OLD) { nodes = []; setupNodes(); if (day === 4) { /* nodes rebuilt */ } d.P.x = (shelter ? shelter.x : RG[REGIONS[0].id].x * TS); d.P.y = (shelter ? shelter.y + 18 : RG[REGIONS[0].id].y * TS); } else { nodes = d.nodes || []; for (const n of nodes) nodeSolids(n); }
   if (day === 4) { for (const n of nodes) if (['well', 'stall', 'palm'].includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; if (flags.epi && flags.epi !== 'done') { nodes = nodes.filter(n => n.k !== 'plantN' && n.k !== 'worm'); flags.epi = 'night'; flags.epiT = 0; } }
   const g1 = folds.find(f => f.key === 'G1'); if (g1 && (day >= 2 || flags.bigDone)) g1.closed = false;
   const g3 = folds.find(f => f.key === 'G3'); if (g3 && qState.mems === 'done') g3.closed = false;
@@ -2063,9 +2093,10 @@ const slotLabel = k => k === 'auto' ? 'Automático' : 'Espaço ' + k;
 function slotInfo(d) { return d ? `<b>${d.day === 4 ? 'Epílogo' : 'Dia ' + d.day} · ${(DIFFS[d.diff] || DIFFS.normal).n} · ${esc(d.region || DAYS[d.day].name)}</b><span>${fmtTime(d.playTime || 0)} de jogo · ${(d.mems || []).length}/9 lembranças · ${new Date(d.t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>` : `<b>Vazio</b><span>Nenhum jogo salvo aqui.</span>`; }
 function armButton(b, label, fn) { if (b.dataset.arm) { fn(); return; } const old = b.textContent; b.dataset.arm = '1'; b.textContent = label; b.classList.add('arm'); setTimeout(() => { if (b.isConnected) { b.dataset.arm = ''; b.textContent = old; b.classList.remove('arm'); } }, 3000); }
 function renderSaveTab(b) { const rows = SLOT_KEYS.map(k => { const d = readSlot(k); return `<div class="slotrow"><div class="sname">${slotLabel(k)}</div><div class="sinfo">${k === 'auto' && !d ? '<b>Vazio</b><span>O jogo salva aqui sozinho.</span>' : slotInfo(d)}</div><div class="sact">${k !== 'auto' ? `<button class="btn" data-save="${k}" data-full="${d ? 1 : ''}">Salvar aqui</button>` : ''}${d ? `<button class="btn alt" data-load="${k}">Carregar</button>` : ''}</div></div>`; }).join('');
-  b.innerHTML = `<div class="pad"><span class="lbl">Salvar e continuar</span><p class="note">O jogo também salva sozinho no espaço Automático ao começar cada dia, concluir missões, descansar no abrigo e a cada 90 segundos.</p>${rows}<div class="opt"><span>Voltar à tela inicial (salva antes no Automático)</span><button class="btn alt" id="toTitle">Tela inicial</button></div><p class="note">Os jogos ficam guardados neste navegador. Em outro aparelho ou navegador, eles não aparecem.</p></div>`;
+  b.innerHTML = `<div class="pad"><span class="lbl">Salvar e continuar</span><p class="note">O jogo também salva sozinho no espaço Automático ao começar cada dia, concluir missões, descansar no abrigo e a cada 90 segundos.</p>${rows}<div class="opt"><span>Jonas ficou preso? Leve-o de volta ao abrigo</span><button class="btn alt" id="unstuckB">Destravar</button></div><div class="opt"><span>Voltar à tela inicial (salva antes no Automático)</span><button class="btn alt" id="toTitle">Tela inicial</button></div><p class="note">Os jogos ficam guardados neste navegador. Em outro aparelho ou navegador, eles não aparecem.</p></div>`;
   b.querySelectorAll('[data-save]').forEach(x => x.onclick = () => { const go = () => { writeSlot(x.dataset.save); renderMenu(true); }; if (x.dataset.full) armButton(x, 'Substituir?', go); else go(); });
   b.querySelectorAll('[data-load]').forEach(x => x.onclick = () => armButton(x, 'Confirmar?', () => loadGame(readSlot(x.dataset.load))));
+  $('#unstuckB').onclick = () => { P.safe = null; const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(RG[REGIONS[0].id].x * TS, RG[REGIONS[0].id].y * TS, 10); if (sp) { P.x = sp.x; P.y = sp.y; P.kx = P.ky = 0; P.latched = null; } closeMenu(); toast('Jonas voltou ao abrigo.', 'good'); };
   $('#toTitle').onclick = function () { armButton(this, 'Confirmar?', () => { writeSlot('auto', true); closeMenu(); titleScreen(); }); }; }
 function loadScreen() { const html = `<div class="pad" style="padding:0">${SLOT_KEYS.map(k => { const d = readSlot(k); return `<div class="slotrow"><div class="sname">${slotLabel(k)}</div><div class="sinfo">${slotInfo(d)}</div><div class="sact">${d ? `<button class="btn" data-ld="${k}">Carregar</button>` : ''}</div></div>`; }).join('')}</div>`;
   showCard({ kick: 'CONTINUAR', title: 'Jogos salvos', html, btn: 'Voltar', fn: titleScreen });
@@ -2143,7 +2174,7 @@ function boot(data) {
   day = 1; genWorld(1); mobs = []; pickups = []; fx = []; proj = []; visited = new Set(); nodes = []; setupNodes(); renderGround(); newDirector();
   P.x = RG.destrocos.x * TS + 8; P.y = RG.destrocos.y * TS + 8; const f = nearestFree(P.x, P.y, 6); if (f) { P.x = f.x; P.y = f.y; }
   window.claude?.hot?.snapshot?.(() => snap());
-  if (data && data.v === 2) loadGame(data); else titleScreen();
+  if (data && (data.v === 2 || data.v === 3)) loadGame(data); else titleScreen();
   requestAnimationFrame(t => { last = t; frame(t); });
 }
 const go = d => { try { boot(d && d.v === 2 ? d : null); } catch (e) { console.error(e); } };
