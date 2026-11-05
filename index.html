@@ -182,6 +182,142 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 .stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats3 div{padding:8px;background:var(--panel-2);font-size:12px;color:var(--bone-dim)}
 .stats3 b{display:block;font-family:var(--f-display);font-size:30px;font-weight:400;color:var(--bone);font-variant-numeric:tabular-nums}
+
+/* dock */
+#dock{position:absolute;left:calc(10px + env(safe-area-inset-left,0px));top:calc(112px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:6px;padding:6px}
+.dk{position:relative;width:46px;height:46px;padding:0;display:grid;place-items:center;background:var(--panel-2);border:2px solid var(--line)}
+.dk:hover{border-color:var(--bone-dim);background:#3b1d2b}
+.dk kbd{position:absolute;right:2px;bottom:1px;font-family:var(--f-label);font-size:8px;color:var(--bone-dim)}
+.dk .badge,.mtab .badge{position:absolute;right:-7px;top:-7px;min-width:18px;height:18px;padding:0 4px;font-family:var(--f-label);font-size:10px;line-height:15px;text-align:center;background:var(--acid);color:var(--ink);border:2px solid var(--ink);animation:pop .6s steps(3)}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}}
+.dk .tip{position:absolute;left:54px;top:50%;transform:translateY(-50%);padding:4px 8px;font-family:var(--f-label);font-size:10px;white-space:nowrap;background:var(--ink);border:2px solid var(--line);opacity:0;pointer-events:none;transition:opacity .15s steps(2)}
+.dk:hover .tip,.dk:focus-visible .tip{opacity:1}
+.dk.pause{border-color:var(--bone)}
+#toasts{z-index:20}
+/* pause menu */
+#menu{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:rgba(10,3,8,.66);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-bottom,0px))}
+.mwin{width:min(1040px,100%);height:min(680px,100%);display:grid;grid-template-rows:auto auto minmax(0,1fr)}
+.mwin.anim{animation:cin .25s steps(4)}
+.mhead{display:flex;align-items:center;gap:14px;padding:12px 16px 10px;flex-wrap:wrap}
+.mhead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:38px;line-height:.9}
+.pchip{padding:3px 8px;font-family:var(--f-label);font-size:10px;letter-spacing:.1em;color:var(--ink);background:var(--glow)}
+.mclose{margin-left:auto;display:flex;align-items:center;gap:8px;padding:7px 12px;font-family:var(--f-label);font-size:11px;font-weight:700;background:var(--bone);color:var(--ink);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.mclose kbd,.mtab kbd{font-family:var(--f-label);font-size:9px;padding:0 4px;border:1px solid currentColor;opacity:.75}
+.mtabs{display:flex;gap:4px;padding:0 12px;overflow-x:auto;border-bottom:2px solid var(--line);scrollbar-width:none}
+.mtab{position:relative;flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px 8px;margin-top:8px;font-family:var(--f-label);font-size:11px;font-weight:700;color:var(--bone-dim);background:transparent;border:2px solid transparent;border-bottom:0}
+.mtab:hover{color:var(--bone)}
+.mtab[aria-selected="true"]{color:var(--bone);background:var(--panel-2);border-color:var(--line);margin-bottom:-2px;padding-bottom:10px}
+.mbody{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);background:var(--panel-2)}
+.mbody>*{min-height:0}
+/* craft tab */
+.cwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:0}
+.cleft{display:flex;flex-direction:column;gap:10px;padding:14px;min-height:0}
+.ctools{display:flex;flex-direction:column;gap:8px}
+#cSearch{width:100%;padding:9px 12px;font:inherit;font-size:14px;color:var(--bone);background:#0b0408;border:2px solid var(--line);outline:none}
+#cSearch:focus{border-color:var(--glow)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{display:flex;align-items:center;gap:6px;padding:5px 9px;font-family:var(--f-label);font-size:10px;font-weight:700;color:var(--bone-dim);background:#0b0408;border:2px solid var(--line)}
+.fchip[aria-pressed="true"]{color:var(--ink);background:var(--bone);border-color:var(--bone)}
+.fchip.can[aria-pressed="false"]{color:var(--acid);border-color:#56661c}
+.fchip b{font-weight:700;font-variant-numeric:tabular-nums}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;overflow:auto;align-content:start;padding:2px 4px 8px 2px;overscroll-behavior:contain}
+.rt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;min-height:104px;padding:12px 6px 8px;font-size:12px;line-height:1.15;text-align:center;color:var(--bone);background:#0b0408;border:2px solid var(--line)}
+.rt .ic{height:40px;display:grid;place-items:center}
+.rt.can{border-color:#6d8420;background:#141a06}
+.rt.can::after{content:"PRONTO";position:absolute;top:-2px;left:-2px;padding:1px 4px;font-family:var(--f-label);font-size:7px;color:var(--ink);background:var(--acid)}
+.rt.lock{opacity:.42}
+.rt.lock::after{content:attr(data-lock);position:absolute;top:-2px;left:-2px;padding:1px 4px;font-family:var(--f-label);font-size:7px;color:var(--bone);background:var(--flesh)}
+.rt[aria-selected="true"]{border-color:var(--glow);box-shadow:inset 0 0 0 2px var(--glow);background:#10232a}
+.rt:hover{border-color:var(--bone-dim)}
+.rt.flash{animation:flash .5s steps(4)}
+@keyframes flash{50%{background:var(--acid)}}
+.empty{padding:24px;color:var(--bone-dim);font-size:14px;grid-column:1/-1}
+.cdet{display:flex;flex-direction:column;gap:12px;padding:16px;border-left:2px solid var(--line);background:var(--panel);overflow:auto;min-height:0}
+.dhead{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.dhead .big{width:76px;height:76px;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)}
+.dhead h3{margin:2px 0 4px;font-family:var(--f-display);font-weight:400;font-size:32px;line-height:.9}
+.st{display:inline-block;padding:2px 6px;font-family:var(--f-label);font-size:9px;font-weight:700;color:var(--ink);background:var(--bone-dim)}
+.st.ok{background:var(--acid)}.st.no{background:var(--flesh);color:var(--bone)}
+.cdet p{margin:0;font-size:14px;line-height:1.45;color:#e2d0ad}
+.props{display:flex;flex-wrap:wrap;gap:6px}
+.prop{padding:3px 7px;font-family:var(--f-label);font-size:9px;color:var(--glow);border:1px solid #1f5c62;background:#0b1a1d}
+.ings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ings li{display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;align-items:center;padding:7px 8px;background:#0b0408;border:2px solid var(--line)}
+.ings li .ii{grid-row:span 2;display:grid;place-items:center}
+.ings li b{font-size:14px}
+.ings li .q{font-family:var(--f-label);font-size:11px;font-variant-numeric:tabular-nums;color:var(--acid)}
+.ings li.miss{border-color:#6a1f2a}.ings li.miss .q{color:var(--blood)}
+.ings li small{grid-column:2/-1;font-size:11px;color:var(--bone-dim);line-height:1.25}
+.why{font-size:12px;color:var(--blood);line-height:1.3}
+.btn.wide{width:100%;display:flex;justify-content:center;gap:10px;font-size:13px;padding:12px}
+.btn:disabled{background:#4a3540;color:#8c7480;box-shadow:none;cursor:not-allowed}
+.btn kbd{font-family:var(--f-label);font-size:9px;padding:0 4px;border:1px solid currentColor}
+/* bag tab */
+.bagwrap{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:0}
+.doll{display:flex;flex-direction:column;gap:12px;padding:16px;border-right:2px solid var(--line);background:var(--panel);overflow:auto}
+.dgrid{display:grid;grid-template-columns:64px 1fr 64px;grid-template-rows:auto auto;gap:10px;align-items:center;justify-items:center}
+.portrait{grid-row:span 2;width:100%;height:150px;display:grid;place-items:center;background:radial-gradient(circle at 50% 55%,#5a2a1c 0,#2a1218 55%,#0b0408 100%);border:2px solid var(--line)}
+.eqs{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--f-label);font-size:8px;color:var(--bone-dim)}
+.bs{position:relative;width:56px;height:56px;padding:0;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)}
+.bs.eq{border-style:dashed}.bs.eq.on{border-style:solid;border-color:var(--glow)}
+.bs[aria-selected="true"]{box-shadow:inset 0 0 0 2px var(--glow);border-color:var(--glow)}
+.bs .c{position:absolute;right:3px;bottom:1px;font-family:var(--f-label);font-size:11px;text-shadow:1px 1px 0 var(--ink)}
+.bs .fuel{position:absolute;left:4px;right:4px;bottom:4px;height:3px;background:#2a1520}.bs .fuel i{display:block;height:100%;background:var(--amber)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sgrid div{padding:6px 8px;background:#0b0408;font-size:11px;color:var(--bone-dim)}
+.sgrid b{display:block;font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1;color:var(--bone);font-variant-numeric:tabular-nums}
+.bagr{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;min-height:0}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:8px}
+.idet{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:14px;background:var(--panel);border:2px solid var(--line);align-items:start}
+.idet h3{margin:0 0 4px;font-family:var(--f-display);font-weight:400;font-size:28px;line-height:.9}
+.idet p{margin:0 0 8px;font-size:13px;line-height:1.4;color:#e2d0ad}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.acts .btn{padding:8px 12px;font-size:11px}
+/* quests tab */
+.qwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0}
+.qcol{display:flex;flex-direction:column;gap:10px;padding:16px;overflow:auto;min-height:0}
+.qcol+.qcol{border-left:2px solid var(--line);background:var(--panel)}
+.qcol h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:28px}
+.qi{display:grid;grid-template-columns:14px 1fr;gap:10px;padding:10px;background:#0b0408;border:2px solid var(--line);font-size:14px;line-height:1.3}
+.qi b{width:12px;height:12px;margin-top:3px;border:2px solid var(--bone-dim)}
+.qi.done{color:var(--bone-dim);text-decoration:line-through}.qi.done b{background:var(--acid);border-color:var(--acid)}
+.qi.act{border-color:var(--glow)}.qi.act b{border-color:var(--glow)}
+.qi small{display:block;margin-top:3px;font-size:12px;color:var(--bone-dim);text-decoration:none}
+.qi.lock{color:#6b5560;font-style:italic}
+details.mem{background:#0b0408;border:2px solid #1f5c62}
+details.mem summary{padding:9px 12px;cursor:pointer;font-weight:700;color:var(--glow);list-style:none}
+details.mem summary::before{content:"▸ ";color:var(--bone-dim)}details.mem[open] summary::before{content:"▾ "}
+details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:#e2d0ad}
+.mem.unk{padding:9px 12px;color:#6b5560;border:2px dashed var(--line);font-style:italic}
+/* map/best/opts */
+.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:0}
+.mapbox{display:grid;place-items:center;padding:14px;min-height:0;overflow:auto}
+.mapbox img{image-rendering:pixelated;max-width:100%;max-height:100%;border:2px solid var(--line);background:#0b0408}
+.mapside{display:flex;flex-direction:column;gap:8px;padding:16px;border-left:2px solid var(--line);background:var(--panel);overflow:auto;font-size:13px}
+.rg{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;background:#0b0408}
+.rg.no{color:#6b5560}
+.pad{padding:16px;overflow:auto;min-height:0;display:flex;flex-direction:column;gap:14px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;background:#0b0408;border:2px solid var(--line);font-size:14px}
+@media (max-width:760px){
+  #dock{top:calc(94px + env(safe-area-inset-top,0px));padding:4px;gap:4px}
+  .dk{width:38px;height:38px}
+  .dk .tip{display:none}
+  .mwin{height:100%}
+  .mhead h2{font-size:28px}
+  .mclose span{display:none}
+  .mtab span{display:none}
+  .mtab{padding:8px 10px 7px}
+  .bagwrap,.qwrap,.mapwrap{grid-template-columns:minmax(0,1fr);overflow:auto}
+  .cwrap{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;overflow:hidden}
+  .cleft{padding:10px;gap:8px}.rgrid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+  .rt{min-height:84px;padding:10px 4px 6px;font-size:11px}
+  .cdet{max-height:44vh;padding:12px;gap:8px}
+  .cdet .dhead .big{width:56px;height:56px}.cdet h3{font-size:24px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.fchip{flex:none}
+  .cdet{border-left:0;border-top:2px solid var(--line);overflow:auto}
+  .doll,.qcol+.qcol,.mapside{border-left:0;border-right:0;border-top:2px solid var(--line);overflow:visible}
+  .bagr,.qcol,.pad{overflow:visible}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -195,10 +331,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
       <div class="stat" title="Fome"><img class="pi" id="iFood" alt="Fome"><div class="bar" id="bFood" style="--c:var(--amber)"><i></i></div></div>
       <div class="stat" title="Luz"><img class="pi" id="iLight" alt="Luz"><div class="bar" id="bLight" style="--c:var(--glow)"><i></i></div></div>
     </div>
-    <div id="craft">
-      <div id="tabs" class="px" role="toolbar" aria-label="Criar"></div>
-      <div id="cpanel" class="px" hidden></div>
-    </div>
+    <div id="dock" class="px" role="toolbar" aria-label="Menus"></div>
     <div id="tr">
       <div id="dialWrap" class="px">
         <canvas id="dial" width="40" height="40"></canvas>
@@ -212,10 +345,10 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
     <div id="toasts"></div>
     <div id="prompt" class="px" hidden></div>
     <div id="bar" class="px"><div id="slots"></div><div id="equip"></div></div>
-    <div id="tools"><button class="tbtn" id="bBest">Bestiário</button><button class="tbtn" id="bMute">Som: on</button></div>
     <div id="touch"><div id="stick"><div id="knob"></div></div><div id="tbtns"><button class="tb a" id="tA">Atacar</button><button class="tb e" id="tE">Usar</button></div></div>
     <div id="tip" class="px" hidden></div>
   </div>
+  <div id="menu" hidden></div>
   <div id="overlay" hidden></div>
 </div>
 
@@ -239,7 +372,7 @@ function vnoise(x, y, s = 0) { const xi = Math.floor(x), yi = Math.floor(y), xf 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => v / 16 - .5);
 
 /* ================= PIXEL ART ================= */
-const PAL = { k:'#1a0a10', w:'#f3e6cf', b:'#eadcb8', B:'#b59e74', r:'#8a5a32', R:'#5a361c', o:'#b8813f', c:'#ddd0b2', C:'#a39274', y:'#d0a860', Y:'#8f6e34', s:'#e3a56c', S:'#b07548', h:'#3d2617', H:'#6a4428', t:'#a98652', T:'#77592f', g:'#b9dc3c', G:'#6f8f1c', q:'#62f4e2', Q:'#2aa3b6', p:'#d06a7e', P:'#8a2c41', m:'#5c1a2b', e:'#ffe170', x:'#e2463c', X:'#9c2026', v:'#a77ae6', V:'#5d3a9c', n:'#a2a6b8', N:'#5d6075', f:'#f39046', F:'#b75b22', l:'#fff7c8', a:'#ead6ad', A:'#b99c6a', j:'#f4cd4f', J:'#b98f28', d:'#5a5080', D:'#332a4f', u:'#5b8ff0', U:'#27438f', z:'#1b0d1c', i:'#4a2a6a' };
+const PAL = { k:'#1a0a10', w:'#f3e6cf', b:'#eadcb8', B:'#b59e74', r:'#8a5a32', R:'#5a361c', o:'#b8813f', c:'#ddd0b2', C:'#a39274', y:'#d0a860', Y:'#8f6e34', s:'#e3a56c', S:'#b07548', h:'#2e1c12', H:'#5e3a22', t:'#a07a48', T:'#6e5230', g:'#b9dc3c', G:'#6f8f1c', q:'#62f4e2', Q:'#2aa3b6', p:'#d06a7e', P:'#8a2c41', m:'#5c1a2b', e:'#ffe170', x:'#e2463c', X:'#9c2026', '1':'#8a4a3a', v:'#a77ae6', V:'#5d3a9c', n:'#a2a6b8', N:'#5d6075', f:'#f39046', F:'#b75b22', l:'#fff7c8', a:'#ead6ad', A:'#b99c6a', j:'#f4cd4f', J:'#b98f28', d:'#5a5080', D:'#332a4f', u:'#5b8ff0', U:'#27438f', z:'#1b0d1c', i:'#4a2a6a' };
 function rowsC(rows) { const w = Math.max(...rows.map(r => r.length)), h = rows.length, c = C(w, h), x = c.getContext('2d'); rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) { const ch = r[i]; if (ch !== '.' && ch !== ' ') { x.fillStyle = PAL[ch] || '#ff00ff'; x.fillRect(i, j, 1, 1); } } }); return c; }
 function outline(c, col = PAL.k) { const w = c.width, h = c.height, o = C(w + 2, h + 2), x = o.getContext('2d'); const sd = c.getContext('2d').getImageData(0, 0, w, h).data; const A = (i, j) => i >= 0 && j >= 0 && i < w && j < h && sd[(j * w + i) * 4 + 3] > 100; x.fillStyle = col; for (let j = -1; j <= h; j++) for (let i = -1; i <= w; i++) { if (A(i, j)) continue; if (A(i - 1, j) || A(i + 1, j) || A(i, j - 1) || A(i, j + 1)) x.fillRect(i + 1, j + 1, 1, 1); } x.drawImage(c, 1, 1); return o; }
 function crisp(c) { const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height); for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 110 ? 255 : 0; x.putImageData(d, 0, 0); return c; }
@@ -249,15 +382,16 @@ function tintC(c, col) { const n = C(c.width, c.height), x = n.getContext('2d');
 const set3 = c => ({ r: c, l: flipC(c), w: tintC(c, '#ffffff'), wl: flipC(tintC(c, '#ffffff')) });
 
 // Jonas
-const J_HEAD_F = ["...hhhh...", "..hhhhhh..", ".hhsssshh.", ".hskssksh.", ".hssSSssh.", ".hhhhhhhh.", "..hhHHhh..", ".ttthhttt."];
-const J_HEAD_B = ["...hhhh...", "..hhhhhh..", ".hhhhhhhh.", ".hhHhhHhh.", ".hhhhhhhh.", ".hhhhhhhh.", "..hhhhhh..", ".tttttttt."];
-const J_HEAD_S = ["...hhhh...", "..hhhhhh..", "..hhhssss.", "..hhhsksS.", "..hhhssss.", "..hhhhhhh.", "...hhhhH..", "...tttttt."];
-const J_BODY_F = ["sttttttttS", "sttyyyyttS", "s.tttttt.S", "..tTttTt..", "..tTttTt.."];
-const J_BODY_S = ["..ttttttS.", "..tyyyyts.", "..ttttttS.", "...tTtt...", "...tTtt..."];
-const LEGS_F = [["...ss.ss..", "...RR.RR.."], ["..ss...ss.", "..RR...RR."], ["....ssss..", "....RRRR.."]];
-const LEGS_S = [["...s.s....", "...R.R...."], ["..s...s...", "..R...R..."], ["....ss....", "....RR...."]];
+const J_HEAD_F = ["....hhhhhh....", "..hhHhhHhhhh..", ".hhHhhhhhhHhh.", ".hhhsssssshhh.", ".hhsSkssSkshh.", ".hhssssSssshh.", ".hhhss11sshhh.", "..hhhhHHhhhh..", "..hhhhhhhhhh..", "...hhhhhhhh..."];
+const J_HEAD_B = ["....hhhhhh....", "..hhHhhHhhhh..", ".hhHhhhhhhHhh.", ".hhhhHhhHhhhh.", ".hhHhhhhhhhHh.", ".hhhhhHhhhhhh.", ".hhhhhhhhhhhh.", "..hhhHhhhhhh..", "..hhhhhhhhhh..", "....ssssss...."];
+const J_HEAD_S = ["....hhhhh.....", "...hhHhhhhh...", "..hhHhhhhhhh..", "..hhhhhhsss...", "..hhHhhssskS..", "..hhhhhsssssS.", "..hhhhhhss1...", "...hhhhhhhhh..", "...hhhhhhhhh..", "....hhhhhhh..."];
+const J_BODY_F = ["..ttthhhhttt..", ".sttttttttttS.", "sstTttttttTtSS", "ss.tTttttTt.SS", "S..YyyyyyyY..S", "...tttttttt...", "...tTttttTt...", "...tTt..tTt..."];
+const J_BODY_B = ["..tttttttttt..", ".sttttttttttS.", "sstTttttttTtSS", "ss.tTttttTt.SS", "S..YyyyyyyY..S", "...tttttttt...", "...tTttttTt...", "...tTt..tTt..."];
+const J_BODY_S = ["....tttttt....", "...ttttttts...", "...tTttttss...", "...tTttttS....", "...YyyyyyY....", "...tttttt.....", "...tTttTt.....", "...tTt.Tt....."];
+const LEGS_F = [["....ss..ss....", "....ss..ss....", "...RRr..rRR..."], ["...ss....ss...", "...ss....ss...", "..RRr....rRR.."], ["....ss.ss.....", "....ss..s.....", "...RRr.Rr....."]];
+const LEGS_S = [["....ss.s......", "....ss.s......", "...RRrRRr....."], ["...ss...s.....", "...s.....s....", "..RRr....RRr.."], [".....ss.......", ".....ss.......", "....RRRr......"]];
 const JON = {};
-for (const [k, head, body, legs] of [['f', J_HEAD_F, J_BODY_F, LEGS_F], ['b', J_HEAD_B, J_BODY_F, LEGS_F], ['s', J_HEAD_S, J_BODY_S, LEGS_S]]) JON[k] = legs.map(l => set3(mk([...head, ...body, ...l])));
+for (const [k, head, body, legs] of [['f', J_HEAD_F, J_BODY_F, LEGS_F], ['b', J_HEAD_B, J_BODY_B, LEGS_F], ['s', J_HEAD_S, J_BODY_S, LEGS_S]]) JON[k] = legs.map(l => set3(mk([...head, ...body, ...l])));
 
 const MOB_ROWS = {
   larva: ["..aaaaaaaa....", ".aAaAaAaAaaa..", "aaAaAaAaAaaaka", "aaAaAaAaAaaaxx", ".aAaAaAaAaaa..", "..aaaaaaaa...."],
@@ -346,6 +480,13 @@ const ICON_ROWS = {
   t_armas: ["....bb", "...bwb", "..rbb.", ".r....", "r....."],
   t_vida: [".xx.xx.", "xlxxxxx", "xxxxxxx", ".xxxxx.", "..xxx..", "...x..."],
   t_trav: ["RRRRRRR", "ooooooo", "rrrrrrr", "ggGgggG", "gGgggGg"],
+  i_craft: [".nnnnn.", "nnNNNnn", "...r...", "...r...", "...r...", "...R..."],
+  i_bag: ["..RRR..", ".R...R.", "rrrrrrr", "roooooR", "royyyoR", "roooooR", "RRRRRRR"],
+  i_quest: [".cccccc", "cCwwwwc", ".cCCCwc", ".cccccc", ".cwwwwc", ".cCCCwc", "cccccc."],
+  i_map: ["ccCccCc", "cgcCxcc", "cCccCgc", "ccCcxCc", "cgCccCc"],
+  i_best: ["..bbb..", ".bkbbb.", "bbbbbbB", ".bwbwb.", "..bbb.."],
+  i_pause: ["nn.nn", "nn.nn", "nn.nn", "nn.nn", "nn.nn"],
+  i_gear: [".n.n.", "nnnnn", "nn.nn", "nnnnn", ".n.n."],
   t_prot: [".rrrr.", "rornor", "rorror", "ronror", ".rrrr."],
 };
 const ICON = {}, ICON_URL = {};
@@ -725,7 +866,7 @@ function craft(rid) { const r = RECIPES.find(x => x.id === rid); if (!r || r.day
   for (const k in r.in) take(k, r.in[k]);
   crafted[rid] = (crafted[rid] || 0) + 1; sfx('craft');
   if (!r.place) { const it = ITEMS[rid]; if (it.slot && !equip[it.slot]) { equip[it.slot] = { id: rid, dur: it.fuel || 0 }; got[rid] = (got[rid] || 0) + 1; sfx('equip'); toast(`${it.n} criado e equipado`, 'good'); } else addItem(rid, 1, true); floatTxt(`+ ${ITEMS[rid].n}`, P.x, P.y - 24, '#c6e34a'); }
-  invDirty = true; buildCraft(); }
+  invDirty = true; lastCrafted = rid; refreshMenus(); if (r.place && menuOpen()) closeMenu(); return true; }
 function place(kind) { const fx_ = P.x + P.fx * 18, fy_ = P.y + P.fy * 14;
   if (kind === 'bridge') { const dx = Math.abs(P.fx) >= Math.abs(P.fy) ? Math.sign(P.fx) : 0, dy = dx ? 0 : Math.sign(P.fy) || 1; let tx = Math.floor(P.x / TS), ty = Math.floor(P.y / TS), put = 0; for (let k = 1; k <= 5 && put < 3; k++) { const x = tx + dx * k, y = ty + dy * k; if (!inB(x, y)) break; const i = idx(x, y); if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; put++; structs.push({ k: 'bridge', i, x: (x + .5) * TS, y: (y + .5) * TS }); for (const off of [-1, 1]) { const j = dx ? idx(x, y + off) : idx(x + off, y); if (inB(x, y + off) && tiles[j] === ACID && !bridgeMap[j]) { bridgeMap[j] = 1; structs.push({ k: 'bridge', i: j }); } } } else if (put && tiles[i] !== ACID) break; else if (tiles[i] === WALL) break; }
     if (!put) { toast('Fique de frente para o ácido (até 5 passos).', 'bad'); return false; } toast('Prancha colocada sobre o ácido.', 'good'); return true; }
@@ -983,7 +1124,7 @@ function startDay(n, data) {
   newDirector();
   spawnT = 8;
   save();
-  invDirty = true; buildCraft(); buildQuests(); buildHotbar(); updateDayUI();
+  invDirty = true; updateDock(); buildQuests(); buildHotbar(); updateDayUI();
   $('#hud').hidden = false;
   showCard({ kick: DAYS[day].kick, title: `Dia ${day} — ${DAYS[day].name}`, body: DAYS[day].body, btn: 'Começar o dia' });
 }
@@ -1162,11 +1303,11 @@ function drawMob(m) { const D = MOBS[m.t], S = SP[m.t]; let c = m.hit > 0 ? (m.f
   if (m.trapped > 0) { ctx.globalAlpha = .7; sprAt(NSP.trap, m.x, m.y - 2); ctx.globalAlpha = 1; }
   if (m.loot && m.loot.n) { const ic = ICON[m.loot.id]; if (ic) sprAt(ic, m.x, m.y - c.height - 2); } }
 function drawPlayer() { const set = JON[P.face]; const frame = P.moving ? (Math.floor(P.anim) % 2 ? 1 : 2) : 0; const S = set[frame]; let c = P.flip ? S.l : S.r; if (P.iframe > 0 && Math.floor(T * 20) % 2) c = P.flip ? S.wl : S.w;
-  shadow(P.x, P.y, 5);
+  shadow(P.x, P.y, 6);
   const bob = P.moving && Math.floor(P.anim) % 2 ? 1 : 0;
   // back-held light when facing up drawn before body
   const lightSide = P.face === 's' ? (P.flip ? -1 : 1) : 1;
-  const hx = P.x + lightSide * 6, hy = P.y - 8 - bob;
+  const hx = P.x + lightSide * 8, hy = P.y - 12 - bob;
   const drawLight = () => { if (!equip.light) return; const id = equip.light.id; if (id === 'tocha') { px(hx, hy - 1, 1, 6, '#8a5a32'); const fl = Math.floor(T * 12) % 3; px(hx - 1, hy - 4 - fl % 2, 3, 3, '#e2463c'); px(hx, hy - 5 - fl, 1, 3, '#ffe170'); px(hx, hy - 3, 1, 1, '#fff7c8'); } else { const glass = id === 'lanterna_viva' ? '#62f4e2' : '#ffe170'; px(hx - 1, hy - 1, 4, 1, '#1a0a10'); px(hx - 1, hy, 4, 4, '#5d6075'); px(hx, hy + 1, 2, 2, glass); px(hx, hy - 3, 2, 2, '#5d6075'); } };
   if (P.face === 'b') drawLight();
   sprAt(c, P.x, P.y - bob);
@@ -1252,12 +1393,91 @@ function buildHotbar() { const sl = $('#slots'); let h = ''; for (let i = 0; i <
 const tip = $('#tip');
 function tipFor(el, id, extra) { if (!id) return hideTip(); const it = ITEMS[id]; tip.innerHTML = `<b>${it.n}</b><span>${it.d}${extra ? '<br>' + extra : it.slot ? '<br>Clique para equipar' : it.food || it.hp ? '<br>Clique para comer/usar' : ''}<br><i>Botão direito: soltar</i></span>`; tip.hidden = false; const r = el.getBoundingClientRect(); tip.style.left = Math.max(8, Math.min(innerWidth - 230, r.left - 60)) + 'px'; tip.style.top = (r.top - tip.offsetHeight - 10) + 'px'; }
 function hideTip() { tip.hidden = true; }
-let curTab = null;
-function buildTabs() { $('#tabs').innerHTML = TABS.map(([k, l, ic]) => { const n = RECIPES.filter(r => r.tab === k && canCraft(r)).length; return `<button class="tab" data-t="${k}" aria-pressed="${curTab === k}" title="${l}" aria-label="${l}">${iconImg(ic, 3)}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join(''); $('#tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => { curTab = curTab === b.dataset.t ? null : b.dataset.t; buildCraft(); }); }
-function buildCraft() { buildTabs(); const p = $('#cpanel'); if (!curTab) { p.hidden = true; return; } p.hidden = false; const tab = TABS.find(t => t[0] === curTab);
-  p.innerHTML = `<h4>${tab[1]}</h4>` + RECIPES.filter(r => r.tab === curTab).map(r => { const nm = r.n || ITEMS[r.id].n, ds = r.d || ITEMS[r.id].d, lock = r.day > day, ok = canCraft(r);
-    return `<div class="rec ${ok ? 'ok' : ''}"><div class="ico">${iconImg(r.id, 3)}</div><div class="nm"><span>${nm}</span>${lock ? `<span class="lockd">Dia ${r.day}</span>` : ''}</div><div class="ds">${ds}${r.fire ? ' <span class="lockd">· perto do fogo</span>' : ''}</div><div class="ing">${Object.entries(r.in).map(([k, v]) => `<span class="chip ${count(k) < v ? 'miss' : ''}">${iconImg(k, 2)}${count(k)}/${v}</span>`).join('')}<button class="mk" data-r="${r.id}" ${ok ? '' : 'disabled'}>${r.place ? 'Montar' : 'Criar'}</button></div></div>`; }).join('');
-  p.querySelectorAll('.mk').forEach(b => b.onclick = () => craft(b.dataset.r)); }
+/* ================= PAUSE MENU ================= */
+const TABNAME = { luz: 'Luz', armas: 'Armas', vida: 'Sobrevivência', trav: 'Travessia', prot: 'Proteção' };
+const SOURCES = { madeira: 'Destroços, casco do navio, Grande gole', corda: 'Cordames e caixas do navio', tecido: 'Velas rasgadas e caixas', concha: 'Conchas no chão (muitas no Lago Ácido), piolhos', osso: 'Ossadas pelo chão, ratos', alga: 'Algas verdes (voltam a crescer)', cogumelo: 'Cogumelos-luz azuis (voltam a crescer)', oleo: 'Barris; gordura branca com a Faca de concha', pregos: 'Destroços, caixas, Caranguejo de Lata', gosma: 'Papilas rosadas com a faca, larvas, águas-vivas', peixe: 'Grande gole, Enguia Ácida, Lampreia', tinta: 'Polvo de Tinta (Dia 2)', espinho: 'Baiacu-Bolha (Dia 2), Ouriço-Rolante (Dia 3)', carapaca: 'Caranguejo de Lata, Isópode Colossal', dente: 'Cação Faminto (Dia 3)', bulbo: 'Peixe-Lanterna (Dia 3)', perola: 'Caixas escondidas que só abrem nas contrações', sandalia: 'Baú dourado na Galeria das Costelas (Dia 2)' };
+const MENU_TABS = [['craft', 'Criar', 'i_craft', 'C'], ['bag', 'Mochila', 'i_bag', 'I'], ['quests', 'Missões', 'i_quest', 'Q'], ['map', 'Mapa', 'i_map', 'M'], ['best', 'Bestiário', 'i_best', 'B'], ['opts', 'Ajustes', 'i_gear', '']];
+let menuTab = 'craft', craftFilter = 'all', craftQuery = '', craftSel = null, bagSel = null, lastCrafted = null;
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const recName = r => r.n || ITEMS[r.id].n, recDesc = r => r.d || ITEMS[r.id].d;
+const nCraftable = () => RECIPES.filter(canCraft).length;
+const menuOpen = () => !$('#menu').hidden;
+function updateDock() { const n = nCraftable(); $('#dock').innerHTML = [['pause', 'Pausar e abrir o diário', 'i_pause', 'Esc'], ...MENU_TABS.slice(0, 5).map(([k, l, ic, key]) => [k, l, ic, key])].map(([k, l, ic, key]) => `<button class="dk ${k === 'pause' ? 'pause' : ''}" data-open="${k}" aria-label="${l}">${iconImg(ic, 3)}${key ? `<kbd>${key}</kbd>` : ''}${k === 'craft' && n ? `<span class="badge">${n}</span>` : ''}<span class="tip">${l}${key ? ' · ' + key : ''}</span></button>`).join('');
+  $('#dock').querySelectorAll('.dk').forEach(b => b.onclick = () => { audioInit(); openMenu(b.dataset.open === 'pause' ? null : b.dataset.open); }); }
+function refreshMenus() { updateDock(); if (menuOpen()) renderMenu(true); }
+function openMenu(tab) { if (state !== 'play' || !$('#overlay').hidden) return; if (tab) menuTab = tab; paused = true; hideTip(); for (const k in keys) keys[k] = false; joy.on = false; $('#menu').hidden = false; renderMenu(false, true); sfx('equip'); }
+function closeMenu() { $('#menu').hidden = true; $('#menu').innerHTML = ''; if (state === 'play' && $('#overlay').hidden) paused = false; }
+function toggleMenu(tab) { if (menuOpen() && (!tab || tab === menuTab)) closeMenu(); else openMenu(tab); }
+function renderMenu(keepScroll, anim) { const m = $('#menu'); const sc = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); const top = sc ? sc.scrollTop : 0; const n = nCraftable();
+  m.innerHTML = `<div class="mwin px ${anim ? 'anim' : ''}" role="dialog" aria-modal="true" aria-label="Diário de Jonas"><div class="mhead"><h2>Diário de Jonas</h2><span class="pchip">PAUSADO · DIA ${day}</span><button class="mclose" id="mClose"><span>Voltar ao jogo</span><kbd>Esc</kbd></button></div>
+  <div class="mtabs" role="tablist">${MENU_TABS.map(([k, l, ic, key]) => `<button class="mtab" role="tab" aria-selected="${menuTab === k}" data-mt="${k}">${iconImg(ic, 2)}<span>${l}</span>${key ? `<kbd>${key}</kbd>` : ''}${k === 'craft' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div><div class="mbody" id="mBody"></div></div>`;
+  $('#mClose').onclick = closeMenu; m.onclick = e => { if (e.target === m) closeMenu(); };
+  m.querySelectorAll('.mtab').forEach(b => b.onclick = () => { menuTab = b.dataset.mt; renderMenu(); sfx('pick'); });
+  const b = $('#mBody'); ({ craft: renderCraftTab, bag: renderBagTab, quests: renderQuestTab, map: renderMapTab, best: renderBestTab, opts: renderOptsTab })[menuTab](b);
+  const sc2 = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); if (sc2) sc2.scrollTop = top; }
+function propsOf(id) { const it = ITEMS[id]; if (!it) return []; const p = []; const slotN = { hand: 'Mão', light: 'Luz', body: 'Corpo', feet: 'Pés' };
+  if (it.slot) p.push('Equipa em: ' + slotN[it.slot]); if (it.dmg) p.push('Dano ' + it.dmg); if (it.reach) p.push('Alcance ' + it.reach); if (it.kb) p.push('Empurrão forte'); if (it.light) p.push('Luz ' + it.light); if (it.fuel) p.push('Dura ' + Math.round(it.fuel / 60 * 10) / 10 + ' min'); if (it.refill) p.push('Recarga: ' + ITEMS[it.refill].n); if (it.armor) p.push('Armadura ' + Math.round(it.armor * 100) + '%'); if (it.acid != null) p.push(it.acid === 0 ? 'Imune a ácido' : 'Ácido −' + Math.round((1 - it.acid) * 100) + '%'); if (it.spd) p.push('Velocidade +' + Math.round((it.spd - 1) * 100) + '%'); if (it.food) p.push('Fome +' + it.food); if (it.hp) p.push((it.hp > 0 ? 'Vida +' : 'Vida ') + it.hp); return p; }
+function filteredRecipes() { const q = craftQuery.trim().toLowerCase(); let list = RECIPES.filter(r => craftFilter === 'all' || (craftFilter === 'can' ? canCraft(r) : r.tab === craftFilter));
+  if (q) list = list.filter(r => recName(r).toLowerCase().includes(q) || Object.keys(r.in).some(k => ITEMS[k].n.toLowerCase().includes(q)) || TABNAME[r.tab].toLowerCase().includes(q));
+  const rank = r => canCraft(r) ? 0 : r.day > day ? 2 : 1; return list.map((r, i) => [r, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]); }
+function renderCraftTab(b) { const counts = { all: RECIPES.length, can: nCraftable() }; for (const k in TABNAME) counts[k] = RECIPES.filter(r => r.tab === k).length;
+  const chips = [['can', 'Posso criar'], ['all', 'Todas'], ...Object.entries(TABNAME)].map(([k, l]) => `<button class="fchip ${k === 'can' ? 'can' : ''}" data-f="${k}" aria-pressed="${craftFilter === k}">${l} <b>${counts[k]}</b></button>`).join('');
+  b.innerHTML = `<div class="cwrap"><div class="cleft"><div class="ctools"><input id="cSearch" type="search" placeholder="Buscar receita ou material (ex.: corda, luz, lança)…" value="${esc(craftQuery)}" aria-label="Buscar receita" autocomplete="off"><div class="chips">${chips}</div></div><div class="rgrid" id="rGrid" role="listbox" aria-label="Receitas"></div></div><div class="cdet" id="cDet" aria-live="polite"></div></div>`;
+  b.querySelectorAll('.fchip').forEach(c => c.onclick = () => { craftFilter = c.dataset.f; renderMenu(); });
+  const inp = $('#cSearch'); inp.oninput = () => { craftQuery = inp.value; drawRecipeGrid(); drawRecipeDetail(); };
+  drawRecipeGrid(); drawRecipeDetail(); }
+function drawRecipeGrid() { const list = filteredRecipes(); if (!list.find(r => r.id === craftSel)) craftSel = list[0] ? list[0].id : null; const g = $('#rGrid'); if (!g) return;
+  g.innerHTML = list.length ? list.map(r => `<button class="rt ${canCraft(r) ? 'can' : ''} ${r.day > day ? 'lock' : ''} ${lastCrafted === r.id ? 'flash' : ''}" role="option" data-lock="DIA ${r.day}" data-r="${r.id}" aria-selected="${craftSel === r.id}"><span class="ic">${iconImg(r.id, 4)}</span><span>${recName(r)}</span></button>`).join('') : `<div class="empty">${craftFilter === 'can' ? 'Nada pode ser criado agora. Veja em “Todas” o que falta e onde encontrar.' : 'Nenhuma receita encontrada.'}</div>`;
+  lastCrafted = null;
+  g.querySelectorAll('.rt').forEach(t => { t.onclick = () => { craftSel = t.dataset.r; g.querySelectorAll('.rt').forEach(x => x.setAttribute('aria-selected', x === t)); drawRecipeDetail(); }; t.ondblclick = () => { if (canCraft(RECIPES.find(r => r.id === t.dataset.r))) craft(t.dataset.r); }; }); }
+function drawRecipeDetail() { const d = $('#cDet'); if (!d) return; const r = RECIPES.find(x => x.id === craftSel); if (!r) { d.innerHTML = '<p>Escolha uma receita.</p>'; return; }
+  const ok = canCraft(r), lock = r.day > day, missing = Object.entries(r.in).filter(([k, v]) => count(k) < v);
+  let why = ''; if (lock) why = `Disponível a partir do Dia ${r.day}.`; else if (missing.length) why = 'Faltam materiais. Veja abaixo onde encontrá-los.'; else if (r.fire && !nearFire()) why = 'Precisa estar perto de uma fogueira acesa.';
+  const props = r.place ? ['Construção', 'Montado à frente de Jonas'] : propsOf(r.id);
+  d.innerHTML = `<div class="dhead"><div class="big">${iconImg(r.id, 6)}</div><div><span class="lbl">${TABNAME[r.tab]}</span><h3>${recName(r)}</h3><span class="st ${ok ? 'ok' : lock ? '' : 'no'}">${ok ? 'PRONTO PARA CRIAR' : lock ? 'BLOQUEADO' : 'FALTA ALGO'}</span></div></div>
+    <p>${recDesc(r)}</p>${props.length ? `<div class="props">${props.map(x => `<span class="prop">${x}</span>`).join('')}</div>` : ''}
+    <div class="lbl">Materiais</div><ul class="ings">${Object.entries(r.in).map(([k, v]) => { const h = count(k), miss = h < v; return `<li class="${miss ? 'miss' : ''}"><span class="ii">${iconImg(k, 3)}</span><b>${ITEMS[k].n}</b><span class="q">${h}/${v}</span>${miss ? `<small>Onde achar: ${SOURCES[k] || '—'}</small>` : ''}</li>`; }).join('')}${r.fire ? `<li class="${nearFire() ? '' : 'miss'}"><span class="ii">${iconImg('fogueira', 3)}</span><b>Fogueira acesa por perto</b><span class="q">${nearFire() ? 'OK' : '✗'}</span></li>` : ''}</ul>
+    ${why ? `<div class="why">${why}</div>` : ''}<button class="btn wide" id="doCraft" ${ok ? '' : 'disabled'}>${r.place ? 'Montar agora' : 'Criar'} <kbd>Enter</kbd></button>`;
+  $('#doCraft').onclick = () => craft(r.id); }
+function moveCraftSel(dx) { const list = filteredRecipes(); if (!list.length) return; let i = list.findIndex(r => r.id === craftSel); const g = $('#rGrid'); let cols = 1; if (g) cols = Math.max(1, getComputedStyle(g).gridTemplateColumns.split(' ').length); i = clamp(i + (Math.abs(dx) === 1 ? dx : Math.sign(dx) * cols), 0, list.length - 1); craftSel = list[i].id; drawRecipeGrid(); drawRecipeDetail(); const el = g && g.querySelector('[aria-selected="true"]'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+function slotBtn(content, attrs, sel) { return `<button class="bs ${attrs.cls || ''}" ${attrs.data} aria-selected="${!!sel}" aria-label="${attrs.label}">${content}</button>`; }
+function renderBagTab(b) { const eqS = [['hand', 'Mão'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']];
+  const eqBtn = ([k, l]) => { const e = equip[k]; const sel = bagSel && bagSel.eq === k; return `<div class="eqs">${slotBtn(e ? iconImg(e.id, 4) + (k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : '') : '', { cls: 'eq ' + (e ? 'on' : ''), data: `data-eq="${k}"`, label: l }, sel)}${l}</div>`; };
+  const w = equip.hand ? ITEMS[equip.hand.id] : null, arm = equip.body ? ITEMS[equip.body.id].armor : 0, feet = equip.feet ? ITEMS[equip.feet.id] : null;
+  let port = ''; try { port = JON.f[0].r.toDataURL(); } catch (e) {}
+  b.innerHTML = `<div class="bagwrap"><div class="doll"><div class="lbl">Equipamento</div><div class="dgrid">${eqBtn(eqS[0])}<div class="portrait"><img class="pi" src="${port}" width="${JON.f[0].r.width * 5}" height="${JON.f[0].r.height * 5}" alt="Jonas"></div>${eqBtn(eqS[1])}${eqBtn(eqS[2])}${eqBtn(eqS[3])}</div>
+    <div class="sgrid"><div><b>${Math.ceil(P.hp)}</b>Vida</div><div><b>${Math.ceil(P.food)}</b>Fome</div><div><b>${w ? w.dmg : 1}</b>Dano${w ? '' : ' (soco)'}</div><div><b>${Math.round(arm * 100)}%</b>Armadura</div><div><b>${Math.round(lightR())}</b>Raio de luz</div><div><b>${feet ? (feet.acid === 0 ? 'Imune' : '−' + Math.round((1 - feet.acid) * 100) + '%') : '0%'}</b>Proteção ácido</div></div></div>
+    <div class="bagr"><div class="lbl">Mochila · ${inv.length}/${MAXS}</div><div class="igrid">${Array.from({ length: MAXS }, (_, i) => { const s = inv[i]; return slotBtn(s ? iconImg(s.id, 4) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') + (s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : '') : '', { data: `data-i="${i}"`, label: s ? ITEMS[s.id].n : 'vazio' }, bagSel && bagSel.i === i && s); }).join('')}</div><div id="iDet"></div></div></div>`;
+  b.querySelectorAll('[data-i]').forEach(x => x.onclick = () => { if (!inv[+x.dataset.i]) return; bagSel = { i: +x.dataset.i }; renderMenu(true); });
+  b.querySelectorAll('[data-eq]').forEach(x => x.onclick = () => { if (!equip[x.dataset.eq]) return; bagSel = { eq: x.dataset.eq }; renderMenu(true); });
+  drawItemDetail(); }
+function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null, acts = [];
+  if (bagSel && bagSel.i != null && inv[bagSel.i]) { const s = inv[bagSel.i], it = ITEMS[s.id]; id = s.id; if (it.slot) acts.push(['equip', 'Equipar']); if (it.food || it.hp) acts.push(['use', it.food ? 'Comer' : 'Usar']); if (it.use === 'flare') acts.push(['use', 'Acender']); acts.push(['drop1', 'Soltar 1']); if (s.n > 1) acts.push(['dropall', 'Soltar tudo']); }
+  else if (bagSel && bagSel.eq && equip[bagSel.eq]) { id = equip[bagSel.eq].id; acts.push(['unequip', 'Desequipar']); }
+  if (!id) { d.innerHTML = `<div class="idet" style="grid-template-columns:1fr"><p>Toque num item para ver detalhes, equipar, comer ou soltar. Fora do menu, clique no item da barra de baixo para usar rápido.</p></div>`; return; }
+  const it = ITEMS[id], pr = propsOf(id);
+  d.innerHTML = `<div class="idet"><div class="big" style="width:76px;height:76px;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)">${iconImg(id, 6)}</div><div><h3>${it.n}</h3><p>${it.d}</p>${pr.length ? `<div class="props">${pr.map(x => `<span class="prop">${x}</span>`).join('')}</div>` : ''}${!it.slot && SOURCES[id] ? `<p style="margin-top:8px;font-size:12px;color:var(--bone-dim)">Onde achar: ${SOURCES[id]}</p>` : ''}<div class="acts">${acts.map(([a, l], i) => `<button class="btn ${i ? 'alt' : ''}" data-a="${a}">${l}</button>`).join('')}</div></div></div>`;
+  d.querySelectorAll('[data-a]').forEach(x => x.onclick = () => { const a = x.dataset.a;
+    if (a === 'equip' || a === 'use') { useSlot(bagSel.i); bagSel = null; }
+    else if (a === 'drop1') { const s = inv[bagSel.i]; if (s.n > 1) { s.n--; invDirty = true; pickups.push({ id: s.id, n: 1, x: P.x + P.fx * 10, y: P.y + P.fy * 8 + 4, z: 6, vz: 0, t: 0, lock: true }); toast(`1 ${ITEMS[s.id].n} solto no chão.`); } else { dropSlot(bagSel.i); bagSel = null; } }
+    else if (a === 'dropall') { dropSlot(bagSel.i); bagSel = null; }
+    else if (a === 'unequip') { unequip(bagSel.eq); bagSel = null; }
+    buildHotbar(); renderMenu(true); }); }
+function renderQuestTab(b) { const qs = QUESTS[day]; let lockShown = false;
+  const items = qs.map(q => { const st = qState[q.id]; if (!st) { if (lockShown) return ''; lockShown = true; return `<div class="qi lock"><b></b><span>Ainda desconhecido… conclua as missões acima.</span></div>`; } return `<div class="qi ${st === 'done' ? 'done' : 'act'}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }).join('');
+  const all = ['sino', 'tabua', 'moeda', 'cordame', 'remo', 'fechada'];
+  const memHtml = all.map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}</summary><p>${MEMS[k].d}</p></details>` : `<div class="mem unk">Lembrança ainda não encontrada</div>`).join('');
+  b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${mems.size}/6 encontradas</span><h3>Lembranças</h3>${memHtml}</div></div>`; }
+function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); let u = ''; try { u = c.toDataURL(); } catch (e) {}
+  const tg = currentTarget(), q = QUESTS[day].find(q => qState[q.id] === 'active' && q.target);
+  b.innerHTML = `<div class="mapwrap"><div class="mapbox"><img src="${u}" width="${MW * 5}" height="${MH * 5}" alt="Mapa revelado do interior da baleia"></div><div class="mapside"><span class="lbl">Legenda</span>
+    <div class="rg"><span style="color:#fff">■ Jonas</span><span style="color:#ffe170">■ Abrigo</span></div><div class="rg"><span style="color:#c6e34a">■ Ácido / objetivo</span><span style="color:#ff6f86">■ Membrana</span></div>
+    ${q && tg ? `<span class="lbl" style="margin-top:6px">Próximo objetivo</span><div class="rg"><span>${q.t}</span><span>${Math.round(dist(tg.x, tg.y, P.x, P.y) / TS)}m</span></div>` : ''}
+    <span class="lbl" style="margin-top:6px">Regiões</span>${REGIONS.map(r => `<div class="rg ${visited.has(r.id) ? '' : 'no'}"><span>${visited.has(r.id) ? r.n : '???'}</span><span>${regionOf(P.x, P.y) === r ? 'aqui' : ''}</span></div>`).join('')}</div></div>`; }
+function renderBestTab(b) { b.innerHTML = `<div class="pad"><span class="lbl">${seen.size}/15 criaturas vistas</span><div class="best" style="max-height:none">${Object.keys(MOBS).map(k => { const D = MOBS[k], s = seen.has(k); const c = s ? SP[k].r : SP.sil[k]; let u = ''; try { u = c.toDataURL(); } catch (e) {} return `<div class="beast ${s ? '' : 'unk'}"><img class="pi" src="${u}" width="${c.width * 3}" height="${c.height * 3}" alt=""><div><span class="dd">DIA ${D.day}</span><b>${s ? D.n : '???'}</b>${s ? D.d + (kills[k] ? ` <span class="dd">· ${kills[k]} derrotad${kills[k] > 1 ? 'os' : 'o'}</span>` : '') : 'Ainda não encontrada.'}</div></div>`; }).join('')}</div></div>`; }
+function renderOptsTab(b) { b.innerHTML = `<div class="pad"><div class="opt"><span>Som</span><button class="btn ${muted ? 'alt' : ''}" id="oMute">${muted ? 'Desligado' : 'Ligado'}</button></div>
+  <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controles</span><div class="keys"><kbd>WASD / setas</kbd><span>Andar</span><kbd>Espaço / J</kbd><span>Atacar</span><kbd>E / K</kbd><span>Coletar, abrir, descansar</span><kbd>Esc / Tab</kbd><span>Pausar e abrir este diário</span><kbd>C · I · Q · M · B</kbd><span>Criar · Mochila · Missões · Mapa · Bestiário</span><kbd>1–0</kbd><span>Usar itens da barra rápida</span><kbd>Botão direito</kbd><span>Soltar item da barra</span><kbd>Setas + Enter</kbd><span>Escolher e criar receitas (aba Criar)</span></div></div></div>`;
+  $('#oMute').onclick = () => { muted = !muted; renderMenu(); }; }
 let qMin = innerWidth < 760;
 function buildQuests() { $('#qTitle').textContent = `Missões · Dia ${day}`; const qs = QUESTS[day]; let h = '', firstCur = true, lockShown = false;
   for (const q of qs) { const st = qState[q.id]; if (!st) { if (!lockShown) { h += `<div class="q lock"><b></b><span>Ainda desconhecido…</span></div>`; lockShown = true; } continue; } const cur = st === 'active' && firstCur; if (cur) firstCur = false; h += `<div class="q ${st === 'done' ? 'done' : ''} ${cur ? 'cur' : ''}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }
@@ -1277,7 +1497,7 @@ function updateHUD(dt) { hudT -= dt; const tg = interactTarget(); const pt = pro
   const ev = $('#event'); const showEv = DIR.phase === 'warn' || DIR.ev !== 'calm' || DIR.t < 4; ev.hidden = !showEv;
   if (showEv) { const id = DIR.phase === 'warn' ? DIR.pend : DIR.ev, E = EVENTS[id]; ev.dataset.l = E.lvl; ev.classList.toggle('warn', DIR.phase === 'warn'); $('#evTag').textContent = DIR.phase === 'warn' ? `Aviso · em ${Math.ceil(DIR.warnT)}s` : 'Evento orgânico'; $('#evLvl').textContent = 'Nível ' + LVL[E.lvl]; $('#evName').textContent = E.n; $('#evDesc').textContent = E.d; const fr = DIR.phase === 'warn' ? 1 - DIR.warnT / E.warn : 1 - DIR.t / DIR.dur; const bar = $('#evTime i'); bar.style.width = clamp(fr * 100, 0, 100) + '%'; bar.style.background = LVLCOL[E.lvl]; }
   const pu = $('#pulse'); if (flags.pattern || day === 3) { const n = nextContractionIn(); pu.textContent = n == null ? '' : n <= 0 ? 'CONTRAÇÃO AGORA' : `Contração ~${Math.ceil(n)}s`; } else pu.textContent = '';
-  if (invDirty) { invDirty = false; buildHotbar(); buildCraft(); buildQuests(); }
+  if (invDirty) { invDirty = false; buildHotbar(); refreshMenus(); buildQuests(); }
   miniT -= .12; if (miniT <= 0) { miniT = .5; drawMini(); if (qState && QUESTS[day] && QUESTS[day].some(q => qState[q.id] === 'active' && q.sub)) buildQuests(); } }
 let miniT = 0; const mini = $('#mini'); mini.width = MW; mini.height = MH; const mctx = mini.getContext('2d'); let miniImg = null;
 function drawMini(target = mctx) { if (!miniImg) miniImg = mctx.createImageData(MW, MH); const d = miniImg.data;
@@ -1289,7 +1509,7 @@ function drawMini(target = mctx) { if (!miniImg) miniImg = mctx.createImageData(
   dot(P.x, P.y, '#ffffff', 3); }
 
 /* ================= CARDS ================= */
-function showCard(o) { const ov = $('#overlay'); paused = true; ov.hidden = false; ov.className = o.cls || ''; ov.onclick = null;
+function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); paused = true; ov.hidden = false; ov.className = o.cls || ''; ov.onclick = null;
   ov.innerHTML = `<div class="card px" role="dialog" aria-modal="true">${o.kick ? `<div class="kick">${o.kick}</div>` : ''}${o.logo ? `<canvas id="logo" width="${LOGO_W}" height="${LOGO_H}" role="img" aria-label="JONAH: Three Days Below"></canvas>` : o.big ? `<h1>${o.title}</h1>` : `<h2>${o.title}</h2>`}${o.sub ? `<div class="sub">${o.sub}</div>` : ''}${o.quote ? `<blockquote>${o.quote}<cite>${o.ref}</cite></blockquote>` : ''}${o.body ? `<p>${o.body}</p>` : ''}${o.html || ''}<div class="btns">${(o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }]).map((b, i) => `<button class="btn ${i ? 'alt' : ''}" data-b="${i}">${b.label}</button>`).join('')}</div></div>`;
   const bs = o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }];
   ov.querySelectorAll('[data-b]').forEach(b => b.onclick = e => { e.stopPropagation(); audioInit(); closeCard(); const f = bs[+b.dataset.b].fn; if (f) f(); });
@@ -1299,11 +1519,9 @@ function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML 
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; let sv = null; try { sv = JSON.parse(localStorage.getItem('jonah-save') || 'null'); } catch (e) {}
   const btns = [{ label: 'Começar a jornada', fn: () => { freshRun(); startDay(1); } }]; if (sv && sv.day > 1) btns.push({ label: `Continuar · Dia ${sv.day}`, fn: () => loadSave(sv) }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAH', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
-function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar com o item da mão</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>C</kbd><span>Abrir e fechar o menu de criação</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>M</kbd><span>Mapa grande</span><kbd>B</kbd><span>Bestiário das 15 criaturas</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p>`, btn: 'Voltar', fn: titleScreen }); }
-function bestiary() { const wasPaused = paused; const html = `<div class="best">${Object.keys(MOBS).map(k => { const D = MOBS[k], s = seen.has(k); const c = s ? SP[k].r : SP.sil[k]; let u = ''; try { u = c.toDataURL(); } catch (e) {} return `<div class="beast ${s ? '' : 'unk'}"><img class="pi" src="${u}" width="${c.width * 3}" height="${c.height * 3}" alt=""><div><span class="dd">DIA ${D.day}</span><b>${s ? D.n : '???'}</b>${s ? D.d + (kills[k] ? ` <span class="dd">· ${kills[k]} derrotad${kills[k] > 1 ? 'os' : 'o'}</span>` : '') : 'Ainda não encontrada.'}</div></div>`; }).join('')}</div>`;
-  showCard({ kick: `BESTIÁRIO · ${seen.size}/15`, title: 'Criaturas da baleia', html, btn: 'Fechar', fn: () => { if (!wasPaused && state === 'play') paused = false; } }); }
-function bigMap() { const c = C(MW, MH); drawMini(c.getContext('2d')); let u = ''; try { u = c.toDataURL(); } catch (e) {} const legend = REGIONS.filter(r => visited.has(r.id)).map(r => r.n).join(' · ');
-  showCard({ kick: 'MAPA', title: 'O interior da baleia', html: `<img id="bigmap" src="${u}" alt="Mapa revelado"><div class="keys" style="grid-template-columns:auto 1fr auto 1fr"><kbd style="color:#fff">■</kbd><span>Jonas</span><kbd style="color:#ffe170">■</kbd><span>Abrigo</span><kbd style="color:#c6e34a">■</kbd><span>Ácido / objetivo</span><kbd style="color:#ff6f86">■</kbd><span>Membrana fechada</span></div><p class="lbl">${legend || 'Nenhuma região visitada'}</p>`, btn: 'Fechar' }); }
+function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar com o item da mão</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · M · B</kbd><span>Abrir direto Criar, Mochila, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p>`, btn: 'Voltar', fn: titleScreen }); }
+function bestiary() { openMenu('best'); }
+function bigMap() { openMenu('map'); }
 
 /* ================= SAVE ================= */
 function save() { try { localStorage.setItem('jonah-save', JSON.stringify(snap())); } catch (e) {} }
@@ -1311,26 +1529,25 @@ function snap() { return { day, inv, equip, got, crafted, mems: [...mems], seen:
 function loadSave(sv) { freshRun(); inv = sv.inv || []; equip = sv.equip || equip; got = sv.got || {}; crafted = sv.crafted || {}; mems = new Set(sv.mems || []); seen = new Set(sv.seen || []); kills = sv.kills || {}; playTime = sv.playTime || 0; totalKills = sv.totalKills || 0; if (sv.P) { P.hp = sv.P.hp; P.food = sv.P.food; } if (sv.shelter) { shelter = { k: 'shelter', x: sv.shelter.x, y: sv.shelter.y }; structs = [shelter]; } startDay(sv.day); }
 
 /* ================= INPUT ================= */
-addEventListener('keydown', e => { if (e.target && e.target.tagName === 'INPUT') return; audioInit(); keys[e.code] = true;
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+addEventListener('keydown', e => { const inInput = e.target && e.target.tagName === 'INPUT'; if (inInput && e.code !== 'Escape') return; audioInit(); if (!inInput) keys[e.code] = true;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(e.code) && state === 'play') e.preventDefault();
   const ovOpen = !$('#overlay').hidden;
   if (e.code === 'Escape' && ovOpen && state === 'play') { closeCard(); return; }
-  if (ovOpen) { if ((e.code === 'Enter' || e.code === 'Space') && document.activeElement && document.activeElement.classList.contains('btn')) return; return; }
-  if (state !== 'play') return;
-  if (e.repeat) return;
+  if (ovOpen) return;
+  if (state !== 'play' || e.repeat) return;
+  const MK = { KeyC: 'craft', KeyI: 'bag', KeyQ: 'quests', KeyM: 'map', KeyB: 'best' };
+  if (e.code === 'Escape' || e.code === 'Tab') { menuOpen() ? closeMenu() : openMenu(); return; }
+  if (MK[e.code]) { toggleMenu(MK[e.code]); return; }
+  if (menuOpen()) { if (menuTab === 'craft') { const mv = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -2, ArrowDown: 2 }[e.code]; if (mv) { moveCraftSel(mv); return; } if (e.code === 'Enter' && craftSel) { e.preventDefault(); craft(craftSel); } } return; }
   if (e.code === 'Space' || e.code === 'KeyJ') attack();
   if (e.code === 'KeyE' || e.code === 'KeyK') interact();
-  if (e.code === 'KeyC') { curTab = curTab ? null : 'luz'; buildCraft(); }
-  if (e.code === 'KeyM') bigMap();
-  if (e.code === 'KeyB') bestiary();
   const m = e.code.match(/^Digit(\d)$/); if (m) useSlot((+m[1] + 9) % 10);
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-$('#miniWrap').onclick = () => { if (state === 'play' && !paused) bigMap(); };
-$('#bBest').onclick = () => { if (state === 'play') bestiary(); };
-$('#bMute').onclick = () => { muted = !muted; $('#bMute').textContent = muted ? 'Som: off' : 'Som: on'; };
+$('#miniWrap').onclick = () => { if (state === 'play' && !paused) openMenu('map'); };
 $('#qHead').onclick = () => { qMin = !qMin; buildQuests(); };
+$('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'); };
 (() => { const st = $('#stick'), kn = $('#knob'); let id = null; const upd = e => { const r = st.getBoundingClientRect(); let x = (e.clientX - r.left - r.width / 2) / (r.width / 2), y = (e.clientY - r.top - r.height / 2) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; joy.on = true; kn.style.transform = `translate(${x * 36}px,${y * 36}px)`; };
   st.addEventListener('pointerdown', e => { audioInit(); id = e.pointerId; try { st.setPointerCapture(id); } catch (er) {} upd(e); });
   st.addEventListener('pointermove', e => { if (e.pointerId === id) upd(e); });
