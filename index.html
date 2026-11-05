@@ -205,7 +205,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 #toasts{z-index:20}
 /* pause menu */
 #menu{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:rgba(10,3,8,.66);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-bottom,0px))}
-.mwin{width:min(1040px,100%);height:min(680px,100%);display:grid;grid-template-rows:auto auto minmax(0,1fr)}
+.mwin{width:min(1040px,100%);height:min(680px,calc(100vh - 28px));height:min(680px,calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));display:grid;grid-template-rows:auto auto minmax(0,1fr)}
 .mwin.anim{animation:cin .25s steps(4)}
 .mhead{display:flex;align-items:center;gap:14px;padding:12px 16px 10px;flex-wrap:wrap}
 .mhead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:38px;line-height:.9}
@@ -216,7 +216,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 .mtab{position:relative;flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px 8px;margin-top:8px;font-family:var(--f-label);font-size:11px;font-weight:700;color:var(--bone-dim);background:transparent;border:2px solid transparent;border-bottom:0}
 .mtab:hover{color:var(--bone)}
 .mtab[aria-selected="true"]{color:var(--bone);background:var(--panel-2);border-color:var(--line);margin-bottom:-2px;padding-bottom:10px}
-.mbody{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);background:var(--panel-2)}
+.mbody{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);background:var(--panel-2)}
 .mbody>*{min-height:0}
 /* craft tab */
 .cwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:0}
@@ -324,13 +324,20 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
 .diff{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;background:#0b0408;border:2px solid var(--line);font-size:13px;line-height:1.3}
 .diff b{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1}.diff span{color:var(--bone-dim)}
 .diff[aria-pressed="true"]{border-color:var(--acid);background:#141a06}
+.rb{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rb kbd{font-family:var(--f-label);font-size:10px;padding:3px 8px;background:var(--bone);color:var(--ink)}
+.rb .btn{padding:6px 10px;font-size:10px}
+.slot.sel{border-color:var(--glow);box-shadow:0 0 0 2px var(--glow)}
+body.big-ui #stats,body.big-ui #dock,body.big-ui #tr{zoom:1.2}
+body.big-ui .rt{font-size:14px}body.big-ui .cdet p,body.big-ui .idet p,body.big-ui .qi,body.big-ui .opt,body.big-ui details.mem p{font-size:16px}body.big-ui .ings li b,body.big-ui .beast,body.big-ui .ach,body.big-ui .keys{font-size:15px}body.big-ui .mtab{font-size:13px}body.big-ui .card p{font-size:18px}body.big-ui .prop,body.big-ui .fchip{font-size:11px}
+body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui #tutTxt{font-size:17px}body.big-ui .slot{width:50px;height:50px}
 .note{margin:0;font-size:12px;line-height:1.4;color:var(--bone-dim)}
 @media (max-width:760px){
   .slotrow{grid-template-columns:1fr}.slotrow .sact{justify-content:flex-start}
   #dock{top:calc(94px + env(safe-area-inset-top,0px));padding:4px;gap:4px}
   .dk{width:38px;height:38px}
   .dk .tip{display:none}
-  .mwin{height:100%}
+  .mwin{height:calc(100vh - 28px);height:calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
   .mhead h2{font-size:28px}
   .mclose span{display:none}
   .mtab span{display:none}
@@ -1097,7 +1104,7 @@ function attack() { if (P.atk > 0 || state !== 'play' || paused || P.roll > 0) r
     if (fin && !m.dead) m.stun = Math.max(m.stun || 0, .5); if (fin && m.dead) unlock('combo'); hitAny = true; anyHit++; }
   if (anyHit) { hitStop = fin ? .1 : .055; if (fin) shakeA = Math.max(shakeA, 3); }
   for (const n of nodes) { if (n.gone || n.hidden || (n.k !== 'bile' && n.k !== 'nerve')) continue; if (dist(n.x, n.y - 6, hx, hy) < reach * .75 + 8) { if (n.k === 'bile') popBile(n); else triggerNerve(n); hitAny = true; } }
-  if (hitAny) shakeA = Math.max(shakeA, 1.5); }
+  if (hitAny) shakeA = Math.max(shakeA, 1.5); if (OPTS.calm) hitStop = Math.min(hitStop, .03); }
 function explodeBomb(x, y) { burst(x, y - 4, '#c6e34a', 26); burst(x, y - 4, '#ffe170', 10); shakeA = Math.max(shakeA, 3.5); sfx('boom');
   for (const m of mobs) { if (m.dead || m.npc) continue; const d = dist(m.x, m.y, x, y); if (d < 36) damageMob(m, 10, (m.x - x) / (d || 1) * 1.5, (m.y - y) / (d || 1) * 1.5); }
   for (const n of nodes) { if (n.gone || n.hidden) continue; if (dist(n.x, n.y, x, y) < 36) { if (n.k === 'bile') popBile(n); if (n.k === 'nerve') triggerNerve(n); } } }
@@ -1557,7 +1564,7 @@ function drawCut() { const c = CUT; if (!c) return; const t = c.t, W = VW, H = V
   if (c.name === 'intro') {
     if (t < 6.2) { const storm = t < 4.6 ? 1 : Math.max(.15, 1 - (t - 4.6) * .6); const sea = Math.round(H * .58);
       const sky = ['#0b0816', '#110d22', '#18122e', '#211839', '#2a1e44']; for (let i = 0; i < 5; i++) { ctx.fillStyle = sky[i]; ctx.fillRect(0, Math.round(i * sea / 5), W, Math.ceil(sea / 5) + 1); }
-      const fl = storm > .6 && (Math.floor(t * 2.3) % 4 === 0) && (t * 2.3 % 1) < .18; if (fl) { ctx.fillStyle = 'rgba(210,220,255,.55)'; ctx.fillRect(0, 0, W, sea); let x = W * (.2 + (Math.floor(t * 2.3) * .37 % .6)), y = 0; ctx.fillStyle = '#fff'; while (y < sea - 6) { const nx = x + rr(-8, 8); for (let k = 0; k < 6; k++) ctx.fillRect(Math.round(lerp(x, nx, k / 6)), Math.round(y + k), 2, 1); x = nx; y += 6; } if (!c.th || t - c.th > .6) { c.th = t; noiseS(.8, .12, 300); } }
+      const fl = !OPTS.calm && storm > .6 && (Math.floor(t * 2.3) % 4 === 0) && (t * 2.3 % 1) < .18; if (fl) { ctx.fillStyle = 'rgba(210,220,255,.55)'; ctx.fillRect(0, 0, W, sea); let x = W * (.2 + (Math.floor(t * 2.3) * .37 % .6)), y = 0; ctx.fillStyle = '#fff'; while (y < sea - 6) { const nx = x + rr(-8, 8); for (let k = 0; k < 6; k++) ctx.fillRect(Math.round(lerp(x, nx, k / 6)), Math.round(y + k), 2, 1); x = nx; y += 6; } if (!c.th || t - c.th > .6) { c.th = t; noiseS(.8, .12, 300); } }
       ctx.fillStyle = 'rgba(40,30,70,.5)'; for (let k = 0; k < 6; k++) { const cx = ((k * 97 + t * 14) % (W + 120)) - 60; ctx.fillRect(Math.round(cx), 6 + k * 7, 70, 8); }
       for (let y = sea; y < H; y++) { const f = (y - sea) / (H - sea); ctx.fillStyle = f < .15 ? '#1e3b6e' : f < .45 ? '#173060' : '#10234a'; ctx.fillRect(0, y, W, 1); }
       for (let r = 0; r < 7; r++) { const yy = sea + r * 6; ctx.fillStyle = r === 0 ? '#9fc4ff' : '#3b62a8'; for (let x = 0; x < W; x += 2) { const w = Math.sin(x * .045 + t * 2.4 + r) * 5 * storm + Math.sin(x * .11 - t * 3) * 2 * storm; ctx.fillRect(x, Math.round(yy + w), 2, 1); } }
@@ -1797,7 +1804,7 @@ function drawStruct(s) { if (s.k === 'shelter') { shadow(s.x, s.y + 1, 15); sprA
   else if (s.k === 'fire') { shadow(s.x, s.y, 6); sprAt(NSP.logs, s.x, s.y + 1); if (s.fuel > 0) { const h = Math.min(1, s.fuel / 60); for (let k = 0; k < 7; k++) { const fh = Math.floor((3 + Math.random() * 6) * (0.5 + h * .5)); px(s.x - 4 + k + (k > 3 ? 1 : 0), s.y - 4 - fh, 1, fh, k % 3 === 0 ? '#ffe170' : '#e2463c'); } px(s.x - 1, s.y - 6, 2, 2, '#fff7c8'); } }
   else if (s.k === 'trap') { if (s.uses > 0) sprAt(NSP.trap, s.x, s.y + 1, .85); } }
 function drawWorld() {
-  const sx = (Math.random() - .5) * shakeA * 2, sy = (Math.random() - .5) * shakeA * 2;
+  const sk = OPTS.calm ? 0 : shakeA * 2, sx = (Math.random() - .5) * sk, sy = (Math.random() - .5) * sk;
   CX = Math.round(clamp(cam.x + sx, 0, MW * TS - VW)); CY = Math.round(clamp(cam.y + sy, 0, MH * TS - VH));
   ctx.drawImage(ground, CX, CY, VW, VH, 0, 0, VW, VH);
   drawTiles();
@@ -1843,7 +1850,7 @@ function drawLighting() {
   ctx.globalCompositeOperation = 'source-over';
 }
 function drawOverlays() {
-  if (hurtFlash > 0) { ctx.fillStyle = `rgba(226,70,60,${hurtFlash * .55})`; for (let k = 0; k < 4; k++) { const w = 6 + k * 4; ctx.globalAlpha = .55 - k * .12; ctx.fillRect(0, 0, VW, w); ctx.fillRect(0, VH - w, VW, w); ctx.fillRect(0, 0, w, VH); ctx.fillRect(VW - w, 0, w, VH); } ctx.globalAlpha = 1; }
+  if (hurtFlash > 0) { ctx.fillStyle = `rgba(226,70,60,${hurtFlash * (OPTS.calm ? .25 : .55)})`; for (let k = 0; k < 4; k++) { const w = 6 + k * 4; ctx.globalAlpha = .55 - k * .12; ctx.fillRect(0, 0, VW, w); ctx.fillRect(0, VH - w, VW, w); ctx.fillRect(0, 0, w, VH); ctx.fillRect(VW - w, 0, w, VH); } ctx.globalAlpha = 1; }
   if (inkT > 0) { ctx.globalAlpha = Math.min(.92, inkT / 2); ctx.fillStyle = '#1b0d1c'; for (let k = 0; k < 14; k++) { const x = hash2(k, 5, 1) * VW, y = hash2(k, 6, 1) * VH, r = 20 + hash2(k, 7, 1) * 40; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1; }
   if (day === 4 && state === 'play') { ctx.fillStyle = 'rgba(255,150,70,.07)'; ctx.fillRect(0, 0, VW, VH); if (EPI.heat > 0) { ctx.fillStyle = `rgba(255,224,130,${(EPI.heat * .32).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH); ctx.fillStyle = `rgba(255,250,220,${(EPI.heat * .25).toFixed(3)})`; for (let k = 0; k < 22; k++) { const y = (k * 37 + T * 30) % VH, x = (Math.sin(T * 2 + k) * 20 + k * 53 - T * 120) % (VW + 60); ctx.fillRect(Math.round(((x % (VW + 60)) + VW + 60) % (VW + 60) - 30), Math.round(y), 22, 1); } } }
   if (day < 4 && state === 'play') { const ev = DIR && DIR.ev, strong = ev === 'breath' ? 2 : isContract(ev) ? 1.6 : 1; const br = (Math.sin(T * (ev === 'breath' ? 1.6 : .8)) + 1) / 2; ctx.fillStyle = `rgba(150,30,60,${((.02 + br * .035) * strong).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH);
@@ -1870,7 +1877,7 @@ function drawEnding() { const W = VW, H = VH, t = endT; const sky = ['#2b1a3a', 
   const S = JON.f[0].r; const jy = sy + 18; ctx.drawImage(S, Math.round(W * .5 - S.width / 2), jy - S.height); ctx.fillStyle = 'rgba(60,30,10,.35)'; ctx.fillRect(Math.round(W * .5 - 6), jy - 1, 12, 2); }
 
 /* ================= HUD ================= */
-function buildHotbar() { const sl = $('#slots'); let h = ''; for (let i = 0; i < MAXS; i++) { const s = inv[i]; h += `<button class="slot" data-i="${i}" aria-label="${s ? ITEMS[s.id].n : 'vazio'}">${i < 10 ? `<span class="k">${(i + 1) % 10}</span>` : ''}${s ? iconImg(s.id, 3) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') : ''}${s && s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''}</button>`; } sl.innerHTML = h;
+function buildHotbar() { const sl = $('#slots'); let h = ''; for (let i = 0; i < MAXS; i++) { const s = inv[i]; h += `<button class="slot ${GP.on && i === GP.sel ? 'sel' : ''}" data-i="${i}" aria-label="${s ? ITEMS[s.id].n : 'vazio'}">${i < 10 ? `<span class="k">${(i + 1) % 10}</span>` : ''}${s ? iconImg(s.id, 3) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') : ''}${s && s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''}</button>`; } sl.innerHTML = h;
   const eq = $('#equip'); eq.innerHTML = [['hand', 'Mão'], ['hand2', 'Reserva'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']].map(([k, l]) => { const e = equip[k]; return `<button class="slot eq ${e ? 'on' : ''}" data-eq="${k}" aria-label="${l}: ${e ? ITEMS[e.id].n : 'vazio'}">${e ? iconImg(e.id, 3) : `<span class="lbl" style="font-size:8px">${l}</span>`}${e && k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : ''}</button>`; }).join('');
   sl.querySelectorAll('.slot').forEach(b => { let lp = 0, fired = false; b.oncontextmenu = e => { e.preventDefault(); dropSlot(+b.dataset.i); };
     b.onpointerdown = e => { if (e.pointerType !== 'mouse') { fired = false; lp = setTimeout(() => { fired = true; dropSlot(+b.dataset.i); }, 550); } }; b.onpointerup = b.onpointercancel = b.onpointerleave = () => clearTimeout(lp);
@@ -1894,7 +1901,7 @@ function updateDock() { const n = nCraftable(); $('#dock').innerHTML = [['pause'
   $('#dock').querySelectorAll('.dk').forEach(b => b.onclick = () => { audioInit(); openMenu(b.dataset.open === 'pause' ? null : b.dataset.open); }); }
 function refreshMenus() { updateDock(); if (menuOpen()) renderMenu(true); }
 function openMenu(tab) { if (state !== 'play' || !$('#overlay').hidden) return; if (tab) menuTab = tab; if (menuTab === 'craft') TUTF.craftMenu = true; paused = true; hideTip(); for (const k in keys) keys[k] = false; joy.on = false; $('#menu').hidden = false; document.body.classList.add('menu-open'); renderMenu(false, true); sfx('equip'); }
-function closeMenu() { $('#menu').hidden = true; document.body.classList.remove('menu-open'); $('#menu').innerHTML = ''; if (state === 'play' && $('#overlay').hidden) paused = false; }
+function closeMenu() { rebinding = null; $('#menu').hidden = true; document.body.classList.remove('menu-open'); $('#menu').innerHTML = ''; if (state === 'play' && $('#overlay').hidden) paused = false; }
 function toggleMenu(tab) { if (menuOpen() && (!tab || tab === menuTab)) closeMenu(); else openMenu(tab); }
 function renderMenu(keepScroll, anim) { const m = $('#menu'); const sc = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); const top = sc ? sc.scrollTop : 0; const n = nCraftable();
   m.innerHTML = `<div class="mwin px ${anim ? 'anim' : ''}" role="dialog" aria-modal="true" aria-label="Diário de Jonas"><div class="mhead"><h2>Diário de Jonas</h2><span class="pchip">PAUSADO · ${day === 4 ? 'EPÍLOGO' : 'DIA ' + day}</span><button class="mclose" id="mClose"><span>Voltar ao jogo</span><kbd>Esc</kbd></button></div>
@@ -1964,11 +1971,19 @@ function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); le
     <span class="lbl" style="margin-top:6px">Regiões</span>${REGIONS.map(r => `<div class="rg ${visited.has(r.id) ? '' : 'no'}"><span>${visited.has(r.id) ? r.n : '???'}</span><span>${regionOf(P.x, P.y) === r ? 'aqui' : ''}</span></div>`).join('')}</div></div>`; }
 function renderBestTab(b) { b.innerHTML = `<div class="pad"><span class="lbl">${seen.size}/${Object.keys(MOBS).length} criaturas vistas</span><div class="best" style="max-height:none">${Object.keys(MOBS).map(k => { const D = MOBS[k], s = seen.has(k); const c = s ? SP[k].r : SP.sil[k]; let u = ''; try { u = c.toDataURL(); } catch (e) {} return `<div class="beast ${s ? '' : 'unk'}"><img class="pi" src="${u}" width="${c.width * 3}" height="${c.height * 3}" alt=""><div><span class="dd">DIA ${D.day}</span><b>${s ? D.n : '???'}</b>${s ? D.d + (kills[k] ? ` <span class="dd">· ${kills[k]} derrotad${kills[k] > 1 ? 'os' : 'o'}</span>` : '') : 'Ainda não encontrada.'}</div></div>`; }).join('')}</div></div>`; }
 function renderOptsTab(b) { b.innerHTML = `<div class="pad"><div class="opt"><span>Som</span><button class="btn ${muted ? 'alt' : ''}" id="oMute">${muted ? 'Desligado' : 'Ligado'}</button></div>
+  <div class="opt"><span>Texto e interface maiores</span><button class="btn ${OPTS.big ? '' : 'alt'}" id="oBig">${OPTS.big ? 'Ligado' : 'Desligado'}</button></div>
+  <div class="opt"><span>Reduzir tremores e flashes</span><button class="btn ${OPTS.calm ? '' : 'alt'}" id="oCalm">${OPTS.calm ? 'Ligado' : 'Desligado'}</button></div>
+  <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Teclas de ação</span>${Object.keys(DEF_KEYS).map(a => `<div class="rb"><span>${ACT_N[a]}</span><kbd>${rebinding === a ? 'Aperte uma tecla…' : OPTS.keys[a].map(keyLabel).join(' / ')}</kbd><button class="btn alt" data-rb="${a}">${rebinding === a ? 'Esc cancela' : 'Mudar'}</button></div>`).join('')}<button class="btn alt" id="oKeysReset" style="align-self:flex-start">Restaurar teclas padrão</button></div>
+  <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controle (Xbox / PlayStation)</span><div class="keys"><kbd>Analógico / D-pad</kbd><span>Andar</span><kbd>A / ✕</kbd><span>Atacar · confirmar</span><kbd>X / ▢</kbd><span>Usar / coletar</span><kbd>B / ◯</kbd><span>Rolar · voltar</span><kbd>Y / △</kbd><span>Trocar arma</span><kbd>LB · RB</kbd><span>Escolher item da barra · trocar aba no Diário</span><kbd>RT</kbd><span>Usar item escolhido</span><kbd>LT</kbd><span>Abrir Criar</span><kbd>Start</kbd><span>Pausar / Diário</span><kbd>Select</kbd><span>Mapa</span></div><span class="note">${GP.on ? 'Controle conectado.' : 'Nenhum controle detectado. Conecte e aperte um botão.'}</span></div>
   <div class="opt"><span>Dicas no Dia 1</span><button class="btn ${tipsOn ? '' : 'alt'}" id="oTips">${tipsOn ? 'Ligadas' : 'Desligadas'}</button></div>
   <div class="opt"><label for="vMus">Música e ambiente</label><span class="rng"><input type="range" id="vMus" min="0" max="100" value="${Math.round(AUD.vm * 100)}"><b id="vMusN">${Math.round(AUD.vm * 100)}</b></span></div>
   <div class="opt"><label for="vSfx">Efeitos</label><span class="rng"><input type="range" id="vSfx" min="0" max="100" value="${Math.round(AUD.vs * 100)}"><b id="vSfxN">${Math.round(AUD.vs * 100)}</b></span></div>
   <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controles</span><div class="keys"><kbd>WASD / setas</kbd><span>Andar</span><kbd>Espaço / J</kbd><span>Atacar (3º golpe seguido é mais forte)</span><kbd>Shift / L</kbd><span>Rolar (desvia e solta lampreias)</span><kbd>R</kbd><span>Trocar entre arma da mão e reserva</span><kbd>E / K</kbd><span>Coletar, abrir, descansar</span><kbd>Esc / Tab</kbd><span>Pausar e abrir este diário</span><kbd>C · I · Q · M · B</kbd><span>Criar · Mochila · Missões · Mapa · Bestiário</span><kbd>1–0</kbd><span>Usar itens da barra rápida</span><kbd>Botão direito</kbd><span>Soltar item da barra</span><kbd>Setas + Enter</kbd><span>Escolher e criar receitas (aba Criar)</span></div></div></div>`;
   $('#oMute').onclick = () => { muted = !muted; applyVolumes(); renderMenu(); };
+  $('#oBig').onclick = () => { OPTS.big = !OPTS.big; saveOpts(); renderMenu(); };
+  $('#oCalm').onclick = () => { OPTS.calm = !OPTS.calm; saveOpts(); renderMenu(); };
+  b.querySelectorAll('[data-rb]').forEach(x => x.onclick = () => { rebinding = rebinding === x.dataset.rb ? null : x.dataset.rb; renderMenu(); });
+  $('#oKeysReset').onclick = () => { OPTS.keys = JSON.parse(JSON.stringify(DEF_KEYS)); saveOpts(); renderMenu(); toast('Teclas restauradas.'); };
   $('#oTips').onclick = () => { tipsOn = !tipsOn; try { localStorage.setItem('jonah-tips', tipsOn ? 'on' : 'off'); } catch (e) {} if (tipsOn && flags) flags.tut = {}; renderMenu(); };
   $('#vMus').oninput = e => { AUD.vm = e.target.value / 100; $('#vMusN').textContent = e.target.value; applyVolumes(); };
   $('#vSfx').oninput = e => { AUD.vs = e.target.value / 100; $('#vSfxN').textContent = e.target.value; applyVolumes(); sfx('pick'); }; }
@@ -2008,12 +2023,12 @@ function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); pa
   const bs = o.buttons || [{ label: o.btn || 'Continuar', fn: o.fn }];
   ov.querySelectorAll('[data-b]').forEach(b => b.onclick = e => { e.stopPropagation(); audioInit(); closeCard(); const f = bs[+b.dataset.b].fn; if (f) f(); });
   const lg = ov.querySelector('#logo'); if (lg) { const avail = lg.parentElement.clientWidth || 300; const k = Math.max(1, Math.min(3, Math.floor(avail / LOGO_W))); lg.style.width = LOGO_W * k + 'px'; lg.style.height = LOGO_H * k + 'px'; drawLogo(lg, T); }
-  const first = ov.querySelector('.btn'); if (first) setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (e) {} }, 30); }
+  const first = ov.querySelector('[data-b="0"]') || ov.querySelector('.btn'); if (first) setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (e) {} }, 30); }
 function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; if (state === 'play') paused = false; }
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
   const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: newGameCard }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: `Conquistas ${Object.keys(ACH).length}/${ACHS.length}`, fn: achCard }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAS', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
-function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
+function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p><p>Tem controle de Xbox ou PlayStation? É só conectar. Em Ajustes dá para mudar teclas, aumentar o texto e reduzir tremores.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
 function bigMap() { openMenu('map'); }
 
@@ -2057,22 +2072,51 @@ function loadScreen() { const html = `<div class="pad" style="padding:0">${SLOT_
   document.querySelectorAll('[data-ld]').forEach(b => b.onclick = () => { const d = readSlot(b.dataset.ld); closeCard(); loadGame(d); }); }
 let autoT = 90;
 
+/* ================= OPTIONS, REMAP & GAMEPAD ================= */
+const DEF_KEYS = { attack: ['Space', 'KeyJ'], interact: ['KeyE', 'KeyK'], roll: ['ShiftLeft', 'ShiftRight', 'KeyL'], swap: ['KeyR'] };
+const OPTS = { big: false, calm: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches, keys: JSON.parse(JSON.stringify(DEF_KEYS)) };
+try { const o = JSON.parse(localStorage.getItem('jonah-opts') || 'null'); if (o) { OPTS.big = !!o.big; if (o.calm != null) OPTS.calm = !!o.calm; if (o.keys) Object.assign(OPTS.keys, o.keys); } } catch (e) {}
+function saveOpts() { try { localStorage.setItem('jonah-opts', JSON.stringify(OPTS)); } catch (e) {} document.body.classList.toggle('big-ui', OPTS.big); }
+document.body.classList.toggle('big-ui', OPTS.big);
+const isKey = (code, act) => (OPTS.keys[act] || []).includes(code);
+const ACT_N = { attack: 'Atacar', interact: 'Usar / coletar', roll: 'Rolar', swap: 'Trocar arma' };
+const keyLabel = c => ({ Space: 'Espaço', ShiftLeft: 'Shift', ShiftRight: 'Shift dir.', ControlLeft: 'Ctrl', AltLeft: 'Alt', Enter: 'Enter', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' }[c] || c.replace(/^Key/, '').replace(/^Digit/, '').replace(/^Numpad/, 'Num '));
+let rebinding = null;
+const GP = { prev: [], sel: 0, on: false, rep: 0 };
+function gpTick(dt) { const pads = navigator.getGamepads ? [...navigator.getGamepads()] : []; const g = pads.find(p => p && p.connected); if (!g) { if (GP.on) { GP.on = false; if (joy.pad) { joy.on = false; joy.pad = false; } buildHotbar(); } return; }
+  if (!GP.on) { GP.on = true; toast('Controle conectado. Start abre o Diário.'); buildHotbar(); }
+  const b = i => !!(g.buttons[i] && g.buttons[i].pressed), pr = i => b(i) && !GP.prev[i]; let x = g.axes[0] || 0, y = g.axes[1] || 0;
+  if (b(14)) x = -1; if (b(15)) x = 1; if (b(12)) y = -1; if (b(13)) y = 1; const mag = Math.hypot(x, y); GP.rep -= dt;
+  const navDir = () => { if (mag < .5 || GP.rep > 0) return 0; GP.rep = .2; return Math.abs(x) > Math.abs(y) ? (x > 0 ? 1 : -1) : (y > 0 ? 2 : -2); };
+  if (mag < .5) GP.rep = 0;
+  const ov = $('#overlay');
+  if (!ov.hidden) { audioInit(); const btns = [...ov.querySelectorAll('button')]; const d = navDir(); if (d && btns.length) { let i = btns.indexOf(document.activeElement); i = (i + (d > 0 ? 1 : -1) + btns.length) % btns.length; btns[i].focus(); } if (pr(0)) { const a = document.activeElement; (a && ov.contains(a) && a.tagName === 'BUTTON' ? a : ov.querySelector('[data-b="0"]') || ov.querySelector('.btn'))?.click(); } if (pr(1) && state === 'play') closeCard(); }
+  else if (state === 'cut') { if (pr(0) || pr(9)) endCut(); }
+  else if (state === 'play' && menuOpen()) { if (pr(1) || pr(9)) closeMenu(); else { if (pr(4) || pr(5)) { const ks = MENU_TABS.map(t => t[0]); menuTab = ks[(ks.indexOf(menuTab) + (pr(5) ? 1 : -1) + ks.length) % ks.length]; renderMenu(); sfx('pick'); }
+      if (menuTab === 'craft') { const d = navDir(); if (d) moveCraftSel(d); if (pr(0) && craftSel) craft(craftSel); } } }
+  else if (state === 'play' && !paused) { if (mag > .25) { joy.on = true; joy.pad = true; joy.x = x; joy.y = y; } else if (joy.pad) { joy.on = false; joy.pad = false; joy.x = joy.y = 0; }
+    if (pr(0)) attack(); if (pr(2)) interact(); if (pr(1)) dodge(); if (pr(3)) swapWeapons(); if (pr(9)) openMenu(); if (pr(8)) openMenu('map'); if (pr(6)) openMenu('craft');
+    if (pr(4) || pr(5)) { const n = Math.max(1, inv.length); GP.sel = (GP.sel + (pr(5) ? 1 : -1) + n) % n; buildHotbar(); const s = inv[GP.sel]; if (s) floatTxt(ITEMS[s.id].n, P.x, P.y - 26, '#62f4e2'); }
+    if (pr(7)) { useSlot(GP.sel); if (GP.sel >= inv.length) GP.sel = Math.max(0, inv.length - 1); } }
+  GP.prev = g.buttons.map(bt => bt.pressed); }
+addEventListener('gamepadconnected', () => audioInit());
+
 /* ================= INPUT ================= */
-addEventListener('keydown', e => { const inInput = e.target && e.target.tagName === 'INPUT'; if (inInput && e.code !== 'Escape') return; audioInit(); if (!inInput) keys[e.code] = true;
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(e.code) && state === 'play') e.preventDefault();
+addEventListener('keydown', e => { if (rebinding) { e.preventDefault(); if (e.code !== 'Escape') { OPTS.keys[rebinding] = [e.code]; saveOpts(); } rebinding = null; if (menuOpen()) renderMenu(); return; } const inInput = e.target && e.target.tagName === 'INPUT'; if (inInput && e.code !== 'Escape') return; audioInit(); if (!inInput) keys[e.code] = true;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(e.code) && (state === 'play' || state === 'cut')) e.preventDefault();
   const ovOpen = !$('#overlay').hidden;
   if (e.code === 'Escape' && ovOpen && state === 'play') { closeCard(); return; }
   if (ovOpen) return;
   if (state === 'cut') { if (['Space', 'Enter', 'Escape'].includes(e.code)) { e.preventDefault(); endCut(); } return; }
   if (state !== 'play' || e.repeat) return;
-  const MK = { KeyC: 'craft', KeyI: 'bag', KeyQ: 'quests', KeyM: 'map', KeyB: 'best' };
+  const MK = { KeyC: 'craft', KeyI: 'bag', KeyQ: 'quests', KeyM: 'map', KeyB: 'best' }; if (Object.values(OPTS.keys).some(a => a.includes(e.code))) delete MK[e.code];
   if (e.code === 'Escape' || e.code === 'Tab') { menuOpen() ? closeMenu() : openMenu(); return; }
   if (MK[e.code]) { toggleMenu(MK[e.code]); return; }
   if (menuOpen()) { if (menuTab === 'craft') { const mv = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -2, ArrowDown: 2 }[e.code]; if (mv) { moveCraftSel(mv); return; } if (e.code === 'Enter' && craftSel) { e.preventDefault(); craft(craftSel); } } return; }
-  if (e.code === 'Space' || e.code === 'KeyJ') attack();
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyL') dodge();
-  if (e.code === 'KeyR') swapWeapons();
-  if (e.code === 'KeyE' || e.code === 'KeyK') interact();
+  if (isKey(e.code, 'attack')) { e.preventDefault(); attack(); }
+  if (isKey(e.code, 'roll')) dodge();
+  if (isKey(e.code, 'swap')) swapWeapons();
+  if (isKey(e.code, 'interact')) interact();
   const m = e.code.match(/^Digit(\d)$/); if (m) useSlot((+m[1] + 9) % 10);
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -2091,7 +2135,7 @@ $('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'
 function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Math.max(2, Math.round(w / 200)) : Math.max(2, Math.round(Math.min(w, h * 1.6) / 380)); VW = Math.ceil(w / SCALE); VH = Math.ceil(h / SCALE); cv.width = VW; cv.height = VH; cv.style.width = VW * SCALE + 'px'; cv.style.height = VH * SCALE + 'px'; lightC.width = Math.ceil(VW / 2); lightC.height = Math.ceil(VH / 2); ctx.imageSmoothingEnabled = false; lctx.imageSmoothingEnabled = false; }
 addEventListener('resize', resize);
 let last = 0;
-function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'cut') drawCut(); else if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
+function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { gpTick(dt); update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'cut') drawCut(); else if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
 function boot(data) {
   resize(); freshRun();
   ['hp', 'food', 'light'].forEach(k => { const el = $('#i' + k[0].toUpperCase() + k.slice(1)); el.src = iconURL(k); el.width = ICON[k].width * 2; el.height = ICON[k].height * 2; });
