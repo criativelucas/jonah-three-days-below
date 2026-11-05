@@ -460,7 +460,39 @@ const NODE_ROWS = {
   logs: [".RoooooR.", "ooRRRRRoo", "RoooooooR", ".RR...RR."],
   trap: ["y.y.y.y.y.y.", ".Y.Y.Y.Y.Y.", "y.y.y.y.y.y.", ".Y.Y.Y.Y.Y.", "y.y.y.y.y.y.", ".Y.Y.Y.Y.Y."],
 };
+Object.assign(NODE_ROWS, {
+  palm: [".gg....gg....", "gGgg..ggGg...", "...gggGg.gg..", ".ggGgGgGgg...", "gg..gGgg.ggg.", "g..gg.r.g...g", "...g..ro.....", "......ro.....", ".......ro....", ".......ro....", ".......ro....", "......ro.....", "......ro.....", "......ro.....", ".....rRo.....", "....RRRRo...."],
+  well: ["..R........R..", "..RRRRRRRRRR..", "..R........R..", "..R...yy...R..", "nnnnnnnnnnnnnn", "nNUUUUUUUUUUNn", "nNUuUUUUUuUUNn", "nnnnnnnnnnnnnn", "NNNNNNNNNNNNNN"],
+  stall: ["xxwwxxwwxxwwxxwwxx", "xxwwxxwwxxwwxxwwxx", ".R..............R.", ".R..............R.", ".R..............R.", ".RooooooooooooooR.", ".RoffojjoggoffooR.", ".RrrrrrrrrrrrrrrR.", ".R..............R.", ".R..............R."],
+  pot: ["..RRRR..", "...oo...", "..oooo..", ".oooooo.", "oooFoooo", "oooooooo", ".oooooo.", "..oooo.."],
+  sheep: ["..wwwwwww...", ".wwcwwwcww..", "wwwwwwwwwwkk", "wwcwwwwcwwkk", ".wwwwwwwww..", "..k.k..k.k.."],
+  plaza: ["......jj......", "......jR......", "......R.......", "......R.......", "...nnnnnnnn...", "..nNNNNNNNNn..", ".nnnnnnnnnnnn.", "NNNNNNNNNNNNNN"],
+  booth: ["..gGggGgGggGgGggGggGg...", ".gGgGggGggGgGgGggGgGgg..", "gGgggGgGgggGgGgggGgGggg.", ".R..................R...", ".R..................R...", ".R..................R...", ".R..................R...", ".R..................R..."],
+  plantN: ["....gg.....gg.........", "..ggGgg..ggGgg...gg...", ".gGgjgGggGgggGg.gGgg..", "gGgggGgGgjgGgggGggjGg.", "gggGgggGgggGgjgGggGggg", ".GgggGgjggGgggGgggGg..", "..GG..GGg...GGg..GG...", ".......g..............", ".......g..............", "......gG.............."],
+  worm: [".pPp..", "pPpPpk", ".PpP.."],
+  tuft: ["g.g.g", ".gGg.", "..G.."],
+});
+NODE_ROWS.plantDead = NODE_ROWS.plantN.map(r => r.replace(/g/g, 'o').replace(/G/g, 'R').replace(/j/g, 'Y'));
 const NSP = {}; for (const k in NODE_ROWS) NSP[k] = mk(NODE_ROWS[k]);
+function makeLeafy(w, h, seed, cols, opts) { const c = C(w, h), x = c.getContext('2d'), rnd = mulberry(seed);
+  if (opts.poles) { x.fillStyle = '#5a361c'; x.fillRect(4, 8, 2, h - 8); x.fillRect(w - 6, 8, 2, h - 8); x.fillStyle = '#8a5a32'; x.fillRect(5, 8, 1, h - 8); x.fillRect(w - 5, 8, 1, h - 8); x.fillStyle = '#6b4224'; x.fillRect(2, 8, w - 4, 2); }
+  if (opts.stem) { x.fillStyle = cols[1]; for (let y = h - 1; y > h * .45; y--) x.fillRect(Math.round(w / 2 + Math.sin(y * .4) * 1.5), y, 2, 1); }
+  const n = opts.leaves; for (let k = 0; k < n; k++) { const cx = 4 + rnd() * (w - 8), cy = opts.top + rnd() * opts.band, rx = 3 + rnd() * 4, ry = 2 + rnd() * 2.5;
+    for (let yy = -ry; yy <= ry; yy++) for (let xx = -rx; xx <= rx; xx++) { if ((xx * xx) / (rx * rx) + (yy * yy) / (ry * ry) > 1) continue; x.fillStyle = yy < -ry * .3 ? cols[2] : xx > rx * .4 ? cols[1] : cols[0]; x.fillRect(Math.round(cx + xx), Math.round(cy + yy), 1, 1); }
+    x.fillStyle = cols[1]; x.fillRect(Math.round(cx - rx * .6), Math.round(cy), Math.round(rx * 1.2), 1); }
+  if (opts.twigs) { x.fillStyle = '#6b4224'; for (let k = 0; k < opts.twigs; k++) { const tx = 2 + rnd() * (w - 6), ty = opts.top + rnd() * opts.band; for (let i = 0; i < 6; i++) x.fillRect(Math.round(tx + i), Math.round(ty + i * .3), 1, 1); } }
+  if (opts.flowers) { for (let k = 0; k < opts.flowers; k++) { const fx = 5 + rnd() * (w - 10), fy = opts.top + 2 + rnd() * (opts.band - 2); x.fillStyle = cols[3]; x.fillRect(Math.round(fx) - 1, Math.round(fy), 3, 1); x.fillRect(Math.round(fx), Math.round(fy) - 1, 1, 3); x.fillStyle = '#fff7c8'; x.fillRect(Math.round(fx), Math.round(fy), 1, 1); } }
+  return outline(crisp(c)); }
+NSP.booth = makeLeafy(42, 28, 11, ['#7a8a3a', '#55621f', '#a4b45a'], { poles: true, leaves: 26, top: 2, band: 8, twigs: 9 });
+NSP.plantN = makeLeafy(56, 34, 23, ['#6fae3a', '#3f7a22', '#a8dc5a', '#f4cd4f'], { stem: true, leaves: 34, top: 4, band: 16, flowers: 7 });
+NSP.plantDead = makeLeafy(56, 34, 23, ['#a07a40', '#6b4a22', '#c49a5a', '#8a6a2a'], { stem: true, leaves: 34, top: 4, band: 16, flowers: 7 });
+const PERSON = ["...hhhh...", "..hhhhhh..", "..hsssssh.", "..sksskss.", "..ssssss..", "...ssss...", "..CCCCCC..", ".CCCCCCCC.", "sCCcCCcCCs", "sCCCCCCCCs", ".CCCCCCCC.", ".CCCcCCCC.", "..CCCCCC..", "..ss..ss..", "..RR..RR.."];
+const KNEEL = ["...hhhh...", "..hhhhhh..", "..hsssssh.", "..ssssss..", "..nnnnnn..", ".nnNnnNnn.", "nnnnnnnnnn", "nnnNnnNnnn", "NnnnnnnnnN", ".NNNNNNNN."];
+const NPC_COLS = [['u', 'U'], ['x', 'X'], ['g', 'G'], ['v', 'V'], ['f', 'F'], ['t', 'T']];
+const NPC_SP = NPC_COLS.map(([a, b], i) => set3(mk(PERSON.map(r => r.replace(/C/g, a).replace(/c/g, b).replace(/h/g, i % 2 ? 'h' : 'H')))));
+const NPC_KNEEL = mk(KNEEL);
+const KING_SP = set3(mk(["..j.j.j...", "..jjjjj...", ...PERSON.map(r => r.replace(/C/g, 'v').replace(/c/g, 'j'))]));
+const KING_KNEEL = mk(["..........", ...KNEEL]);
 
 const ICON_ROWS = {
   madeira: ["oooooooo", "rrrrrrrR", "RRRRRRRR", "........", "oooooooo", "rrrrrrrR", "RRRRRRRR"],
@@ -721,6 +753,11 @@ const NODES = {
   nerve: { n: 'Nódulo nervoso', act: 'Golpear', special: 'nerve' },
   spore: { n: 'Bolsa de esporos', act: 'Absorver', special: 'spore', uses: 1, regrow: 70 },
   vent: { decor: true },
+  plaza: { n: 'Praça', act: 'Proclamar a mensagem', special: 'plaza' },
+  npc: { n: 'Ninivita', act: 'Conversar', special: 'npc' },
+  king: { n: 'Rei de Nínive', act: 'Falar com o rei', special: 'king' },
+  site: { n: 'Alto da colina', act: 'Fazer uma enramada', special: 'site' },
+  palm: { decor: true }, well: { decor: true }, stall: { decor: true }, pot: { decor: true }, sheep: { decor: true }, tuft: { decor: true }, plantN: { decor: true }, worm: { decor: true },
 };
 const MEMS = {
   sino: { n: 'O sino do navio', d: 'O sino tocava sem parar enquanto as ondas cresciam. Os marinheiros clamavam, cada um ao seu deus. Jonas dormia no porão, como se nada pudesse alcançá-lo ali embaixo.' },
@@ -774,11 +811,12 @@ const DAYS = [null,
   { name: 'O Despertar', kick: 'DIA 1 · SOBREVIVER', body: 'Escuridão. Cheiro de sal e de algo vivo. Jonas abre os olhos entre as tábuas partidas do navio, e o chão sob ele respira. Antes de qualquer coisa, ele precisa de luz e de um lugar seguro.' },
   { name: 'As Profundezas', kick: 'DIA 2 · DESCOBRIR', body: 'A grande contração rasgou caminho para o interior. Em algum lugar adiante deve haver uma saída. Jonas decide procurá-la, e a cada passo as lembranças de Nínive voltam.' },
   { name: 'Das Profundezas à Luz', kick: 'DIA 3 · RENDER-SE', body: 'A fuga falhou outra vez. No silêncio, Jonas entende que não existe porta que ele possa abrir sozinho. A baleia mudou por dentro. Ele também.' },
+  { name: 'Nínive', kick: 'EPÍLOGO · OBEDECER', body: 'O peixe devolveu Jonas à praia. Pela segunda vez, a palavra chegou: levante-se e vá a Nínive. Desta vez, ele foi. A cidade é tão grande que leva três dias para atravessá-la.' },
 ];
 
 /* ================= WORLD ================= */
 const WALL = 0, FLOOR = 1, ACID = 2;
-const REGIONS = [
+const REGIONS_WHALE = [
   { id: 'destrocos', n: 'Destroços do Navio', x: 16, y: 42, r: 8 },
   { id: 'juncao', n: 'Garganta', x: 38, y: 40, r: 5 },
   { id: 'costelas', n: 'Galeria das Costelas', x: 54, y: 18, r: 10 },
@@ -787,8 +825,20 @@ const REGIONS = [
   { id: 'central', n: 'Câmara Central', x: 84, y: 64, r: 7 },
   { id: 'silencio', n: 'Câmara do Silêncio', x: 103, y: 56, r: 5 },
 ];
-const RG = {}; REGIONS.forEach((r, i) => { r.i = i; RG[r.id] = r; });
+const REGIONS_NIN = [
+  { id: 'deserto', n: 'Deserto diante de Nínive', x: 10, y: 37, r: 8 },
+  { id: 'portao', n: 'Portão Oeste', x: 23, y: 37, r: 3 },
+  { id: 'cidade', n: 'Nínive, a grande cidade', x: 50, y: 37, r: 24 },
+  { id: 'palacio', n: 'Palácio do Rei', x: 71, y: 47, r: 5 },
+  { id: 'colina', n: 'Colina a leste da cidade', x: 96, y: 37, r: 8 },
+];
+let REGIONS = REGIONS_WHALE, RG = {};
+function setRegions(list) { REGIONS = list; RG = {}; list.forEach((r, i) => { r.i = i; RG[r.id] = r; }); }
+setRegions(REGIONS_WHALE);
+const PLAZAS = [{ x: 34, y: 23 }, { x: 49, y: 51 }, { x: 64, y: 23 }];
+const inCityT = (x, y) => x > 22 && x < 78 && y > 14 && y < 60;
 const LINKS = [['destrocos', 'juncao'], ['juncao', 'costelas'], ['juncao', 'lago'], ['costelas', 'cilios'], ['lago', 'cilios'], ['lago', 'central'], ['cilios', 'central'], ['cilios', 'silencio']];
+let pave = null, wkind = null;
 let tiles, foldAt, folds, solid, tideMap, regionMap, bridgeMap, reveal, tun, pockets, ground;
 const idx = (x, y) => y * MW + x;
 const inB = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -801,7 +851,27 @@ function makeFold(pts, t, type, key, rad = 3.2) { const p = pts[Math.floor(t * (
   for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) { if (!inB(x, y)) continue; const i = idx(x, y); if (tiles[i] !== WALL && foldAt[i] < 0 && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) { foldAt[i] = f.id; f.tiles.push(i); } }
   folds.push(f); return f; }
 function acidAt(pts, t, rad) { const p = pts[Math.floor(t * (pts.length - 1))]; for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) tiles[idx(x, y)] = ACID; }
+function genNineveh() { setRegions(REGIONS_NIN); R = mulberry(4040);
+  tiles = new Uint8Array(MW * MH).fill(FLOOR); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = []; tun = {}; bridgeMap = new Uint8Array(MW * MH); pave = new Uint8Array(MW * MH); wkind = new Uint8Array(MW * MH); reveal = new Uint8Array(MW * MH);
+  const W_ = (x, y, k = 1) => { if (inB(x, y)) { tiles[idx(x, y)] = WALL; wkind[idx(x, y)] = k; } }, P_ = (x, y) => { if (inB(x, y)) pave[idx(x, y)] = 1; };
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const e = Math.min(x, y, MW - 1 - x, MH - 1 - y); if (e < 3 + vnoise(x * .15, y * .15, 77) * 4) W_(x, y, 0); }
+  const X0 = 20, X1 = 80, Y0 = 12, Y1 = 62;
+  for (let x = X0; x <= X1; x++) for (const t of [0, 1]) { W_(x, Y0 + t); W_(x, Y1 - t); }
+  for (let y = Y0; y <= Y1; y++) if (y < 35 || y > 39) for (const t of [0, 1]) { W_(X0 + t, y); W_(X1 - t, y); }
+  for (let x = X0; x <= X1; x++) for (let y = 35; y <= 39; y++) P_(x, y);
+  for (let x = X0 + 2; x <= X1 - 2; x++) for (const y of [22, 23, 50, 51]) P_(x, y);
+  for (let y = Y0 + 2; y <= Y1 - 2; y++) for (const x of [33, 34, 35, 48, 49, 50, 63, 64, 65]) P_(x, y);
+  for (const p of PLAZAS) for (let y = p.y - 6; y <= p.y + 6; y++) for (let x = p.x - 6; x <= p.x + 6; x++) if (Math.hypot(x - p.x, (y - p.y) * 1.2) < 5.5) P_(x, y);
+  for (let x = 66; x <= 77; x++) for (let y = 40; y <= 43; y++) P_(x, y);
+  for (let x = 66; x <= 77; x++) for (let y = 44; y <= 56; y++) W_(x, y);
+  for (let by = Y0 + 3; by < Y1 - 4; by += 6) for (let bx = X0 + 3; bx < X1 - 5; bx += 7) { const w = 3 + Math.floor(R() * 3), h = 2 + Math.floor(R() * 2), hx = bx + Math.floor(R() * 2), hy = by + Math.floor(R() * 2); let ok = true;
+    for (let y = hy - 1; y <= hy + h && ok; y++) for (let x = hx - 1; x <= hx + w; x++) if (!inB(x, y) || pave[idx(x, y)] || tiles[idx(x, y)] === WALL) { ok = false; break; }
+    if (ok) for (let y = hy; y < hy + h; y++) for (let x = hx; x < hx + w; x++) W_(x, y); }
+  regionMap = new Uint8Array(MW * MH).fill(255);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (tiles[idx(x, y)] === WALL) continue; let best = 255, bd = 1e9; if (inCityT(x, y)) best = 2; else for (const r of REGIONS) { const d = Math.hypot(x - r.x, y - r.y) / (r.r + 4); if (d < bd) { bd = d; best = r.i; } } if (x >= 64 && x <= 79 && y >= 40 && y <= 58) best = 3; regionMap[idx(x, y)] = best; } }
 function genWorld(day) {
+  if (day === 4) { genNineveh(); return; }
+  setRegions(REGIONS_WHALE); pave = wkind = null;
   R = mulberry(20261105);
   tiles = new Uint8Array(MW * MH); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = [];
   for (const r of REGIONS) carveBlob(r.x, r.y, r.r, r.i);
@@ -846,7 +916,9 @@ function nearestFree(px, py, maxR = 6) { const tx = Math.floor(px / TS), ty = Ma
 /* ground prerender */
 function renderGround() {
   const W = MW * TS, H = MH * TS; ground = C(W, H); const g = ground.getContext('2d'); const id = g.createImageData(W, H), d = id.data;
-  const FL = [[0x52, 0x18, 0x26], [0x61, 0x1e, 0x2f], [0x70, 0x26, 0x37], [0x80, 0x2f, 0x41], [0x91, 0x3a, 0x4d], [0xa3, 0x48, 0x5b]];
+  const NIN = day === 4;
+  const FL = NIN ? [[0xc4, 0x9c, 0x5e], [0xcf, 0xa9, 0x6a], [0xd9, 0xb7, 0x7a], [0xe3, 0xc4, 0x8a], [0xe9, 0xcf, 0x98], [0xf0, 0xd9, 0xa6]] : [[0x52, 0x18, 0x26], [0x61, 0x1e, 0x2f], [0x70, 0x26, 0x37], [0x80, 0x2f, 0x41], [0x91, 0x3a, 0x4d], [0xa3, 0x48, 0x5b]];
+  const PV = [[0x8f, 0x80, 0x6c], [0xa3, 0x93, 0x7c], [0xb4, 0xa4, 0x8b], [0xc4, 0xb5, 0x9b]], GR = [[0x8a, 0x9a, 0x4e], [0x9c, 0xab, 0x58], [0xae, 0xb8, 0x62], [0xc0, 0xbf, 0x72], [0xcf, 0xc5, 0x80], [0xdb, 0xcc, 0x8c]];
   const depth = new Uint8Array(MW * MH).fill(9);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (tiles[idx(x, y)] !== WALL) depth[idx(x, y)] = 0;
   for (let pass = 1; pass <= 4; pass++) for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const i = idx(x, y); if (depth[i] !== 9) continue; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) { if (inB(x + a, y + b) && depth[idx(x + a, y + b)] === pass - 1) { depth[i] = pass; break; } } }
@@ -859,6 +931,14 @@ function renderGround() {
         let n = vnoise(X * .04, Y * .05, 1) * .6 + vnoise(X * .15, Y * .15, 2) * .4 + dth * .22;
         if (!north && py < 4) n -= (4 - py) * .09; if (!flr(tx - 1, ty) && px < 3) n -= (3 - px) * .07; if (!flr(tx + 1, ty) && px > 12) n -= (px - 12) * .07;
         c = FL[clamp(Math.floor(n * 6), 0, 5)];
+        if (NIN && pave[i]) { const row = Math.floor(Y / 6), joint = Y % 6 === 0 || (X + (row % 2) * 5) % 10 === 0; c = joint ? [0x6e, 0x60, 0x50] : PV[clamp(Math.floor((vnoise(X * .3, Y * .3, 8) + dth * .3) * 4), 0, 3)]; }
+        else if (NIN && Math.hypot(tx - 96, ty - 37) < 11) c = GR[clamp(Math.floor(n * 6), 0, 5)];
+      } else if (NIN && south && py >= TS - 11) { const k = wkind[i], f = (py - (TS - 11)) / 11;
+        if (k) { const row = Math.floor((py - (TS - 11)) / 3), joint = (py - (TS - 11)) % 3 === 0 || (X + (row % 2) * 3) % 7 === 0; c = py === TS - 11 ? [0xf0, 0xd2, 0x96] : joint ? [0x7a, 0x55, 0x30] : f < .5 ? [0xc0, 0x92, 0x58] : [0xa8, 0x7c, 0x48]; }
+        else { const v = 1 - f * .8 + dth * .25 + (vnoise(X * .4, 2, 9) - .5) * .4; c = v > 1 ? [0xd4, 0xae, 0x72] : v > .7 ? [0xb8, 0x90, 0x58] : v > .45 ? [0x9a, 0x74, 0x44] : [0x7c, 0x5a, 0x34]; }
+      } else if (NIN) { const k = wkind[i], n = vnoise(X * .12, Y * .12, 3) + dth * .25;
+        c = k ? (n > .62 ? [0xe6, 0xc4, 0x86] : n > .38 ? [0xd6, 0xb2, 0x74] : [0xc8, 0xa2, 0x66]) : (n > .62 ? [0xc8, 0xa0, 0x62] : n > .38 ? [0xb8, 0x90, 0x56] : [0xa8, 0x82, 0x4c]);
+        if (k && (px === 0 || px === 15 || py === 0) && !south) c = [0xb0, 0x88, 0x52];
       } else if (south && py >= TS - 11) {
         const f = (py - (TS - 11)) / 11; const st = vnoise(X * .5, 3, 5) * .5 + vnoise(X * .13, Y * .08, 6) * .5;
         let v = 1 - f * .9 + (st - .5) * .5 + dth * .25; if (py === TS - 11) v = 1.35;
@@ -871,6 +951,7 @@ function renderGround() {
       const o = (Y * W + X) * 4; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; } }
   g.putImageData(id, 0, 0);
   const DR = mulberry(555);
+  if (day === 4) { for (let k = 0; k < 2600; k++) { const x = Math.floor(DR() * W), y = Math.floor(DR() * H); if (tileAt(x, y) !== FLOOR) continue; const i = idx(Math.floor(x / TS), Math.floor(y / TS)); if (pave[i]) { if (DR() < .3) { g.fillStyle = 'rgba(70,58,44,.5)'; g.fillRect(x, y, 2, 1); } } else { g.fillStyle = DR() < .5 ? 'rgba(140,105,60,.6)' : 'rgba(255,240,200,.5)'; g.fillRect(x, y, 1, 1); if (DR() < .15) { g.fillStyle = '#9a7a4c'; g.fillRect(x, y, 2, 2); } } } return; }
   // veins
   for (let k = 0; k < 520; k++) { let x = Math.floor(DR() * W), y = Math.floor(DR() * H); if (tileAt(x, y) !== FLOOR) continue; let a = DR() * 6.28; g.fillStyle = DR() < .5 ? '#4a1422' : '#3e1020'; for (let s = 0; s < 18 + DR() * 26; s++) { a += (DR() - .5) * .7; x += Math.cos(a) * 1.2; y += Math.sin(a) * 1.2; if (tileAt(x, y) !== FLOOR) break; g.fillRect(Math.round(x), Math.round(y), 1, 1); } }
   // pores & gloss
@@ -948,7 +1029,7 @@ function spawnMob(t, x, y) { const D = MOBS[t]; const m = { t, x, y, hp: D.hp, r
 function findSpot(cx, cy, rmin, rmax, want = 'floor') { for (let k = 0; k < 40; k++) { const a = Math.random() * 6.28, d = rr(rmin, rmax); const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; const tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (!inB(tx, ty)) continue; const i = idx(tx, ty); if (want === 'acid' ? tiles[i] !== ACID || bridgeMap[i] : tiles[i] !== FLOOR) continue; if (isSolidT(tx, ty) && want !== 'acid') continue; const rg = regionMap[i]; if (rg === 254 || (REGIONS[rg] && REGIONS[rg].id === 'silencio')) continue; if (inSafe(x, y) || (shelter && dist(x, y, shelter.x, shelter.y) < SAFE_R + 30)) continue; return { x: (tx + .5) * TS, y: (ty + .6) * TS }; } return null; }
 let spawnT = 6;
 function pool(d) { return Object.keys(MOBS).filter(k => MOBS[k].day === d); }
-function spawnTick(dt) { spawnT -= dt; if (spawnT > 0) return; spawnT = 2.6; if (playTime < 40 && day === 1) return;
+function spawnTick(dt) { if (day === 4) return; spawnT -= dt; if (spawnT > 0) return; spawnT = 2.6; if (playTime < 40 && day === 1) return;
   const rg = regionOf(P.x, P.y); if (rg && rg.id === 'silencio') return;
   const cap = [0, 5, 8, 10][day] + (DIR.ev === 'swarm' ? 6 : 0); const n = mobs.filter(m => !m.npc).length; if (n >= cap) return;
   let d = day; if (day > 1 && Math.random() < .25) d = ri(1, day - 1);
@@ -1123,7 +1204,7 @@ function buildAudio() { const A = AC;
   M.cho = [0, 1, 2, 3].map(i => { const o = A.createOscillator(); o.type = 'sine'; o.frequency.value = 293.7; o.detune.value = (i - 1.5) * 5; vg.connect(o.frequency); o.connect(M.choG); o.start(); return o; });
 }
 function applyVolumes() { saveAudio(); if (!AC || !AUD.master) return; const t = AC.currentTime; AUD.master.gain.setTargetAtTime(muted ? 0 : 1, t, .05); for (const [g, v] of [[AUD.music, AUD.vm], [AUD.musRev, AUD.vm], [AUD.musDly, AUD.vm], [AUD.sfx, AUD.vs], [AUD.sfxRev, AUD.vs]]) g.gain.setTargetAtTime(v, t, .05); }
-const CH = { d1: [73.42, 110, 146.83, 174.61], d2: [69.3, 103.83, 138.59, 164.81], d3: [73.42, 110, 146.83, 185], sil: [73.42, 110, 146.83, 164.81], end: [98, 146.83, 196, 246.94] };
+const CH = { nin: [87.31, 130.81, 174.61, 220], d1: [73.42, 110, 146.83, 174.61], d2: [69.3, 103.83, 138.59, 164.81], d3: [73.42, 110, 146.83, 185], sil: [73.42, 110, 146.83, 164.81], end: [98, 146.83, 196, 246.94] };
 const SCALE_MIN = [220, 261.63, 293.66, 349.23, 392, 440], SCALE_MAJ = [220, 246.94, 293.66, 329.63, 369.99, 440];
 function setT(param, v, tc = .6) { param.setTargetAtTime(v, AC.currentTime, tc); }
 function whaleCall() { const A = AC, t = A.currentTime, sc = (day === 3 || state === 'ending') ? SCALE_MAJ : SCALE_MIN; const oct = Math.random() < .55 ? .5 : 1; const f1 = pickM(sc) * oct, f2 = pickM(sc) * oct;
@@ -1135,14 +1216,15 @@ function drip() { const A = AC, t = A.currentTime, f = rr(1500, 3200); const o =
 function bubble() { const A = AC, t = A.currentTime, f = rr(260, 520); const o = A.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 2.6, t + .05); const g = gainN(0); g.gain.setValueAtTime(.03, t); g.gain.exponentialRampToValueAtTime(.0001, t + .07); o.connect(g); g.connect(AUD.sfx); o.start(t); o.stop(t + .08); }
 function musicTick(dt) { if (!AC || !AUD.m || AC.state !== 'running') return; const M = AUD.m;
   const inPlay = state === 'play', rg = inPlay && P ? regionOf(P.x, P.y) : null, sil = rg && rg.id === 'silencio';
-  M.songT -= dt; if (M.songT <= 0) { M.songT = rr(7, 15); if (state !== 'pray' && !sil) whaleCall(); }
-  M.dripT -= dt; if (M.dripT <= 0) { M.dripT = rr(.9, 3.4); if (inPlay || state === 'title') drip(); }
+  M.songT -= dt; if (M.songT <= 0) { M.songT = rr(7, 15); if (state !== 'pray' && !sil && day !== 4) whaleCall(); }
+  M.dripT -= dt; if (M.dripT <= 0) { M.dripT = rr(.9, 3.4); if ((inPlay || state === 'title') && day !== 4) drip(); }
   if (inPlay && tideLevel > .3 && !paused) { M.bubT -= dt; if (M.bubT <= 0) { M.bubT = rr(.05, .3); bubble(); } }
   M.tick -= dt; if (M.tick > 0) return; M.tick = .25;
   let chord = CH.d1, padV = .045, cut = 380, rum = 0, cho = 0, siz = 0, rumCut = 150;
   if (state === 'title') { padV = .04; }
   else if (state === 'ending') { chord = CH.end; padV = .03; cut = 800; cho = .03; rum = .07; rumCut = 520; }
   else if (state === 'pray' || (flags && flags.praying)) { chord = CH.sil; padV = .014; cho = .06; cut = 520; }
+  else if (inPlay && day === 4) { chord = CH.nin; padV = .035; cut = 520 - EPI.night * 250; rum = .035 + EPI.heat * .12; rumCut = 700 + EPI.heat * 600; cho = flags.epi === 'ask' || flags.epi === 'done' ? .04 : 0; if (menuOpen()) { padV *= .6; } }
   else if (inPlay) { chord = sil ? CH.sil : day === 1 ? CH.d1 : day === 2 ? CH.d2 : CH.d3; if (sil) { padV = .022; cho = .028; }
     if (DIR) { const run = DIR.phase === 'run';
       if (DIR.phase === 'warn') { cut = 650 + Math.sin(T * 6) * 120; rum = .06; }
@@ -1208,7 +1290,7 @@ function startEvent(id) { DIR.ev = id; DIR.t = 0; const E = EVENTS[id]; DIR.dur 
   if (isContract(id)) sfx('roar'); else if (EVENTS[id].lvl >= 1) sfx('event'); }
 function endEvent(id) { if (isContract(id)) { setContract(false); if (day === 2) contrCount++; }
   if (id === 'grande' && day === 1) { flags.bigDone = true; const g = folds.find(f => f.key === 'G1'); if (g) { g.closed = false; burst(g.x, g.y, '#e392a3', 40); } toast('A contração rasgou a membrana. Uma passagem se abriu a leste.', 'good'); } }
-function directorTick(dt) {
+function directorTick(dt) { if (day === 4) { windX = windY = 0; tideLevel = 0; return; }
   const rg = regionOf(P.x, P.y), quiet = rg && rg.id === 'silencio';
   if (quiet && DIR.phase === 'run' && DIR.ev !== 'calm') { endEvent(DIR.ev); DIR.ev = 'calm'; DIR.t = 0; DIR.dur = 30; }
   if (DIR.phase === 'warn') { DIR.warnT -= dt; shakeA = Math.max(shakeA, .6); if (DIR.warnT <= 0) { DIR.phase = 'run'; startEvent(DIR.pend); } return; }
@@ -1235,7 +1317,21 @@ function placeNode(k, list, opt = {}) { for (let tr = 0; tr < 60; tr++) { const 
     if (k === 'rib') { const ok = [-2, -1, 0, 1].every(o => tiles[idx(tx + o, ty)] === FLOOR && tiles[idx(tx + o, ty - 1)] === FLOOR && tiles[idx(tx + o, ty - 2)] !== undefined && foldAt[idx(tx + o, ty)] < 0); if (!ok) continue; solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; }
     if (k === 'hull') { const ok = [-2, -1, 0, 1, 2].every(o => tiles[idx(tx + o, ty)] === FLOOR && tiles[idx(tx + o, ty - 1)] === FLOOR); if (!ok) continue; for (const o of [-2, -1, 0, 1]) solid[idx(tx + o, ty)] = 1; }
     const D = NODES[k]; const n = { k, x: k === 'rib' ? tx * TS : x, y, uses: D.uses || 1, max: D.uses || 1, rg: 0, ph: R() * 6, ...opt.data }; nodes.push(n); return n; } return null; }
-function setupNodes() {
+function setupNodes4() { nodes = []; R = mulberry(4041);
+  const add = (k, tx, ty, data = {}) => { const n = { k, x: (tx + .5) * TS, y: (ty + .65) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, ...data }; nodes.push(n); return n; };
+  const free = (tx, ty) => inB(tx, ty) && tiles[idx(tx, ty)] === FLOOR && !solid[idx(tx, ty)] && !nodes.some(n => Math.abs(n.x - (tx + .5) * TS) < 20 && Math.abs(n.y - (ty + .65) * TS) < 16);
+  const scatter = (k, count, pred, data) => { let c = 0; for (let tr = 0; tr < count * 80 && c < count; tr++) { const tx = 1 + Math.floor(R() * (MW - 2)), ty = 1 + Math.floor(R() * (MH - 2)); if (!free(tx, ty) || !pred(tx, ty)) continue; add(k, tx, ty, typeof data === 'function' ? data() : data || {}); c++; } };
+  PLAZAS.forEach((p, i) => { add('plaza', p.x, p.y, { pi: i }); add('well', p.x + 3, p.y - 2); add('palm', p.x - 4, p.y - 2); add('palm', p.x + 4, p.y + 3); });
+  add('king', 71, 42); add('site', 96, 37);
+  scatter('stall', 10, (x, y) => inCityT(x, y) && (y === 34 || y === 40) && !pave[idx(x, y)]);
+  scatter('pot', 16, (x, y) => inCityT(x, y) && !pave[idx(x, y)]);
+  scatter('palm', 16, (x, y) => !inCityT(x, y) && (x < 19 || x > 82) && Math.hypot(x - 96, y - 37) > 5);
+  scatter('sheep', 8, (x, y) => x > 84 && Math.hypot(x - 96, y - 37) > 5 && Math.hypot(x - 96, y - 37) < 15);
+  scatter('sheep', 3, (x, y) => x < 18);
+  scatter('tuft', 20, (x, y) => Math.hypot(x - 96, y - 37) < 10);
+  scatter('npc', 38, (x, y) => inCityT(x, y) && pave[idx(x, y)], () => ({ c: Math.floor(R() * NPC_COLS.length), conv: false, wt: R() * 2, vx: 0, vy: 0 }));
+  for (const n of nodes) { if (n.k === 'npc') { n.hx = n.x; n.hy = n.y; } if (['well', 'stall', 'palm'].includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; } }
+function setupNodes() { if (day === 4) { setupNodes4(); return; }
   nodes = [];
   const spec = {
     destrocos: [['spore', 2], ['vent', 1], ['planks', 6], ['crate', 4], ['barrel', 2], ['sail', 3], ['rope', 3], ['shell', 6], ['bones', 2], ['mush', 5], ['kelp', 4]],
@@ -1261,6 +1357,13 @@ function setupNodes() {
   for (const p of pockets) { const list = []; for (let y = Math.floor(p.y / TS) - 2; y <= Math.floor(p.y / TS) + 2; y++) for (let x = Math.floor(p.x / TS) - 2; x <= Math.floor(p.x / TS) + 2; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0) list.push(idx(x, y)); if (list.length) placeNode('cache', list, { gap: 8 });
     const nl = []; const ox = Math.floor(p.out.x / TS), oy = Math.floor(p.out.y / TS); for (let y = oy - 3; y <= oy + 3; y++) for (let x = ox - 3; x <= ox + 3; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0 && regionMap[idx(x, y)] < REGIONS.length && !solid[idx(x, y)]) nl.push(idx(x, y)); if (nl.length) placeNode('nerve', nl, { gap: 12, data: { fold: p.fold } }); }
 }
+const QUESTS4 = [
+  { id: 'enter', t: 'Entre em Nínive pelo portão oeste', target: () => ({ x: 22 * TS, y: 37.5 * TS }), check: () => inCityT(Math.floor(P.x / TS), Math.floor(P.y / TS)) },
+  { id: 'proclaim', t: 'Anuncie a mensagem nas três praças', req: ['enter'], sub: () => `${flags.procl || 0}/3 praças`, target: () => nodes.find(n => n.k === 'plaza' && !(flags.proc || {})[n.pi]), check: () => (flags.procl || 0) >= 3 },
+  { id: 'king', t: 'Vá ao palácio e fale com o rei', req: ['proclaim'], target: () => nodes.find(n => n.k === 'king'), check: () => flags.kingDone },
+  { id: 'hill', t: 'Saia pelo portão leste e suba a colina', req: ['king'], target: () => nodes.find(n => n.k === 'site'), check: () => flags.booth },
+  { id: 'wait', t: 'Espere à sombra da enramada', req: ['hill'], sub: () => 'Veja o que acontece com a cidade', check: () => flags.epilogueDone },
+];
 const QUESTS = {
   1: [
     { id: 'basics', t: 'Reúna madeira, corda e tecido nos destroços', sub: () => `Madeira ${Math.min(got.madeira || 0, 3)}/3 · Corda ${Math.min(got.corda || 0, 1)}/1 · Tecido ${Math.min(got.tecido || 0, 1)}/1`, check: () => (got.madeira || 0) >= 3 && (got.corda || 0) >= 1 && (got.tecido || 0) >= 1 },
@@ -1284,6 +1387,7 @@ const QUESTS = {
     { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; } },
     { id: 'pray', t: 'Ajoelhe-se e ore', req: ['silence'], target: () => nodes.find(n => n.k === 'altar'), check: () => flags.prayed },
   ],
+  4: QUESTS4,
 };
 let qState = {};
 const qDone = id => qState[id] === 'done';
@@ -1295,18 +1399,18 @@ function startDay(n, data) {
   genWorld(day);
   mobs = []; pickups = []; fx = []; proj = []; visited = new Set(); qState = {}; contrCount = 0; merchant = null; tideLevel = 0;
   flags = Object.assign({}, { merchantT: rr(110, 200), bottleRead: flags && flags.bottleRead }, data && data.flags || {});
-  const keep = structs.filter(s => s.k === 'shelter' || s.k === 'fire'); structs = [];
+  const keep = day === 4 ? [] : structs.filter(s => s.k === 'shelter' || s.k === 'fire'); structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
   shelter = null;
   for (const s of keep) { if (tileAt(s.x, s.y) !== FLOOR) continue; if (s.k === 'shelter') { shelter = s; solid[idx(Math.floor(s.x / TS), Math.floor(s.y / TS))] = 1; } structs.push(s); }
-  if (day >= 2 && !shelter) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); solid[idx(Math.floor(sp.x / TS), Math.floor(sp.y / TS))] = 1; } }
+  if (day >= 2 && day < 4 && !shelter) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); solid[idx(Math.floor(sp.x / TS), Math.floor(sp.y / TS))] = 1; } }
   if (day >= 2) { const g = folds.find(f => f.key === 'G1'); if (g) g.closed = false; }
   setupNodes();
   renderGround();
-  let sp = { x: RG.destrocos.x * TS + 8, y: RG.destrocos.y * TS + 8 };
-  if (shelter && day > 1) sp = { x: shelter.x, y: shelter.y + 18 };
+  let sp = { x: REGIONS[0].x * TS + 8, y: REGIONS[0].y * TS + 8 };
+  if (shelter && day > 1 && day < 4) sp = { x: shelter.x, y: shelter.y + 18 };
   const f = nearestFree(sp.x, sp.y, 8); if (f) sp = f;
   P.x = sp.x; P.y = sp.y; P.kx = P.ky = 0; P.latched = null; cam.x = P.x - VW / 2; cam.y = P.y - VH / 2;
-  if (day > 1) { P.hp = Math.max(P.hp, 80); P.food = Math.max(P.food, 60); }
+  if (day > 1) { P.hp = Math.max(P.hp, 80); P.food = Math.max(P.food, 60); } if (day === 4) { P.hp = 100; P.food = 100; }
   newDirector();
   spawnT = 8;
   save();
@@ -1320,7 +1424,7 @@ function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => showCard({ kick: 
 /* ================= SPECIAL INTERACTIONS ================= */
 function interactTarget() { let best = null, bd = 1e9;
   const fx_ = P.x + P.fx * 6, fy_ = P.y + P.fy * 5;
-  for (const n of nodes) { if (n.gone || n.hidden || NODES[n.k].decor) continue; const r = n.k === 'hull' ? 34 : n.k === 'altar' ? 26 : 20; const d = dist(n.x, n.y - 2, fx_, fy_); if (d < r && d < bd) { bd = d; best = { kind: 'node', n }; } }
+  for (const n of nodes) { if (n.gone || n.hidden || NODES[n.k].decor || (n.k === 'site' && n.built)) continue; const r = n.k === 'hull' ? 34 : n.k === 'altar' ? 26 : 20; const d = dist(n.x, n.y - 2, fx_, fy_); if (d < r && d < bd) { bd = d; best = { kind: 'node', n }; } }
   if (shelter) { const d = dist(shelter.x, shelter.y, fx_, fy_); if (d < 26 && d < bd) { bd = d; best = { kind: 'shelter' }; } }
   if (merchant && !merchant.dead) { const d = dist(merchant.x, merchant.y, fx_, fy_); if (d < 24 && d < bd) { bd = d; best = { kind: 'merchant' }; } }
   for (const s of structs) if (s.k === 'fire') { const d = dist(s.x, s.y, fx_, fy_); if (d < 20 && d < bd && count('madeira') > 0) { bd = d; best = { kind: 'fire', s }; } }
@@ -1349,6 +1453,17 @@ function special(n) { const D = NODES[n.k];
   if (n.k === 'bile') { if (hasKnife()) { addItem('bile', 1); sfx('pick'); burst(n.x, n.y - 6, '#b9dc3c', 6); spendNode(n); } else popBile(n); return; }
   if (n.k === 'nerve') { triggerNerve(n); return; }
   if (n.k === 'spore') { sfx('mem'); burst(n.x, n.y - 6, '#62f4e2', 16); if (equip.light) { const it = ITEMS[equip.light.id]; equip.light.dur = Math.min(it.fuel, equip.light.dur + it.fuel * .4); toast(`Os esporos renovam a luz da ${it.n.toLowerCase()}.`, 'good'); invDirty = true; } else { P.spore = 25; toast('Os esporos grudam em Jonas e brilham por um tempo.', 'good'); } spendNode(n); return; }
+  if (n.k === 'npc') { const lines = n.conv ? NPC_AFTER : NPC_BEFORE; toast(`Ninivita: “${lines[(n.ph * 10 | 0) % lines.length]}”`); n.wt = 3; n.vx = n.vy = 0; return; }
+  if (n.k === 'plaza') { flags.proc = flags.proc || {}; if (flags.proc[n.pi]) { toast('Esta praça já ouviu a mensagem.'); return; } flags.proc[n.pi] = 1; flags.procl = (flags.procl || 0) + 1; sfx('mem'); burst(n.x, n.y - 14, '#ffe170', 20);
+    for (const m of nodes) if (m.k === 'npc' && (flags.procl >= 3 || dist(m.x, m.y, n.x, n.y) < 13 * TS)) m.conv = true;
+    const R3 = ['Um mercador larga a balança no meio da conta. Uma mãe puxa o filho para perto. Ninguém ri do estrangeiro com cheiro de peixe.', 'Os anciãos se entreolham. Alguém rasga a própria roupa. A notícia corre mais rápido do que Jonas consegue andar.', 'Do maior ao menor, a cidade inteira se veste de pano de saco e começa a jejuar. Até o gado fica sem comer.'];
+    showCard({ kick: `PROCLAMAÇÃO · ${flags.procl}/3`, title: 'Jonas ergue a voz', quote: 'Daqui a quarenta dias Nínive será destruída.', ref: 'Jonas 3:4', body: R3[flags.procl - 1], btn: 'Continuar' }); return; }
+  if (n.k === 'king') { if (qState.king !== 'active') { toast(n.conv ? 'O rei está sentado na cinza, em silêncio.' : 'Os guardas não deixam um estrangeiro falar com o rei. Ainda.'); return; }
+    n.conv = true; sfx('mem');
+    showCard({ kick: 'O REI DE NÍNIVE', title: 'O trono fica vazio', body: 'A notícia chega ao palácio. O rei se levanta do trono, tira o manto, cobre-se de pano de saco e senta-se na cinza. Então manda anunciar: ninguém coma, ninguém beba; todos clamem a Deus e deixem a violência.', quote: 'Quem sabe Deus volte atrás e nós não pereçamos.', ref: 'Jonas 3:9', btn: 'Continuar',
+      fn: () => showCard({ kick: 'JONAS 3:10 – 4:1', title: 'A cidade é poupada', body: 'Deus viu o que eles fizeram e como deixaram o mau caminho, e não trouxe o mal que tinha anunciado. Jonas, porém, ficou profundamente contrariado. Era exatamente isso que ele temia desde Jope.', btn: 'Sair da cidade', fn: () => { flags.kingDone = true; questTick(); } }) }); return; }
+  if (n.k === 'site') { if (qState.hill !== 'active') { toast('Daqui dá para ver a cidade inteira.'); return; } if (flags.booth) return; flags.booth = true; n.built = true; sfx('craft'); P.x = n.x + 4; P.y = n.y + 10; P.fx = -1; P.fy = 0; P.face = 's'; P.flip = true;
+    showCard({ kick: 'JONAS 4:5', title: 'A enramada', body: 'Jonas saiu da cidade, fez uma enramada de galhos a leste e sentou-se à sombra, esperando para ver o que aconteceria com Nínive.', btn: 'Esperar', fn: () => { flags.epi = 'night'; flags.epiT = 0; questTick(); } }); return; }
   if (n.k === 'altar') { if (qState.pray !== 'active') { toast('Ainda não. Algo precisa acontecer antes.'); return; } pray(); } }
 function openTrade() { const offers = TRADES[day]; const html = offers.map((o, i) => { const side = obj => Object.entries(obj).map(([k, v]) => `<span class="chip${k in o.g && count(k) < v && obj === o.g ? ' miss' : ''}">${iconImg(k, 2)} ${v} ${ITEMS[k].n}</span>`).join(''); return `<div class="trade"><div class="side">${side(o.g)}</div><span class="lbl">por</span><div class="side">${side(o.r)}</div><button class="mk" data-tr="${i}" ${hasAll(o.g) ? '' : 'disabled'}>Trocar</button></div>`; }).join('');
   showCard({ kick: 'O MERCADOR IMPROVÁVEL', title: 'Um caranguejo de chapéu', body: '“Trocas justas, preços absurdos. Conchas, por favor.”', html, btn: 'Até logo' });
@@ -1380,7 +1495,21 @@ function tutTick(dt) { const el = $('#tutor'); if (!tipsOn || day !== 1 || state
   if (tutShownId !== tutCur.id) { tutShownId = tutCur.id; $('#tutTxt').innerHTML = tutCur.text(); el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; } }
 function tutTarget() { return tipsOn && day === 1 && tutCur && tutCur.target ? tutCur.target() : null; }
 $('#tutSkip').onclick = () => { tipsOn = false; try { localStorage.setItem('jonah-tips', 'off'); } catch (e) {} $('#tutor').hidden = true; toast('Dicas desligadas. Dá para religar em Ajustes.'); };
-function specialsTick(dt) { tutTick(dt);
+const EPI = { night: 0, heat: 0 };
+function epiTick(dt) { if (!flags.epi || flags.epi === 'done') return; flags.epiT = (flags.epiT || 0) + dt; const t = flags.epiT, site = nodes.find(n => n.k === 'site'); let plant = nodes.find(n => n.k === 'plantN'), worm = nodes.find(n => n.k === 'worm');
+  switch (flags.epi) {
+    case 'night': EPI.night = Math.min(1, t / 3); if (t >= 3.4) { flags.epi = 'grow'; flags.epiT = 0; if (!plant) nodes.push({ k: 'plantN', x: site.x, y: site.y + 1, grow: 0, wither: 0, ph: 0, uses: 1, max: 1 }); } break;
+    case 'grow': EPI.night = Math.max(.55, 1 - t * .2); plant.grow = Math.min(1, t / 2.6); if (t > .2 && Math.random() < .3) burst(plant.x + rr(-12, 12), plant.y - rr(4, 18), '#b9dc3c', 1); if (t >= 3) { flags.epi = 'glad'; sfx('mem'); showCard({ kick: 'JONAS 4:6', title: 'Uma planta para dar sombra', body: 'Durante a noite, o Senhor Deus fez crescer uma planta sobre a enramada, para dar sombra à cabeça de Jonas e aliviar o seu mal. Jonas ficou muito alegre por causa da planta.', btn: 'Dormir', fn: () => { flags.epi = 'dawn'; flags.epiT = 0; } }); } break;
+    case 'dawn': EPI.night = Math.max(0, .55 - t * .3); if (t >= 2.2) { flags.epi = 'worm'; flags.epiT = 0; if (!worm) nodes.push({ k: 'worm', x: site.x + 34, y: site.y + 4, ph: 0, uses: 1, max: 1 }); } break;
+    case 'worm': EPI.night = 0; if (worm) { worm.x = lerp(worm.x, plant.x + 6, Math.min(1, dt * .9)); worm.y = lerp(worm.y, plant.y + 1, Math.min(1, dt * .9)); } plant.wither = clamp((t - 2) / 3, 0, 1); if (t >= 5.6) { flags.epi = 'heat'; flags.epiT = 0; const wi = nodes.indexOf(worm); if (wi >= 0) nodes.splice(wi, 1); } break;
+    case 'heat': EPI.heat = Math.min(1, t / 4); windX = -18 * EPI.heat; shakeA = Math.max(shakeA, EPI.heat * .8); if (t >= 5.2) { flags.epi = 'ask'; showCard({ kick: 'JONAS 4:7–9', title: 'O verme e o vento leste', body: 'Ao amanhecer, um verme atacou a planta e ela secou. Quando o sol nasceu, um vento quente soprou do leste e o sol queimou a cabeça de Jonas até ele desfalecer. Deus lhe perguntou se era razoável ficar tão irado por causa de uma planta. Jonas respondeu que sim, que tinha toda a razão.', btn: 'Ouvir', fn: finalQuestion }); } break;
+  } }
+function finalQuestion() { EPI.heat = .4; showCard({ kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'O livro termina aqui, com a pergunta no ar. Ninguém registrou a resposta de Jonas.', btn: 'Fim', fn: credits }); }
+function credits() { flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
+  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: () => { freshRun(); startDay(1); } }, { label: 'Tela inicial', fn: titleScreen }] }); }
+function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
+  if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
+function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
   if (day === 1 && !buddy && playTime > 75) { buddy = { x: P.x - 20, y: P.y, happy: 0, scared: 0 }; toast('Um peixinho começou a seguir Jonas. Ele não ajuda nem atrapalha.', 'mem'); }
   if (buddy) { const tx = P.x - P.fx * 16 - 10, ty = P.y - 10 - P.fy * 6; buddy.x = lerp(buddy.x, tx, Math.min(1, dt * 2.4)); buddy.y = lerp(buddy.y, ty, Math.min(1, dt * 2.4)); buddy.happy = Math.max(0, buddy.happy - dt); buddy.scared = Math.max(0, buddy.scared - dt); if (isContract(DIR.ev)) buddy.scared = .5; }
   flags.merchantT -= dt;
@@ -1404,10 +1533,10 @@ function pray() { paused = true; flags.praying = true; state = 'pray'; let i = 0
   show(); }
 let prayT = 0;
 function ending() { state = 'ending'; paused = true; $('#hud').hidden = true; const ov = $('#overlay'); ov.onclick = null; ov.className = 'clear'; ov.hidden = true; endT = 0;
-  setTimeout(() => showCard({ kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, btn: 'Jogar de novo', fn: () => { freshRun(); startDay(1); } }), 2600); }
+  setTimeout(() => showCard({ kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Seguir para o Epílogo: Nínive', fn: () => startDay(4) }, { label: 'Tela inicial', fn: titleScreen }] }), 2600); }
 const fmtTime = s => `${Math.floor(s / 60)}m${String(Math.floor(s % 60)).padStart(2, '0')}`;
 function die() { deaths++; const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < .5) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
-  const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 6); if (sp) { P.x = sp.x; P.y = sp.y; }
+  const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(REGIONS[0].x * TS, REGIONS[0].y * TS, 6); if (sp) { P.x = sp.x; P.y = sp.y; }
   P.hp = 60; P.food = Math.max(P.food, 45); P.latched = null; for (const m of mobs) { if (m.latched) m.latched = false; if (dist(m.x, m.y, P.x, P.y) < 150) m.dead = m.gone = true; }
   showCard({ kick: 'JONAS DESMAIOU', title: 'A escuridão por um instante', body: `Ele acorda ${shelter ? 'no abrigo' : 'entre os destroços'}, dolorido. ${lost.length ? 'Perdeu pelo caminho: ' + lost.join(', ') + '.' : 'Nada se perdeu.'}`, btn: 'Levantar' }); }
 
@@ -1417,6 +1546,7 @@ let joy = { x: 0, y: 0, on: false };
 function playerTick(dt) {
   let mx = 0, my = 0; if (keys.KeyA || keys.ArrowLeft) mx--; if (keys.KeyD || keys.ArrowRight) mx++; if (keys.KeyW || keys.ArrowUp) my--; if (keys.KeyS || keys.ArrowDown) my++;
   if (joy.on) { mx = joy.x; my = joy.y; }
+  if (day === 4 && flags.epi) { mx = my = 0; }
   if (P.roll > 0) { P.roll -= dt; P.trail.push({ x: P.x, y: P.y, t: .18 }); moveEnt(P, P.rx * 200 * dt, P.ry * 200 * dt); mx = my = 0; P.anim += dt * 14; }
   if (P.trail) { for (const t of P.trail) t.t -= dt; P.trail = P.trail.filter(t => t.t > 0); }
   P.rollCd = Math.max(0, (P.rollCd || 0) - dt); P.comboT = Math.max(0, (P.comboT || 0) - dt);
@@ -1429,7 +1559,7 @@ function playerTick(dt) {
   P.anim += P.moving ? dt * 8 : 0;
   if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .3 / (feet && feet.spd || 1); sfx(acid ? 'stepAcid' : 'step'); } }
   if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
-  P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2)); if (P.food <= 0) P.hp -= dt * 1.1;
+  if (day === 4) P.food = 100; else P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2)); if (P.food <= 0) P.hp -= dt * 1.1;
   if (P.food > 55 && P.hp < 100) P.hp = Math.min(100, P.hp + dt * .45);
   if (inSafe(P.x, P.y) && P.hp < 100) P.hp = Math.min(100, P.hp + dt * 1.2);
   if (equip.light) { equip.light.dur -= dt; if (equip.light.dur <= 0) { const it = ITEMS[equip.light.id]; if (it.refill && count(it.refill)) { take(it.refill, 1); equip.light.dur = it.fuel; toast(`${it.n} reabastecida com ${ITEMS[it.refill].n}.`); } else { toast(`${it.n} apagou.`, 'bad'); equip.light = null; } invDirty = true; } }
@@ -1446,7 +1576,7 @@ function showRegion(n) { const el = $('#region'); el.textContent = n; el.classLi
 /* ================= UPDATE ================= */
 function update(dt) {
   T += dt;
-  if (state === 'title') { cam.x = RG.destrocos.x * TS - VW / 2 + Math.sin(T * .1) * 60; cam.y = RG.destrocos.y * TS - VH / 2 + Math.cos(T * .08) * 30; return; }
+  if (state === 'title') { cam.x = REGIONS[0].x * TS - VW / 2 + Math.sin(T * .1) * 60; cam.y = REGIONS[0].y * TS - VH / 2 + Math.cos(T * .08) * 30; return; }
   if (state === 'ending') { endT += dt; return; }
   if (paused) { if (menuOpen()) tutTick(0); return; }
   if (hitStop > 0) { hitStop -= dt; return; }
@@ -1512,6 +1642,12 @@ function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.sh
     case 'hull': shadow(n.x, n.y, 30); sprAt(HULL, n.x + sh, n.y + 3); break;
     case 'cilia': { for (let k = 0; k < 4; k++) { const bx = n.x + (k - 1.5) * 4, h = 16 + ((k * 7 + n.ph * 10) % 13); let x = bx, y = n.y; for (let s = 0; s < h; s++) { x = bx + Math.sin(T * 1.6 + n.ph + s * .2 + k) * s * .12; y = n.y - s; px(x, y, 1, 1, s > h - 3 ? '#62f4e2' : s % 5 === 0 ? '#8a2c41' : '#d06a7e'); } } break; }
     case 'memory': { const b = Math.sin(T * 2 + n.ph) * 2; shadow(n.x, n.y, 4); const cx = n.x, cy = n.y - 12 + b; px(cx - 1, cy - 4, 2, 8, '#fff7c8'); px(cx - 4, cy - 1, 8, 2, '#fff7c8'); px(cx - 2, cy - 2, 4, 4, '#62f4e2'); for (let k = 0; k < 3; k++) { const a = T * 1.5 + k * 2.1; px(cx + Math.cos(a) * 8, cy + Math.sin(a) * 5, 1, 1, '#b8fff6'); } break; }
+    case 'npc': { const S = NPC_SP[n.c || 0]; const mv = n.vx || n.vy; if (n.conv) { shadow(n.x, n.y, 5); sprAt(NPC_KNEEL, n.x, n.y + 1); } else { shadow(n.x, n.y, 4); sprAt(n.vx < 0 ? S.l : S.r, n.x, n.y - (mv && Math.floor(T * 6 + n.ph) % 2 ? 1 : 0)); } break; }
+    case 'king': { if (n.conv) { shadow(n.x, n.y, 6); px(n.x - 9, n.y - 2, 18, 3, '#6b6670'); px(n.x - 7, n.y - 3, 14, 1, '#8a8590'); sprAt(KING_KNEEL, n.x, n.y + 1); } else { shadow(n.x, n.y, 5); sprAt(KING_SP.r, n.x, n.y + 1); if (qState.king === 'active') txt('!', n.x, n.y - 30 + Math.sin(T * 5) * 2, '#ffe170'); } break; }
+    case 'site': { if (n.built) { shadow(n.x, n.y, 12); sprAt(NSP.booth, n.x, n.y + 1); } else if (qState.hill === 'active') { for (let k = 0; k < 12; k++) { const a = k / 12 * 6.28 + T; px(n.x + Math.cos(a) * 10, n.y - 2 + Math.sin(a) * 4, 2, 1, '#ffe170'); } } break; }
+    case 'plantN': { const g = n.grow == null ? 1 : n.grow; if (g <= 0) break; const c = (n.wither || 0) > .5 ? NSP.plantDead : NSP.plantN; const w = Math.max(1, Math.round(c.width * g)), h = Math.max(1, Math.round(c.height * g)); ctx.drawImage(c, Math.round(n.x - CX - w / 2), Math.round(n.y - CY - 6 - h)); break; }
+    case 'worm': { sprAt(NSP.worm, n.x + Math.sin(T * 8) * 1, n.y + 1); break; }
+    case 'sheep': { shadow(n.x, n.y, 5); sprAt(n.ph > 3 ? flipC(NSP.sheep) : NSP.sheep, n.x, n.y + 1 - (Math.floor(T * 1.5 + n.ph) % 3 === 0 ? 1 : 0)); break; }
     case 'vent': { px(n.x - 7, n.y - 4, 14, 5, '#1a0a10'); px(n.x - 5, n.y - 3, 10, 3, '#0b0408'); px(n.x - 7, n.y - 5, 14, 1, '#b59e74'); px(n.x - 8, n.y - 4, 1, 4, '#8e7a58'); px(n.x + 7, n.y - 4, 1, 4, '#8e7a58'); px(n.x - 7, n.y + 1, 14, 1, '#6b5a40');
       const pf = n.puff || 0; if (pf > 0) { for (let k = 0; k < 14; k++) { const h = (k * 37 + T * 90) % 38; px(n.x - 4 + (k * 5) % 9, n.y - 6 - h, 2, 2, `rgba(243,230,207,${(pf * (1 - h / 40)).toFixed(2)})`); } } else if (Math.floor(T * 2 + n.ph) % 4 === 0) px(n.x - 1, n.y - 7 - ((T * 20) % 8), 2, 2, 'rgba(243,230,207,.35)'); break; }
     case 'nerve': { shadow(n.x, n.y, 5); sprAt(NSP.nerve, n.x + sh, n.y + 1, (n.cd || 0) > 0 ? .5 : .8 + Math.sin(T * 5 + n.ph) * .2); break; }
@@ -1571,14 +1707,14 @@ function drawWorld() {
   for (const m of mobs) ents.push([m.y, 1, m]);
   for (const s of structs) if (s.k !== 'trap' && s.k !== 'bridge') ents.push([s.y, 2, s]);
   if (merchant) ents.push([merchant.y, 3, merchant]);
-  if (buddy) ents.push([buddy.y + 12, 4, buddy]);
+  if (buddy && day !== 4) ents.push([buddy.y + 12, 4, buddy]);
   if (state !== 'title') ents.push([P.y, 5, P]); else ents.push([P.y, 5, P]);
   ents.sort((a, b) => a[0] - b[0]);
   for (const [, k, e] of ents) { if (k === 0) drawNode(e); else if (k === 1) drawMob(e); else if (k === 2) drawStruct(e); else if (k === 3) { shadow(e.x, e.y, 7); const c = SP.merchant[Math.sin(T) > 0 ? 'r' : 'l']; sprAt(c, e.x, e.y - Math.round(Math.abs(Math.sin(T * 3)) * 1)); if (dist(P.x, P.y, e.x, e.y) < 60) txt('troca?', e.x, e.y - 22, '#f4cd4f'); } else if (k === 4) { const sh = e.scared ? Math.round(Math.sin(T * 40)) : 0; const b = e.happy ? -Math.abs(Math.sin(T * 10)) * 4 : Math.sin(T * 3) * 1.5; shadow(e.x, e.y + 12, 2); sprAt(P.x < e.x ? SP.peixinho.l : SP.peixinho.r, e.x + sh, e.y + b); } else drawPlayer(); }
   for (const p of proj) { if (p.k === 'bomb') { const z = Math.sin((1 - p.life / .45) * Math.PI) * 8; px(p.x - 2, p.y - 2 - z, 5, 5, '#1a0a10'); px(p.x - 1, p.y - 1 - z, 3, 3, '#c6e34a'); px(p.x, p.y - 4 - z, 1, 2, '#ffe170'); continue; } if (p.k === 'ink') { px(p.x - 2, p.y - 2, 4, 4, '#1b0d1c'); px(p.x - 1, p.y - 1, 2, 2, '#4a2a6a'); } else { px(p.x - 1, p.y - 1, 3, 1, '#f4cd4f'); px(p.x, p.y - 2, 1, 3, '#f4cd4f'); } }
   for (const f of fx) if (!f.txt) { ctx.globalAlpha = clamp(f.life / f.max * 1.4, 0, 1); px(f.x, f.y, f.sz || 1, f.sz || 1, f.col); } ctx.globalAlpha = 1;
   // ambient spores
-  for (let k = 0; k < 26; k++) { const x = ((hash2(k, 1, 3) * VW * 1.5 + T * (6 + k % 5) - CX * .2) % (VW + 20) + VW + 20) % (VW + 20) - 10, y = ((hash2(k, 2, 3) * VH - T * (3 + k % 4) - CY * .2) % VH + VH) % VH; ctx.fillStyle = k % 3 ? 'rgba(255,190,205,.35)' : 'rgba(98,244,226,.5)'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
+  for (let k = 0; k < 26; k++) { const x = ((hash2(k, 1, 3) * VW * 1.5 + T * (6 + k % 5) - CX * .2) % (VW + 20) + VW + 20) % (VW + 20) - 10, y = ((hash2(k, 2, 3) * VH - T * (3 + k % 4) - CY * .2) % VH + VH) % VH; ctx.fillStyle = day === 4 ? (k % 3 ? 'rgba(255,240,200,.35)' : 'rgba(255,255,255,.4)') : k % 3 ? 'rgba(255,190,205,.35)' : 'rgba(98,244,226,.5)'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
   drawLighting();
   for (const f of fx) if (f.txt) { ctx.globalAlpha = clamp(f.life / f.max * 2, 0, 1); txt(f.txt, f.x - CX, f.y - CY, f.col); } ctx.globalAlpha = 1;
 }
@@ -1593,7 +1729,7 @@ function drawLighting() {
   if (buddy) addLight(L, buddy.x, buddy.y, buddy.happy ? 30 : 16, '243,144,70', .18);
   if (merchant) addLight(L, merchant.x, merchant.y - 8, 26, '244,205,79', .16);
   const x0 = Math.floor(CX / TS), y0 = Math.floor(CY / TS); for (let ty = y0; ty < y0 + VH / TS + 2; ty++) for (let tx = x0; tx < x0 + VW / TS + 2; tx++) if (inB(tx, ty) && tiles[idx(tx, ty)] === ACID && (tx + ty) % 3 === 0) addLight(L, (tx + .5) * TS, (ty + .5) * TS, 22, '198,227,74', .1);
-  let amb = [0, .86, .9, .93][day] || .86; if (DIR) { if (DIR.ev === 'bloom') amb -= .14; if (DIR.ev === 'blackout') amb = .975; if (DIR.ev === 'dive') amb += .03; } if (state === 'title') amb = .82; if (flags && flags.praying) amb = .5;
+  let amb = [0, .86, .9, .93, .1][day] || .86; if (day === 4) amb = .1 + EPI.night * .72; if (DIR) { if (DIR.ev === 'bloom') amb -= .14; if (DIR.ev === 'blackout') amb = .975; if (DIR.ev === 'dive') amb += .03; } if (state === 'title') amb = .82; if (flags && flags.praying) amb = .5;
   const rg = state === 'play' && regionOf(P.x, P.y); if (rg && rg.id === 'silencio') amb -= .2;
   const LW = lightC.width, LH = lightC.height, s = LW / VW;
   lctx.globalCompositeOperation = 'source-over'; lctx.clearRect(0, 0, LW, LH); lctx.fillStyle = `rgba(8,2,7,${amb})`; lctx.fillRect(0, 0, LW, LH);
@@ -1607,6 +1743,7 @@ function drawLighting() {
 function drawOverlays() {
   if (hurtFlash > 0) { ctx.fillStyle = `rgba(226,70,60,${hurtFlash * .55})`; for (let k = 0; k < 4; k++) { const w = 6 + k * 4; ctx.globalAlpha = .55 - k * .12; ctx.fillRect(0, 0, VW, w); ctx.fillRect(0, VH - w, VW, w); ctx.fillRect(0, 0, w, VH); ctx.fillRect(VW - w, 0, w, VH); } ctx.globalAlpha = 1; }
   if (inkT > 0) { ctx.globalAlpha = Math.min(.92, inkT / 2); ctx.fillStyle = '#1b0d1c'; for (let k = 0; k < 14; k++) { const x = hash2(k, 5, 1) * VW, y = hash2(k, 6, 1) * VH, r = 20 + hash2(k, 7, 1) * 40; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1; }
+  if (day === 4 && state === 'play') { ctx.fillStyle = 'rgba(255,150,70,.07)'; ctx.fillRect(0, 0, VW, VH); if (EPI.heat > 0) { ctx.fillStyle = `rgba(255,224,130,${(EPI.heat * .32).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH); ctx.fillStyle = `rgba(255,250,220,${(EPI.heat * .25).toFixed(3)})`; for (let k = 0; k < 22; k++) { const y = (k * 37 + T * 30) % VH, x = (Math.sin(T * 2 + k) * 20 + k * 53 - T * 120) % (VW + 60); ctx.fillRect(Math.round(((x % (VW + 60)) + VW + 60) % (VW + 60) - 30), Math.round(y), 22, 1); } } }
   if (DIR && DIR.phase === 'warn' && Math.floor(T * 4) % 2) { ctx.fillStyle = 'rgba(226,70,60,.08)'; ctx.fillRect(0, 0, VW, VH); }
   if (DIR && DIR.ev === 'breath' && DIR.phase === 'run') { ctx.fillStyle = 'rgba(234,220,184,.35)'; for (let k = 0; k < 18; k++) { const x = ((hash2(k, 3, 2) * VW + T * windX * 3) % VW + VW) % VW, y = ((hash2(k, 4, 2) * VH + T * windY * 3) % VH + VH) % VH; ctx.fillRect(Math.round(x), Math.round(y), 5, 1); } }
   // objective marker
@@ -1641,6 +1778,8 @@ function hideTip() { tip.hidden = true; }
 /* ================= PAUSE MENU ================= */
 const TABNAME = { luz: 'Luz', armas: 'Armas', vida: 'Sobrevivência', trav: 'Travessia', prot: 'Proteção' };
 const SOURCES = { madeira: 'Destroços, casco do navio, Grande gole', corda: 'Cordames e caixas do navio', tecido: 'Velas rasgadas e caixas', concha: 'Conchas no chão (muitas no Lago Ácido), piolhos', osso: 'Ossadas pelo chão, ratos', alga: 'Algas verdes (voltam a crescer)', cogumelo: 'Cogumelos-luz azuis (voltam a crescer)', oleo: 'Barris; gordura branca com a Faca de concha', pregos: 'Destroços, caixas, Caranguejo de Lata', gosma: 'Papilas rosadas com a faca, larvas, águas-vivas', peixe: 'Grande gole, Enguia Ácida, Lampreia', tinta: 'Polvo de Tinta (Dia 2)', espinho: 'Baiacu-Bolha (Dia 2), Ouriço-Rolante (Dia 3)', carapaca: 'Caranguejo de Lata, Isópode Colossal', dente: 'Cação Faminto (Dia 3)', bulbo: 'Peixe-Lanterna (Dia 3)', perola: 'Caixas escondidas que só abrem nas contrações', sandalia: 'Baú dourado na Galeria das Costelas (Dia 2)', coral: 'Corais laranja no Lago Ácido e na Floresta de Cílios (precisa de algo na mão)', sal: 'Cristais brancos na Galeria das Costelas, no Lago e na Câmara Central (faca)', fibra: 'Cílios rosados da Floresta de Cílios (faca)', ambar: 'Às vezes aparece ao cortar gordura', bile: 'Bolsas verdes de bile (com faca, sem se queimar), Arraia-Elétrica' };
+const NPC_BEFORE = ['Forasteiro, a cidade é grande: são três dias para atravessá-la.', 'Você está cheirando a peixe. Muito.', 'Os deuses de Nínive são muitos. O seu é qual?', 'Cuidado com as carroças na rua principal.', 'Dizem que o rei não dorme desde a última guerra.'];
+const NPC_AFTER = ['Pano de saco é áspero, mas é o que temos.', 'Até o gado está jejuando.', 'Quem sabe Ele tenha compaixão de nós.', 'Joguei fora os meus ídolos. Não serviam para nada.', 'Meu vizinho devolveu o que roubou. Ninguém acreditou.'];
 const MENU_TABS = [['craft', 'Criar', 'i_craft', 'C'], ['bag', 'Mochila', 'i_bag', 'I'], ['quests', 'Diário', 'i_quest', 'Q'], ['map', 'Mapa', 'i_map', 'M'], ['best', 'Bestiário', 'i_best', 'B'], ['save', 'Salvar', 'i_save', ''], ['opts', 'Ajustes', 'i_gear', '']];
 let menuTab = 'craft', craftFilter = 'all', craftQuery = '', craftSel = null, bagSel = null, lastCrafted = null;
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1654,7 +1793,7 @@ function openMenu(tab) { if (state !== 'play' || !$('#overlay').hidden) return; 
 function closeMenu() { $('#menu').hidden = true; document.body.classList.remove('menu-open'); $('#menu').innerHTML = ''; if (state === 'play' && $('#overlay').hidden) paused = false; }
 function toggleMenu(tab) { if (menuOpen() && (!tab || tab === menuTab)) closeMenu(); else openMenu(tab); }
 function renderMenu(keepScroll, anim) { const m = $('#menu'); const sc = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); const top = sc ? sc.scrollTop : 0; const n = nCraftable();
-  m.innerHTML = `<div class="mwin px ${anim ? 'anim' : ''}" role="dialog" aria-modal="true" aria-label="Diário de Jonas"><div class="mhead"><h2>Diário de Jonas</h2><span class="pchip">PAUSADO · DIA ${day}</span><button class="mclose" id="mClose"><span>Voltar ao jogo</span><kbd>Esc</kbd></button></div>
+  m.innerHTML = `<div class="mwin px ${anim ? 'anim' : ''}" role="dialog" aria-modal="true" aria-label="Diário de Jonas"><div class="mhead"><h2>Diário de Jonas</h2><span class="pchip">PAUSADO · ${day === 4 ? 'EPÍLOGO' : 'DIA ' + day}</span><button class="mclose" id="mClose"><span>Voltar ao jogo</span><kbd>Esc</kbd></button></div>
   <div class="mtabs" role="tablist">${MENU_TABS.map(([k, l, ic, key]) => `<button class="mtab" role="tab" aria-selected="${menuTab === k}" data-mt="${k}">${iconImg(ic, 2)}<span>${l}</span>${key ? `<kbd>${key}</kbd>` : ''}${k === 'craft' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div><div class="mbody" id="mBody"></div></div>`;
   $('#mClose').onclick = closeMenu; m.onclick = e => { if (e.target === m) closeMenu(); };
   m.querySelectorAll('.mtab').forEach(b => b.onclick = () => { menuTab = b.dataset.mt; if (menuTab === 'craft') TUTF.craftMenu = true; renderMenu(); sfx('pick'); });
@@ -1733,7 +1872,7 @@ let qMin = innerWidth < 760;
 function buildQuests() { $('#qTitle').textContent = `Missões · Dia ${day}`; const qs = QUESTS[day]; let h = '', firstCur = true, lockShown = false;
   for (const q of qs) { const st = qState[q.id]; if (!st) { if (!lockShown) { h += `<div class="q lock"><b></b><span>Ainda desconhecido…</span></div>`; lockShown = true; } continue; } const cur = st === 'active' && firstCur; if (cur) firstCur = false; h += `<div class="q ${st === 'done' ? 'done' : ''} ${cur ? 'cur' : ''}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }
   $('#qList').innerHTML = h; $('#quests').classList.toggle('min', qMin); $('#qTog').textContent = qMin ? '+' : '−'; }
-function updateDayUI() { $('#dayName').textContent = `Dia ${day}`; $('#daySub').textContent = DAYS[day].name; }
+function updateDayUI() { $('#dayName').textContent = day === 4 ? 'Epílogo' : `Dia ${day}`; $('#daySub').textContent = DAYS[day].name; }
 const dialC = $('#dial'), dctx = dialC.getContext('2d');
 function drawDial() { const c = dctx; c.clearRect(0, 0, 40, 40); const E = DIR ? EVENTS[DIR.phase === 'warn' ? DIR.pend : DIR.ev] : EVENTS.calm; const lvl = E.lvl;
   for (let a = 0; a < 48; a++) { const ang = a / 48 * 6.283 - 1.57; const frac = DIR ? (DIR.phase === 'warn' ? 1 - DIR.warnT / E.warn : DIR.t / DIR.dur) : 0; const on = a / 48 < frac; for (let r = 14; r < 19; r++) { c.fillStyle = on ? LVLCOL[lvl] : '#3a1a28'; c.fillRect(Math.round(20 + Math.cos(ang) * r), Math.round(20 + Math.sin(ang) * r), 1, 1); } }
@@ -1745,14 +1884,14 @@ function updateHUD(dt) { hudT -= dt; const tg = interactTarget(); const pt = pro
   const setB = (id, v) => { const b = $(id); b.firstElementChild.style.width = clamp(v, 0, 100) + '%'; b.classList.toggle('low', v < 25); };
   setB('#bHp', P.hp); setB('#bFood', P.food); setB('#bLight', equip.light ? equip.light.dur / ITEMS[equip.light.id].fuel * 100 : 0);
   drawDial();
-  const ev = $('#event'); const showEv = DIR.phase === 'warn' || DIR.ev !== 'calm' || DIR.t < 4; ev.hidden = !showEv;
+  const ev = $('#event'); const showEv = day !== 4 && (DIR.phase === 'warn' || DIR.ev !== 'calm' || DIR.t < 4); ev.hidden = !showEv;
   if (showEv) { const id = DIR.phase === 'warn' ? DIR.pend : DIR.ev, E = EVENTS[id]; ev.dataset.l = E.lvl; ev.classList.toggle('warn', DIR.phase === 'warn'); $('#evTag').textContent = DIR.phase === 'warn' ? `Aviso · em ${Math.ceil(DIR.warnT)}s` : 'Evento orgânico'; $('#evLvl').textContent = 'Nível ' + LVL[E.lvl]; $('#evName').textContent = E.n; $('#evDesc').textContent = E.d; const fr = DIR.phase === 'warn' ? 1 - DIR.warnT / E.warn : 1 - DIR.t / DIR.dur; const bar = $('#evTime i'); bar.style.width = clamp(fr * 100, 0, 100) + '%'; bar.style.background = LVLCOL[E.lvl]; }
   const pu = $('#pulse'); if (flags.pattern || day === 3) { const n = nextContractionIn(); pu.textContent = n == null ? '' : n <= 0 ? 'CONTRAÇÃO AGORA' : `Contração ~${Math.ceil(n)}s`; } else pu.textContent = '';
   if (invDirty) { invDirty = false; buildHotbar(); refreshMenus(); buildQuests(); }
   miniT -= .12; if (miniT <= 0) { miniT = .5; drawMini(); if (qState && QUESTS[day] && QUESTS[day].some(q => qState[q.id] === 'active' && q.sub)) buildQuests(); } }
 let miniT = 0; const mini = $('#mini'); mini.width = MW; mini.height = MH; const mctx = mini.getContext('2d'); let miniImg = null;
 function drawMini(target = mctx) { if (!miniImg) miniImg = mctx.createImageData(MW, MH); const d = miniImg.data;
-  for (let i = 0; i < MW * MH; i++) { const o = i * 4; if (!reveal[i]) { d[o] = 18; d[o + 1] = 8; d[o + 2] = 16; d[o + 3] = 255; continue; } const t = tiles[i]; let c = t === WALL ? [58, 16, 30] : t === ACID ? (bridgeMap[i] ? [160, 112, 60] : [169, 204, 47]) : [140, 52, 72]; const f = foldAt[i]; if (f >= 0 && folds[f].closed) c = folds[f].type === 'gate' ? [255, 111, 134] : [200, 90, 112]; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; }
+  for (let i = 0; i < MW * MH; i++) { const o = i * 4; if (!reveal[i]) { d[o] = 18; d[o + 1] = 8; d[o + 2] = 16; d[o + 3] = 255; continue; } const t = tiles[i]; let c = day === 4 ? (t === WALL ? (wkind[i] ? [150, 110, 64] : [110, 82, 50]) : pave[i] ? [176, 160, 132] : [214, 182, 122]) : t === WALL ? [58, 16, 30] : t === ACID ? (bridgeMap[i] ? [160, 112, 60] : [169, 204, 47]) : [140, 52, 72]; const f = foldAt[i]; if (f >= 0 && folds[f].closed) c = folds[f].type === 'gate' ? [255, 111, 134] : [200, 90, 112]; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; }
   target.putImageData(miniImg, 0, 0);
   const dot = (x, y, col, s = 2) => { target.fillStyle = col; target.fillRect(Math.round(x / TS - s / 2), Math.round(y / TS - s / 2), s, s); };
   if (shelter) dot(shelter.x, shelter.y, '#ffe170', 3);
@@ -1785,7 +1924,7 @@ function writeSlot(k, quiet) { if (state !== 'play' || !P) return false; try { l
 function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-slot-' + k) || 'null'); return d && d.v === 2 ? d : null; } catch (e) { return null; } }
 function latestSlot() { let best = null; for (const k of SLOT_KEYS) { const d = readSlot(k); if (d && (!best || d.t > best.d.t)) best = { k, d }; } return best; }
 function nodeSolids(n) { const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
-function loadGame(d) { if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
+function loadGame(d) { EPI.night = 0; EPI.heat = 0; if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
   freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0;
   P.hp = d.P.hp; P.food = d.P.food; P.fx = d.P.fx || 0; P.fy = d.P.fy == null ? 1 : d.P.fy;
   genWorld(day); reveal = unpackBits(d.reveal, MW * MH);
@@ -1794,6 +1933,7 @@ function loadGame(d) { if (!d) { toast('Este jogo salvo não pôde ser lido.', '
   structs = d.structs || []; shelter = structs.find(s => s.k === 'shelter') || null; if (shelter) solid[idx(Math.floor(shelter.x / TS), Math.floor(shelter.y / TS))] = 1;
   for (const i of d.bridges || []) if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; structs.push({ k: 'bridge', i }); }
   nodes = d.nodes || []; for (const n of nodes) nodeSolids(n);
+  if (day === 4) { for (const n of nodes) if (['well', 'stall', 'palm'].includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; if (flags.epi && flags.epi !== 'done') { nodes = nodes.filter(n => n.k !== 'plantN' && n.k !== 'worm'); flags.epi = 'night'; flags.epiT = 0; } }
   const g1 = folds.find(f => f.key === 'G1'); if (g1 && (day >= 2 || flags.bigDone)) g1.closed = false;
   const g3 = folds.find(f => f.key === 'G3'); if (g3 && qState.mems === 'done') g3.closed = false;
   renderGround(); P.x = d.P.x; P.y = d.P.y; if (boxHit(P.x, P.y, P.r)) { const f = nearestFree(P.x, P.y, 8); if (f) { P.x = f.x; P.y = f.y; } }

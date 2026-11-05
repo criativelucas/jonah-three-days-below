@@ -11,6 +11,7 @@ Survival em pixel art inspirado no relato bíblico de Jonas: três dias e três 
 - Salvamento automático e 3 espaços de salvamento
 - Trilha sonora procedural, combate com rolamento e combos
 - Dicas guiadas no Dia 1 (dá para desligar em Ajustes)
+- Epílogo em Nínive (Jonas 3–4): a proclamação, o rei, a enramada, a planta, o verme e a última pergunta
 - Missões narrativas dos três dias e oração final inspirada em Jonas 2
 
 ## Jogar
