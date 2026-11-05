@@ -1,6 +1,6 @@
-# Jonas: 3 Days Below
+# Jonas: Três Dias Abaixo
 
-<p align="center"><img src="logo.png" width="420" alt="Jonas: 3 Days Below"></p>
+<p align="center"><img src="logo.png" width="420" alt="Jonas: Três Dias Abaixo"></p>
 
 Survival em pixel art inspirado no relato bíblico de Jonas: três dias e três noites dentro do grande peixe.
 
