@@ -124,7 +124,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
   #knob{position:absolute;left:38px;top:38px;width:40px;height:40px;border-radius:50%;background:rgba(238,220,182,.55);border:2px solid var(--ink)}
   #tbtns{position:absolute;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:64px 64px;gap:10px;pointer-events:auto}
   .tb{width:64px;height:64px;border-radius:50%;font-family:var(--f-label);font-size:10px;font-weight:700;background:rgba(34,16,26,.8);border:3px solid var(--bone);touch-action:none}
-  .tb.a{border-color:var(--blood)}.tb.e{border-color:var(--acid);margin-top:22px}
+  .tb.a{border-color:var(--blood)}.tb.e{border-color:var(--acid);margin-top:22px}.tb.r,.tb.s{width:52px;height:52px;justify-self:center;align-self:end;font-size:9px}.tb.r{border-color:var(--glow)}.tb.s{border-color:var(--bone-dim);margin-top:22px}
   #bar{left:0;right:0;transform:none;max-width:none;overflow-x:auto;justify-content:flex-start;border-left:0;border-right:0;margin:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
   #tools{right:auto;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(204px + env(safe-area-inset-bottom,0px))}
   #prompt{bottom:calc(244px + env(safe-area-inset-bottom,0px))}
@@ -255,8 +255,8 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 /* bag tab */
 .bagwrap{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:0}
 .doll{display:flex;flex-direction:column;gap:12px;padding:16px;border-right:2px solid var(--line);background:var(--panel);overflow:auto}
-.dgrid{display:grid;grid-template-columns:64px 1fr 64px;grid-template-rows:auto auto;gap:10px;align-items:center;justify-items:center}
-.portrait{grid-row:span 2;width:100%;height:150px;display:grid;place-items:center;background:radial-gradient(circle at 50% 55%,#5a2a1c 0,#2a1218 55%,#0b0408 100%);border:2px solid var(--line)}
+.dgrid{display:grid;grid-template-columns:64px 1fr 64px;grid-template-rows:auto auto auto;gap:10px;align-items:center;justify-items:center}
+.portrait{grid-row:span 3;width:100%;height:100%;min-height:200px;display:grid;place-items:center;background:radial-gradient(circle at 50% 55%,#5a2a1c 0,#2a1218 55%,#0b0408 100%);border:2px solid var(--line)}
 .eqs{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--f-label);font-size:8px;color:var(--bone-dim)}
 .bs{position:relative;width:56px;height:56px;padding:0;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)}
 .bs.eq{border-style:dashed}.bs.eq.on{border-style:solid;border-color:var(--glow)}
@@ -353,7 +353,7 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
     <div id="toasts"></div>
     <div id="prompt" class="px" hidden></div>
     <div id="bar" class="px"><div id="slots"></div><div id="equip"></div></div>
-    <div id="touch"><div id="stick"><div id="knob"></div></div><div id="tbtns"><button class="tb a" id="tA">Atacar</button><button class="tb e" id="tE">Usar</button></div></div>
+    <div id="touch"><div id="stick"><div id="knob"></div></div><div id="tbtns"><button class="tb s" id="tS">Trocar</button><button class="tb r" id="tR">Rolar</button><button class="tb a" id="tA">Atacar</button><button class="tb e" id="tE">Usar</button></div></div>
     <div id="tip" class="px" hidden></div>
   </div>
   <div id="menu" hidden></div>
@@ -878,7 +878,7 @@ const SAFE_R = 52;
 const inSafe = (x, y) => shelter && dist(x, y, shelter.x, shelter.y) < SAFE_R;
 function freshRun() {
   P = { x: 0, y: 0, r: 4, hp: 100, food: 82, fx: 0, fy: 1, face: 'f', flip: false, anim: 0, moving: false, atk: 0, swing: 0, iframe: 0, flare: 0, restCd: 0, latched: null, kx: 0, ky: 0 };
-  inv = []; equip = { hand: null, light: null, body: null, feet: null };
+  inv = []; equip = { hand: null, hand2: null, light: null, body: null, feet: null };
   got = {}; crafted = {}; flags = {}; mems = new Set(); refl = new Set(); kills = {}; seen = new Set(); totalKills = 0; deaths = 0; playTime = 0;
   shelter = null; buddy = null; structs = []; reveal = null;
 }
@@ -902,7 +902,7 @@ function take(id, n) { for (let i = inv.length - 1; i >= 0 && n > 0; i--) { cons
 function hasAll(req) { for (const k in req) if (count(k) < req[k]) return false; return true; }
 function dropItem(id, n, x, y, lock) { pickups.push({ id, n, x: x + rr(-6, 6), y: y + rr(-4, 4), z: 10, vz: 0, t: 0, lock: !!lock }); }
 function useSlot(i) { const s = inv[i]; if (!s) return; const it = ITEMS[s.id];
-  if (it.slot) { inv.splice(i, 1); const prev = equip[it.slot]; equip[it.slot] = { id: s.id, dur: s.dur || it.fuel || 0 }; if (prev) inv.push({ id: prev.id, n: 1, dur: prev.dur }); sfx('equip'); invDirty = true; toast(`${it.n} equipado`); return; }
+  if (it.slot) { inv.splice(i, 1); const prev = equip[it.slot]; equip[it.slot] = { id: s.id, dur: s.dur || it.fuel || 0 }; if (prev) { if (it.slot === 'hand' && !equip.hand2) { equip.hand2 = prev; toast(`${it.n} na mão · ${ITEMS[prev.id].n} na reserva (R troca)`); } else { inv.push({ id: prev.id, n: 1, dur: prev.dur }); toast(`${it.n} equipado`); } } else toast(`${it.n} equipado`); sfx('equip'); invDirty = true; return; }
   if (it.use === 'bomb') { take(s.id, 1); proj.push({ x: P.x + P.fx * 6, y: P.y - 8, vx: P.fx * 160, vy: P.fy * 160, life: .45, k: 'bomb', own: 'p', dmg: 0 }); sfx('swing'); if (menuOpen()) closeMenu(); return; }
   if (it.use === 'repel') { take(s.id, 1); P.repel = 30; sfx('flare'); toast('O incenso queima. As criaturas mantêm distância.', 'good'); return; }
   if (it.use === 'flare') { take(s.id, 1); P.flare = 20; sfx('flare'); toast('O sinalizador acende. As sombras recuam.', 'good'); return; }
@@ -915,11 +915,11 @@ const lightR = () => { let r = 24; if (equip.light) r = ITEMS[equip.light.id].li
 function nearFire() { return structs.some(s => s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, P.x, P.y) < 48); }
 function canCraft(r) { return r.day <= day && hasAll(r.in) && (!r.fire || nearFire()); }
 function craft(rid) { const r = RECIPES.find(x => x.id === rid); if (!r || r.day > day) return; if (r.fire && !nearFire()) { toast('Precisa estar perto de uma fogueira acesa.', 'bad'); return; } if (!hasAll(r.in)) { toast('Faltam materiais.', 'bad'); return; }
-  const outId = r.give || rid, outN = r.out || 1; if (!r.place) { const it0 = ITEMS[outId]; const direct = it0.slot && !equip[it0.slot]; if (!direct && !canFit(outId)) { warnFull(); return; } }
+  const outId = r.give || rid, outN = r.out || 1; if (!r.place) { const it0 = ITEMS[outId]; const direct = it0.slot && (!equip[it0.slot] || (it0.slot === 'hand' && !equip.hand2)); if (!direct && !canFit(outId)) { warnFull(); return; } }
   if (r.place && !place(r.place)) return;
   for (const k in r.in) take(k, r.in[k]);
   crafted[rid] = (crafted[rid] || 0) + 1; sfx('craft');
-  if (!r.place) { const it = ITEMS[outId]; if (it.slot && !equip[it.slot]) { equip[it.slot] = { id: outId, dur: it.fuel || 0 }; got[outId] = (got[outId] || 0) + 1; sfx('equip'); toast(`${it.n} criado e equipado`, 'good'); } else addItem(outId, outN, true); floatTxt(`+${outN > 1 ? outN + ' ' : ' '}${it.n}`, P.x, P.y - 24, '#c6e34a'); }
+  if (!r.place) { const it = ITEMS[outId]; if (it.slot && !equip[it.slot]) { equip[it.slot] = { id: outId, dur: it.fuel || 0 }; got[outId] = (got[outId] || 0) + 1; sfx('equip'); toast(`${it.n} criado e equipado`, 'good'); } else if (it.slot === 'hand' && !equip.hand2) { equip.hand2 = { id: outId, dur: 0 }; got[outId] = (got[outId] || 0) + 1; sfx('equip'); toast(`${it.n} criado e guardado na reserva (R troca)`, 'good'); } else addItem(outId, outN, true); floatTxt(`+${outN > 1 ? outN + ' ' : ' '}${it.n}`, P.x, P.y - 24, '#c6e34a'); }
   invDirty = true; lastCrafted = rid; refreshMenus(); if (r.place && menuOpen()) closeMenu(); return true; }
 function place(kind) { const fx_ = P.x + P.fx * 18, fy_ = P.y + P.fy * 14;
   if (kind === 'bridge') { const dx = Math.abs(P.fx) >= Math.abs(P.fy) ? Math.sign(P.fx) : 0, dy = dx ? 0 : Math.sign(P.fy) || 1; let tx = Math.floor(P.x / TS), ty = Math.floor(P.y / TS), put = 0; for (let k = 1; k <= 5 && put < 3; k++) { const x = tx + dx * k, y = ty + dy * k; if (!inB(x, y)) break; const i = idx(x, y); if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; put++; structs.push({ k: 'bridge', i, x: (x + .5) * TS, y: (y + .5) * TS }); for (const off of [-1, 1]) { const j = dx ? idx(x, y + off) : idx(x + off, y); if (inB(x, y + off) && tiles[j] === ACID && !bridgeMap[j]) { bridgeMap[j] = 1; structs.push({ k: 'bridge', i: j }); } } } else if (put && tiles[i] !== ACID) break; else if (tiles[i] === WALL) break; }
@@ -945,19 +945,38 @@ function spawnTick(dt) { spawnT -= dt; if (spawnT > 0) return; spawnT = 2.6; if 
   const D = MOBS[t]; const sp = findSpot(P.x, P.y, 150, 260, D.where === 'acid' ? 'acid' : 'floor'); if (!sp) return;
   if (D.ai === 'swarm') { for (let k = 0; k < 4; k++) { const s2 = findSpot(sp.x, sp.y, 0, 24) || sp; spawnMob(t, s2.x, s2.y); } } else spawnMob(t, sp.x, sp.y); }
 
-function hurtPlayer(dmg, sx, sy, kind) { if (P.iframe > 0 || state !== 'play') return; let a = 0; if (equip.body) a = ITEMS[equip.body.id].armor; const real = Math.max(1, Math.round(dmg * (1 - a))); P.hp -= real; P.iframe = .55; hurtFlash = .35; shakeA = Math.max(shakeA, 3); sfx('hurt');
+function hurtPlayer(dmg, sx, sy, kind) { if (P.iframe > 0 || state !== 'play') return; let a = 0; if (equip.body) a = ITEMS[equip.body.id].armor; const real = Math.max(1, Math.round(dmg * (1 - a))); P.hp -= real; P.iframe = .55; hitStop = Math.max(hitStop, .05); P.combo = 0; hurtFlash = .35; shakeA = Math.max(shakeA, 3); sfx('hurt');
   if (sx != null) { const d = dist(sx, sy, P.x, P.y) || 1; P.kx = (P.x - sx) / d * 140; P.ky = (P.y - sy) / d * 140; }
   floatTxt('-' + real, P.x, P.y - 20, '#e2463c'); if (buddy) buddy.scared = 1; }
-function damageMob(m, dmg, kx, ky) { const D = MOBS[m.t]; m.hp -= dmg; m.hit = .15; m.kx = kx * 160; m.ky = ky * 160; floatTxt('-' + dmg, m.x, m.y - 16, '#fff7c8'); sfx('hit');
+function damageMob(m, dmg, kx, ky, crit) { const D = MOBS[m.t]; m.hp -= dmg; m.hit = .15; m.hpShow = 2.4; m.kx = kx * 160; m.ky = ky * 160; floatTxt(crit ? dmg + '!' : '-' + dmg, m.x, m.y - 16, crit ? '#ffe170' : '#fff7c8'); if (crit) floatTxt('CRÍTICO', m.x, m.y - 26, '#ffe170'); sfx(crit ? 'crit' : 'hit'); burst(m.x, m.y - 6, crit ? '#ffe170' : '#fff7c8', crit ? 8 : 4);
   if (m.latched) { m.latched = false; P.latched = null; m.stun = .6; }
   if (D.ai === 'tank') m.stun = .35;
   if (m.hp <= 0) killMob(m); }
 function killMob(m) { const D = MOBS[m.t]; m.dead = true; sfx('squish'); totalKills++; kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
-function attack() { if (P.atk > 0 || state !== 'play' || paused) return; const w = equip.hand ? ITEMS[equip.hand.id] : null; const dmg = w ? w.dmg : 1, reach = w ? w.reach : 11; P.atk = .38; P.swing = .16; sfx('swing');
-  const hx = P.x + P.fx * reach * .8, hy = P.y - 3 + P.fy * reach * .7; let hitAny = false;
-  for (const m of mobs) { if (m.dead || m.npc) continue; const D = MOBS[m.t]; if (D.ai === 'ambush' && m.st === 'hidden') continue; if (dist(m.x, m.y - 4, hx, hy) > reach * .75 + m.r + 3) continue;
+const THRUST = { lanca: 1, arpao: 1, lanca_esp: 1, lanca_coral: 1 };
+const wKind = w => !equip.hand ? 'punch' : THRUST[equip.hand.id] ? 'thrust' : 'swing';
+let hitStop = 0;
+function segDist(px_, py_, ax, ay, bx, by) { const vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy || 1; const t = clamp(((px_ - ax) * vx + (py_ - ay) * vy) / l2, 0, 1); return Math.hypot(px_ - (ax + vx * t), py_ - (ay + vy * t)); }
+function dodge() { if (state !== 'play' || paused || P.roll > 0 || P.rollCd > 0) return; let dx = 0, dy = 0;
+  if (keys.KeyA || keys.ArrowLeft) dx--; if (keys.KeyD || keys.ArrowRight) dx++; if (keys.KeyW || keys.ArrowUp) dy--; if (keys.KeyS || keys.ArrowDown) dy++; if (joy.on) { dx = joy.x; dy = joy.y; }
+  let l = Math.hypot(dx, dy); if (l < .15) { dx = P.fx; dy = P.fy; l = Math.hypot(dx, dy) || 1; } P.rx = dx / l; P.ry = dy / l; P.roll = .3; P.rollCd = .7; P.iframe = Math.max(P.iframe, .34); P.trail = []; sfx('roll');
+  if (P.latched) { const m = P.latched; m.latched = false; m.stun = .7; m.kx = -P.rx * 120; m.ky = -P.ry * 120; P.latched = null; floatTxt('Solto!', P.x, P.y - 24, '#c6e34a'); } }
+function swapWeapons() { if (state !== 'play' || paused) return; if (!equip.hand2) { floatTxt(equip.hand ? 'Sem arma reserva' : 'Mãos vazias', P.x, P.y - 24, '#a8927a'); return; } [equip.hand, equip.hand2] = [equip.hand2, equip.hand]; sfx('equip'); floatTxt(ITEMS[equip.hand.id].n, P.x, P.y - 24, '#c6e34a'); invDirty = true; }
+function attack() { if (P.atk > 0 || state !== 'play' || paused || P.roll > 0) return; const w = equip.hand ? ITEMS[equip.hand.id] : null; const kind = wKind(w);
+  P.combo = P.comboT > 0 ? (P.combo % 3) + 1 : 1; P.comboT = .8; const fin = P.combo === 3;
+  const reach = (w ? w.reach : 11) * (fin ? 1.15 : 1); P.atk = fin ? .46 : kind === 'punch' ? .26 : .32; P.swing = .18; P.swingKind = kind; P.swingFin = fin; P.swingAng = Math.atan2(P.fy, P.fx);
+  P.kx += P.fx * (fin ? 130 : 60); P.ky += P.fy * (fin ? 130 : 60);
+  sfx(fin ? 'swingBig' : 'swing');
+  const hx = P.x + P.fx * reach * .8, hy = P.y - 3 + P.fy * reach * .7; let hitAny = false; let anyHit = 0;
+  const ax = P.x, ay = P.y - 4, bx = P.x + P.fx * reach * 1.15, by = P.y - 4 + P.fy * reach;
+  for (const m of mobs) { if (m.dead || m.npc) continue; const D = MOBS[m.t]; if (D.ai === 'ambush' && m.st === 'hidden') continue;
+    const inRange = kind === 'thrust' ? segDist(m.x, m.y - 4, ax, ay, bx, by) < m.r + 5 : dist(m.x, m.y - 4, hx, hy) < reach * (fin ? .9 : .75) + m.r + 3;
+    if (!inRange) continue;
     if (D.ai === 'shade' && !inLight(m.x, m.y)) { floatTxt('imune no escuro', m.x, m.y - 18, '#a77ae6'); continue; }
-    const d = dist(m.x, m.y, P.x, P.y) || 1; damageMob(m, dmg, (m.x - P.x) / d * (w && w.kb || 1), (m.y - P.y) / d * (w && w.kb || 1)); hitAny = true; }
+    let dmg = (w ? w.dmg : 1) * (fin ? 1.6 : 1); const crit = Math.random() < .12; if (crit) dmg *= 1.5; dmg = Math.max(1, Math.round(dmg));
+    const d = dist(m.x, m.y, P.x, P.y) || 1, kb = (w && w.kb || 1) * (fin ? 2 : 1); damageMob(m, dmg, (m.x - P.x) / d * kb, (m.y - P.y) / d * kb, crit);
+    if (fin && !m.dead) m.stun = Math.max(m.stun || 0, .5); hitAny = true; anyHit++; }
+  if (anyHit) { hitStop = fin ? .1 : .055; if (fin) shakeA = Math.max(shakeA, 3); }
   for (const n of nodes) { if (n.gone || n.hidden || (n.k !== 'bile' && n.k !== 'nerve')) continue; if (dist(n.x, n.y - 6, hx, hy) < reach * .75 + 8) { if (n.k === 'bile') popBile(n); else triggerNerve(n); hitAny = true; } }
   if (hitAny) shakeA = Math.max(shakeA, 1.5); }
 function explodeBomb(x, y) { burst(x, y - 4, '#c6e34a', 26); burst(x, y - 4, '#ffe170', 10); shakeA = Math.max(shakeA, 3.5); sfx('boom');
@@ -971,7 +990,7 @@ function triggerNerve(n) { if ((n.cd || 0) > 0) { floatTxt('cansado…', n.x, n.
 function inLight(x, y) { if (dist(x, y, P.x, P.y) < lightR() * .85) return true; for (const s of structs) if (s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, x, y) < 70) return true; return false; }
 
 function mobUpdate(m, dt) {
-  const D = MOBS[m.t]; m.age += dt; m.cd -= dt; m.hit -= dt;
+  const D = MOBS[m.t]; m.age += dt; m.cd -= dt; m.hit -= dt; if (m.hpShow > 0) m.hpShow -= dt;
   const dx = P.x - m.x, dy = P.y - m.y, dd = Math.hypot(dx, dy) || 1, ux = dx / dd, uy = dy / dd;
   const safe = inSafe(P.x, P.y);
   if (dd < 120) { if (!seen.has(m.t)) { seen.add(m.t); toast(`Nova criatura: ${D.n}. Veja no Bestiário.`, 'mem'); } }
@@ -1137,6 +1156,9 @@ function sfx(k) { switch (k) {
   case 'warn': tone(70, .9, 'sine', .14, -20); tone(140, .3, 'square', .02, 0, .1); break;
   case 'event': tone(98, .5, 'triangle', .07, 40); break;
   case 'beat': tone(52, .16, 'sine', .14, -10, 0, 'music', .3); tone(48, .18, 'sine', .11, -8, .2, 'music', .3); break;
+  case 'roll': noiseS(.2, .05, 1100, 'bandpass'); tone(220, .16, 'triangle', .02, 260); break;
+  case 'swingBig': noiseS(.12, .06, 2200, 'bandpass'); tone(160, .2, 'sawtooth', .03, -90); break;
+  case 'crit': noiseS(.1, .1, 2400); tone(880, .12, 'square', .03, 440); tone(220, .15, 'square', .04, -100); break;
   case 'step': noiseS(.07, .03, rr(350, 700), 'lowpass', .05); tone(rr(70, 95), .06, 'sine', .025, -20, 0, 'sfx', 0); break;
   case 'stepAcid': noiseS(.12, .035, 4200, 'highpass', .05); break;
   case 'squish': noiseS(.18, .08, 600); tone(160, .2, 'sine', .06, -110); break;
@@ -1357,7 +1379,10 @@ let joy = { x: 0, y: 0, on: false };
 function playerTick(dt) {
   let mx = 0, my = 0; if (keys.KeyA || keys.ArrowLeft) mx--; if (keys.KeyD || keys.ArrowRight) mx++; if (keys.KeyW || keys.ArrowUp) my--; if (keys.KeyS || keys.ArrowDown) my++;
   if (joy.on) { mx = joy.x; my = joy.y; }
-  const ml = Math.hypot(mx, my); P.moving = ml > .15;
+  if (P.roll > 0) { P.roll -= dt; P.trail.push({ x: P.x, y: P.y, t: .18 }); moveEnt(P, P.rx * 200 * dt, P.ry * 200 * dt); mx = my = 0; P.anim += dt * 14; }
+  if (P.trail) { for (const t of P.trail) t.t -= dt; P.trail = P.trail.filter(t => t.t > 0); }
+  P.rollCd = Math.max(0, (P.rollCd || 0) - dt); P.comboT = Math.max(0, (P.comboT || 0) - dt);
+  const ml = Math.hypot(mx, my); P.moving = ml > .15 && !(P.roll > 0);
   if (P.moving) { if (ml > 1) { mx /= ml; my /= ml; } const a = Math.round(Math.atan2(my, mx) / (Math.PI / 4)) * Math.PI / 4; P.fx = Math.cos(a); P.fy = Math.sin(a); if (Math.abs(P.fy) > .9) P.face = P.fy > 0 ? 'f' : 'b'; else { P.face = 's'; P.flip = P.fx < 0; } }
   const feet = equip.feet ? ITEMS[equip.feet.id] : null; const acid = isAcidAt(P.x, P.y);
   let spd = 62 * (feet && feet.spd || 1) * (P.latched ? .55 : 1) * (acid ? .78 : 1);
@@ -1386,6 +1411,7 @@ function update(dt) {
   if (state === 'title') { cam.x = RG.destrocos.x * TS - VW / 2 + Math.sin(T * .1) * 60; cam.y = RG.destrocos.y * TS - VH / 2 + Math.cos(T * .08) * 30; return; }
   if (state === 'ending') { endT += dt; return; }
   if (paused) return;
+  if (hitStop > 0) { hitStop -= dt; return; }
   playTime += dt;
   directorTick(dt); playerTick(dt);
   for (const m of mobs) mobUpdate(m, dt);
@@ -1469,6 +1495,7 @@ function drawMob(m) { const D = MOBS[m.t], S = SP[m.t]; let c = m.hit > 0 ? (m.f
   if (m.trapped > 0) { sprAt(NSP.trap, m.x, m.y + 2); }
   shadow(m.x, m.y, Math.max(3, c.width / 2 - 2));
   sprAt(c, m.x, m.y - bob, a);
+  if (m.hpShow > 0 && !m.dead) { const w = 16, fr = clamp(m.hp / D.hp, 0, 1), bx = m.x - w / 2, by = m.y - c.height - bob - 4; ctx.globalAlpha = Math.min(1, m.hpShow); px(bx - 1, by - 1, w + 2, 4, '#120810'); px(bx, by, w, 2, '#3a1a28'); px(bx, by, Math.max(1, Math.round(w * fr)), 2, fr > .5 ? '#c6e34a' : fr > .25 ? '#f2a640' : '#e2463c'); ctx.globalAlpha = 1; }
   if (m.trapped > 0) { ctx.globalAlpha = .7; sprAt(NSP.trap, m.x, m.y - 2); ctx.globalAlpha = 1; }
   if (m.loot && m.loot.n) { const ic = ICON[m.loot.id]; if (ic) sprAt(ic, m.x, m.y - c.height - 2); } }
 function drawPlayer() { const set = JON[P.face]; const frame = P.moving ? (Math.floor(P.anim) % 2 ? 1 : 2) : 0; const S = set[frame]; let c = P.flip ? S.l : S.r; if (P.iframe > 0 && Math.floor(T * 20) % 2) c = P.flip ? S.wl : S.w;
@@ -1480,9 +1507,15 @@ function drawPlayer() { const set = JON[P.face]; const frame = P.moving ? (Math.
   const drawLight = () => { if (!equip.light) return; const id = equip.light.id; if (id === 'tocha') { px(hx, hy - 1, 1, 6, '#8a5a32'); const fl = Math.floor(T * 12) % 3; px(hx - 1, hy - 4 - fl % 2, 3, 3, '#e2463c'); px(hx, hy - 5 - fl, 1, 3, '#ffe170'); px(hx, hy - 3, 1, 1, '#fff7c8'); } else { const glass = id === 'lanterna_viva' ? '#62f4e2' : '#ffe170'; px(hx - 1, hy - 1, 4, 1, '#1a0a10'); px(hx - 1, hy, 4, 4, '#5d6075'); px(hx, hy + 1, 2, 2, glass); px(hx, hy - 3, 2, 2, '#5d6075'); } };
   if ((P.repel || 0) > 0) { for (let k = 0; k < 20; k++) { const a = k / 20 * 6.28 + T; px(P.x + Math.cos(a) * 20, P.y - 4 + Math.sin(a) * 11, 1, 1, 'rgba(244,205,79,.7)'); } }
   if (P.face === 'b') drawLight();
-  sprAt(c, P.x, P.y - bob);
+  if (P.trail) for (const t of P.trail) { ctx.globalAlpha = t.t / .18 * .35; sprAt(P.flip ? JON[P.face][1].wl : JON[P.face][1].w, t.x, t.y); } ctx.globalAlpha = 1;
+  if (P.roll > 0) { const S2 = JON[P.face][1]; const rc = P.flip ? S2.l : S2.r; const ang = (1 - P.roll / .3) * Math.PI * 2 * (P.rx < 0 ? -1 : 1); ctx.save(); ctx.translate(Math.round(P.x - CX), Math.round(P.y - CY - rc.height / 2 + 2)); ctx.rotate(ang); ctx.drawImage(rc, -rc.width / 2, -rc.height / 2); ctx.restore(); }
+  else sprAt(c, P.x, P.y - bob);
   if (P.face !== 'b') drawLight();
-  if (P.swing > 0) { const w = equip.hand ? ITEMS[equip.hand.id] : null, reach = w ? w.reach : 11; const a0 = Math.atan2(P.fy, P.fx), prog = 1 - P.swing / .16; for (let k = 0; k < 7; k++) { const a = a0 - 1 + (k / 6) * 2 * prog; px(P.x + Math.cos(a) * reach * .8, P.y - 6 + Math.sin(a) * reach * .6, 2, 2, k > 4 ? '#fff7c8' : '#eadcb8'); } if (equip.hand) { const ic = ICON[equip.hand.id] || (iconURL(equip.hand.id), ICON[equip.hand.id]); ctx.save(); ctx.translate(Math.round(P.x - CX + Math.cos(a0) * 9), Math.round(P.y - CY - 7 + Math.sin(a0) * 6)); ctx.rotate(a0 + Math.PI / 4); ctx.drawImage(ic, -ic.width / 2, -ic.height / 2); ctx.restore(); } }
+  if (P.swing > 0) { const w = equip.hand ? ITEMS[equip.hand.id] : null, reach = (w ? w.reach : 11) * (P.swingFin ? 1.15 : 1); const a0 = P.swingAng, prog = 1 - P.swing / .18; const fc = P.swingFin ? '#ffe170' : '#fff7c8', sc = P.swingFin ? '#c6e34a' : '#eadcb8';
+    const ic = equip.hand ? (ICON[equip.hand.id] || (iconURL(equip.hand.id), ICON[equip.hand.id])) : null;
+    if (P.swingKind === 'thrust') { const ext = Math.sin(prog * Math.PI) * reach * .9; for (let k = 0; k < 6; k++) { const d = ext - k * 3; if (d > 4) px(P.x + Math.cos(a0) * d, P.y - 7 + Math.sin(a0) * d * .8, 2, 1, k < 2 ? fc : sc); } if (ic) { ctx.save(); ctx.translate(Math.round(P.x - CX + Math.cos(a0) * (6 + ext * .7)), Math.round(P.y - CY - 7 + Math.sin(a0) * (6 + ext * .7) * .8)); ctx.rotate(a0 + Math.PI / 4); ctx.drawImage(ic, -ic.width / 2, -ic.height / 2); ctx.restore(); } }
+    else if (P.swingKind === 'swing') { const span = P.swingFin ? 2.6 : 2; for (let k = 0; k < 9; k++) { const a = a0 - span / 2 + (k / 8) * span * prog; px(P.x + Math.cos(a) * reach * .8, P.y - 6 + Math.sin(a) * reach * .6, 2, 2, k > 5 ? fc : sc); } const aw = a0 - span / 2 + span * prog; if (ic) { ctx.save(); ctx.translate(Math.round(P.x - CX + Math.cos(aw) * 9), Math.round(P.y - CY - 7 + Math.sin(aw) * 6)); ctx.rotate(aw + Math.PI / 4); ctx.drawImage(ic, -ic.width / 2, -ic.height / 2); ctx.restore(); } }
+    else { const d = 6 + Math.sin(prog * Math.PI) * 8; const fx_ = P.x + Math.cos(a0) * d, fy_ = P.y - 7 + Math.sin(a0) * d * .8; px(fx_ - 1, fy_ - 1, 3, 3, '#e3a56c'); if (prog > .4 && prog < .8) { for (let k = 0; k < 4; k++) { const a = a0 + (k - 1.5) * .6; px(fx_ + Math.cos(a) * 4, fy_ + Math.sin(a) * 3, 1, 1, fc); } } } }
 }
 function drawStruct(s) { if (s.k === 'shelter') { shadow(s.x, s.y + 1, 15); sprAt(TENT, s.x, s.y + 2); if (inSafe(P.x, P.y)) { for (let k = 0; k < 24; k++) { const a = k / 24 * 6.28 + T * .2; px(s.x + Math.cos(a) * SAFE_R, s.y + Math.sin(a) * SAFE_R * .6, 1, 1, 'rgba(98,244,226,.5)'); } } }
   else if (s.k === 'fire') { shadow(s.x, s.y, 6); sprAt(NSP.logs, s.x, s.y + 1); if (s.fuel > 0) { const h = Math.min(1, s.fuel / 60); for (let k = 0; k < 7; k++) { const fh = Math.floor((3 + Math.random() * 6) * (0.5 + h * .5)); px(s.x - 4 + k + (k > 3 ? 1 : 0), s.y - 4 - fh, 1, fh, k % 3 === 0 ? '#ffe170' : '#e2463c'); } px(s.x - 1, s.y - 6, 2, 2, '#fff7c8'); } }
@@ -1555,7 +1588,7 @@ function drawEnding() { const W = VW, H = VH, t = endT; const sky = ['#2b1a3a', 
 
 /* ================= HUD ================= */
 function buildHotbar() { const sl = $('#slots'); let h = ''; for (let i = 0; i < MAXS; i++) { const s = inv[i]; h += `<button class="slot" data-i="${i}" aria-label="${s ? ITEMS[s.id].n : 'vazio'}">${i < 10 ? `<span class="k">${(i + 1) % 10}</span>` : ''}${s ? iconImg(s.id, 3) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') : ''}${s && s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''}</button>`; } sl.innerHTML = h;
-  const eq = $('#equip'); eq.innerHTML = [['hand', 'Mão'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']].map(([k, l]) => { const e = equip[k]; return `<button class="slot eq ${e ? 'on' : ''}" data-eq="${k}" aria-label="${l}: ${e ? ITEMS[e.id].n : 'vazio'}">${e ? iconImg(e.id, 3) : `<span class="lbl" style="font-size:8px">${l}</span>`}${e && k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : ''}</button>`; }).join('');
+  const eq = $('#equip'); eq.innerHTML = [['hand', 'Mão'], ['hand2', 'Reserva'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']].map(([k, l]) => { const e = equip[k]; return `<button class="slot eq ${e ? 'on' : ''}" data-eq="${k}" aria-label="${l}: ${e ? ITEMS[e.id].n : 'vazio'}">${e ? iconImg(e.id, 3) : `<span class="lbl" style="font-size:8px">${l}</span>`}${e && k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : ''}</button>`; }).join('');
   sl.querySelectorAll('.slot').forEach(b => { let lp = 0, fired = false; b.oncontextmenu = e => { e.preventDefault(); dropSlot(+b.dataset.i); };
     b.onpointerdown = e => { if (e.pointerType !== 'mouse') { fired = false; lp = setTimeout(() => { fired = true; dropSlot(+b.dataset.i); }, 550); } }; b.onpointerup = b.onpointercancel = b.onpointerleave = () => clearTimeout(lp);
     b.onclick = () => { if (fired) { fired = false; return; } useSlot(+b.dataset.i); }; b.onmouseenter = () => tipFor(b, inv[+b.dataset.i] && inv[+b.dataset.i].id); b.onmouseleave = hideTip; });
@@ -1611,11 +1644,11 @@ function drawRecipeDetail() { const d = $('#cDet'); if (!d) return; const r = RE
   $('#doCraft').onclick = () => craft(r.id); }
 function moveCraftSel(dx) { const list = filteredRecipes(); if (!list.length) return; let i = list.findIndex(r => r.id === craftSel); const g = $('#rGrid'); let cols = 1; if (g) cols = Math.max(1, getComputedStyle(g).gridTemplateColumns.split(' ').length); i = clamp(i + (Math.abs(dx) === 1 ? dx : Math.sign(dx) * cols), 0, list.length - 1); craftSel = list[i].id; drawRecipeGrid(); drawRecipeDetail(); const el = g && g.querySelector('[aria-selected="true"]'); if (el) el.scrollIntoView({ block: 'nearest' }); }
 function slotBtn(content, attrs, sel) { return `<button class="bs ${attrs.cls || ''}" ${attrs.data} aria-selected="${!!sel}" aria-label="${attrs.label}">${content}</button>`; }
-function renderBagTab(b) { const eqS = [['hand', 'Mão'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']];
+function renderBagTab(b) { const eqS = [['hand', 'Mão'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés'], ['hand2', 'Reserva (R)']];
   const eqBtn = ([k, l]) => { const e = equip[k]; const sel = bagSel && bagSel.eq === k; return `<div class="eqs">${slotBtn(e ? iconImg(e.id, 4) + (k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : '') : '', { cls: 'eq ' + (e ? 'on' : ''), data: `data-eq="${k}"`, label: l }, sel)}${l}</div>`; };
   const w = equip.hand ? ITEMS[equip.hand.id] : null, arm = equip.body ? ITEMS[equip.body.id].armor : 0, feet = equip.feet ? ITEMS[equip.feet.id] : null;
   let port = ''; try { port = JON.f[0].r.toDataURL(); } catch (e) {}
-  b.innerHTML = `<div class="bagwrap"><div class="doll"><div class="lbl">Equipamento</div><div class="dgrid">${eqBtn(eqS[0])}<div class="portrait"><img class="pi" src="${port}" width="${JON.f[0].r.width * 5}" height="${JON.f[0].r.height * 5}" alt="Jonas"></div>${eqBtn(eqS[1])}${eqBtn(eqS[2])}${eqBtn(eqS[3])}</div>
+  b.innerHTML = `<div class="bagwrap"><div class="doll"><div class="lbl">Equipamento</div><div class="dgrid">${eqBtn(eqS[0])}<div class="portrait"><img class="pi" src="${port}" width="${JON.f[0].r.width * 5}" height="${JON.f[0].r.height * 5}" alt="Jonas"></div>${eqBtn(eqS[1])}${eqBtn(eqS[4])}${eqBtn(eqS[3])}${eqBtn(eqS[2])}</div>
     <div class="sgrid"><div><b>${Math.ceil(P.hp)}</b>Vida</div><div><b>${Math.ceil(P.food)}</b>Fome</div><div><b>${w ? w.dmg : 1}</b>Dano${w ? '' : ' (soco)'}</div><div><b>${Math.round(arm * 100)}%</b>Armadura</div><div><b>${Math.round(lightR())}</b>Raio de luz</div><div><b>${feet ? (feet.acid === 0 ? 'Imune' : '−' + Math.round((1 - feet.acid) * 100) + '%') : '0%'}</b>Proteção ácido</div></div></div>
     <div class="bagr"><div class="lbl">Mochila · ${inv.length}/${MAXS}</div><div class="igrid">${Array.from({ length: MAXS }, (_, i) => { const s = inv[i]; return slotBtn(s ? iconImg(s.id, 4) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') + (s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : '') : '', { data: `data-i="${i}"`, label: s ? ITEMS[s.id].n : 'vazio' }, bagSel && bagSel.i === i && s); }).join('')}</div><div id="iDet"></div></div></div>`;
   b.querySelectorAll('[data-i]').forEach(x => x.onclick = () => { if (!inv[+x.dataset.i]) return; bagSel = { i: +x.dataset.i }; renderMenu(true); });
@@ -1648,7 +1681,7 @@ function renderBestTab(b) { b.innerHTML = `<div class="pad"><span class="lbl">${
 function renderOptsTab(b) { b.innerHTML = `<div class="pad"><div class="opt"><span>Som</span><button class="btn ${muted ? 'alt' : ''}" id="oMute">${muted ? 'Desligado' : 'Ligado'}</button></div>
   <div class="opt"><label for="vMus">Música e ambiente</label><span class="rng"><input type="range" id="vMus" min="0" max="100" value="${Math.round(AUD.vm * 100)}"><b id="vMusN">${Math.round(AUD.vm * 100)}</b></span></div>
   <div class="opt"><label for="vSfx">Efeitos</label><span class="rng"><input type="range" id="vSfx" min="0" max="100" value="${Math.round(AUD.vs * 100)}"><b id="vSfxN">${Math.round(AUD.vs * 100)}</b></span></div>
-  <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controles</span><div class="keys"><kbd>WASD / setas</kbd><span>Andar</span><kbd>Espaço / J</kbd><span>Atacar</span><kbd>E / K</kbd><span>Coletar, abrir, descansar</span><kbd>Esc / Tab</kbd><span>Pausar e abrir este diário</span><kbd>C · I · Q · M · B</kbd><span>Criar · Mochila · Missões · Mapa · Bestiário</span><kbd>1–0</kbd><span>Usar itens da barra rápida</span><kbd>Botão direito</kbd><span>Soltar item da barra</span><kbd>Setas + Enter</kbd><span>Escolher e criar receitas (aba Criar)</span></div></div></div>`;
+  <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controles</span><div class="keys"><kbd>WASD / setas</kbd><span>Andar</span><kbd>Espaço / J</kbd><span>Atacar (3º golpe seguido é mais forte)</span><kbd>Shift / L</kbd><span>Rolar (desvia e solta lampreias)</span><kbd>R</kbd><span>Trocar entre arma da mão e reserva</span><kbd>E / K</kbd><span>Coletar, abrir, descansar</span><kbd>Esc / Tab</kbd><span>Pausar e abrir este diário</span><kbd>C · I · Q · M · B</kbd><span>Criar · Mochila · Missões · Mapa · Bestiário</span><kbd>1–0</kbd><span>Usar itens da barra rápida</span><kbd>Botão direito</kbd><span>Soltar item da barra</span><kbd>Setas + Enter</kbd><span>Escolher e criar receitas (aba Criar)</span></div></div></div>`;
   $('#oMute').onclick = () => { muted = !muted; applyVolumes(); renderMenu(); };
   $('#vMus').oninput = e => { AUD.vm = e.target.value / 100; $('#vMusN').textContent = e.target.value; applyVolumes(); };
   $('#vSfx').oninput = e => { AUD.vs = e.target.value / 100; $('#vSfxN').textContent = e.target.value; applyVolumes(); sfx('pick'); }; }
@@ -1693,7 +1726,7 @@ function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML 
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
   const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: () => { freshRun(); startDay(1); } }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAH', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
-function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar com o item da mão</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
+function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
 function bigMap() { openMenu('map'); }
 
@@ -1709,7 +1742,7 @@ function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-sl
 function latestSlot() { let best = null; for (const k of SLOT_KEYS) { const d = readSlot(k); if (d && (!best || d.t > best.d.t)) best = { k, d }; } return best; }
 function nodeSolids(n) { const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
 function loadGame(d) { if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
-  freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0;
+  freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0;
   P.hp = d.P.hp; P.food = d.P.food; P.fx = d.P.fx || 0; P.fy = d.P.fy == null ? 1 : d.P.fy;
   genWorld(day); reveal = unpackBits(d.reveal, MW * MH);
   mobs = []; pickups = []; fx = []; proj = []; merchant = null; tideLevel = 0;
@@ -1748,6 +1781,8 @@ addEventListener('keydown', e => { const inInput = e.target && e.target.tagName 
   if (MK[e.code]) { toggleMenu(MK[e.code]); return; }
   if (menuOpen()) { if (menuTab === 'craft') { const mv = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -2, ArrowDown: 2 }[e.code]; if (mv) { moveCraftSel(mv); return; } if (e.code === 'Enter' && craftSel) { e.preventDefault(); craft(craftSel); } } return; }
   if (e.code === 'Space' || e.code === 'KeyJ') attack();
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyL') dodge();
+  if (e.code === 'KeyR') swapWeapons();
   if (e.code === 'KeyE' || e.code === 'KeyK') interact();
   const m = e.code.match(/^Digit(\d)$/); if (m) useSlot((+m[1] + 9) % 10);
 });
@@ -1761,7 +1796,7 @@ $('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'
   st.addEventListener('pointerdown', e => { audioInit(); id = e.pointerId; try { st.setPointerCapture(id); } catch (er) {} upd(e); });
   st.addEventListener('pointermove', e => { if (e.pointerId === id) upd(e); });
   const end = e => { if (e.pointerId !== id) return; id = null; joy.on = false; joy.x = joy.y = 0; kn.style.transform = ''; }; st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
-  $('#tA').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); attack(); }); $('#tE').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); interact(); }); })();
+  $('#tA').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); attack(); }); $('#tE').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); interact(); }); $('#tR').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); dodge(); }); $('#tS').addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); swapWeapons(); }); })();
 
 /* ================= LOOP ================= */
 function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Math.max(2, Math.round(w / 200)) : Math.max(2, Math.round(Math.min(w, h * 1.6) / 380)); VW = Math.ceil(w / SCALE); VH = Math.ceil(h / SCALE); cv.width = VW; cv.height = VH; cv.style.width = VW * SCALE + 'px'; cv.style.height = VH * SCALE + 'px'; lightC.width = Math.ceil(VW / 2); lightC.height = Math.ceil(VH / 2); ctx.imageSmoothingEnabled = false; lctx.imageSmoothingEnabled = false; }

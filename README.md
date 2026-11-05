@@ -13,4 +13,4 @@ Survival em pixel art inspirado no relato bíblico de Jonas: três dias e três 
 
 Abra `index.html` no navegador, ou acesse a versão publicada no GitHub Pages.
 
-**Controles:** WASD/setas para andar · Espaço para atacar · E para interagir · Esc/Tab para pausar (criar, mochila, diário, mapa, salvar) · 1–0 para usar itens · M para o mapa · B para o bestiário. No celular, joystick e botões na tela.
+**Controles:** WASD/setas para andar · Espaço para atacar · Shift para rolar · R para trocar de arma · E para interagir · Esc/Tab para pausar (criar, mochila, diário, mapa, salvar) · 1–0 para usar itens · M para o mapa · B para o bestiário. No celular, joystick e botões na tela.
