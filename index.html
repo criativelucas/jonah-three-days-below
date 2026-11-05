@@ -335,6 +335,11 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
   .doll,.qcol+.qcol,.mapside{border-left:0;border-right:0;border-top:2px solid var(--line);overflow:visible}
   .bagr,.qcol,.pad{overflow:visible}
 }
+#cut{position:absolute;inset:0;z-index:11;pointer-events:none}
+#cutCap{position:absolute;left:50%;bottom:calc(46px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(680px,calc(100vw - 32px));text-align:center;font-size:clamp(18px,3.2vw,26px);line-height:1.35;color:var(--bone);text-shadow:2px 2px 0 var(--ink),-1px -1px 0 var(--ink);transition:opacity .5s steps(5);opacity:0}
+#cutCap.on{opacity:1}
+#cutCap cite{display:block;margin-top:6px;font-family:var(--f-label);font-size:11px;font-style:normal;color:var(--glow)}
+#cutSkip{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));padding:6px 12px;font-family:var(--f-label);font-size:11px;color:var(--bone);background:rgba(18,8,16,.7);border:2px solid var(--line);pointer-events:auto}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -367,6 +372,7 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
     <div id="tip" class="px" hidden></div>
   </div>
   <div id="menu" hidden></div>
+  <div id="cut" hidden><div id="cutCap" aria-live="polite"></div><button id="cutSkip">Pular ▸</button></div>
   <div id="overlay" hidden></div>
 </div>
 
@@ -1081,7 +1087,7 @@ function triggerNerve(n) { if ((n.cd || 0) > 0) { floatTxt('cansado…', n.x, n.
   const f = folds[n.fold]; if (f && f.type === 'open' && f.closed) { f.closed = false; f.tempOpen = 12; burst(f.x, f.y, '#e392a3', 30); toast('O nervo se contrai: uma bolsa escondida se abriu por 12 segundos!', 'good'); } else toast('O nervo pulsa e a carne em volta estremece.'); }
 function inLight(x, y) { if (dist(x, y, P.x, P.y) < lightR() * .85) return true; for (const s of structs) if (s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, x, y) < 70) return true; return false; }
 
-function mobUpdate(m, dt) {
+function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - m.ly) > .15; m.lx = m.x; m.ly = m.y;
   const D = MOBS[m.t]; m.age += dt; m.cd -= dt; m.hit -= dt; if (m.hpShow > 0) m.hpShow -= dt;
   const dx = P.x - m.x, dy = P.y - m.y, dd = Math.hypot(dx, dy) || 1, ux = dx / dd, uy = dy / dd;
   const safe = inSafe(P.x, P.y);
@@ -1222,6 +1228,7 @@ function musicTick(dt) { if (!AC || !AUD.m || AC.state !== 'running') return; co
   M.tick -= dt; if (M.tick > 0) return; M.tick = .25;
   let chord = CH.d1, padV = .045, cut = 380, rum = 0, cho = 0, siz = 0, rumCut = 150;
   if (state === 'title') { padV = .04; }
+  else if (state === 'cut' && CUT) { padV = .035; if (CUT.name === 'intro') { rum = CUT.t < 5 ? .3 : .12; rumCut = CUT.t < 5 ? 500 : 220; cut = CUT.t < 6.2 ? 600 : 300; } else if (CUT.name === 'dive') { rum = .25; rumCut = 180; cut = 260; chord = CH.d2; } else { cut = 300; } }
   else if (state === 'ending') { chord = CH.end; padV = .03; cut = 800; cho = .03; rum = .07; rumCut = 520; }
   else if (state === 'pray' || (flags && flags.praying)) { chord = CH.sil; padV = .014; cho = .06; cut = 520; }
   else if (inPlay && day === 4) { chord = CH.nin; padV = .035; cut = 520 - EPI.night * 250; rum = .035 + EPI.heat * .12; rumCut = 700 + EPI.heat * 600; cho = flags.epi === 'ask' || flags.epi === 'done' ? .04 : 0; if (menuOpen()) { padV *= .6; } }
@@ -1418,8 +1425,8 @@ function startDay(n, data) {
   $('#hud').hidden = false;
   showCard({ kick: DAYS[day].kick, title: `Dia ${day} — ${DAYS[day].name}`, body: DAYS[day].body, btn: 'Começar o dia' });
 }
-function endDay() { if (day === 1) { showCard({ kick: 'FIM DO DIA 1', title: 'Jonas adormece', body: 'Pela primeira vez desde a tempestade, Jonas fecha os olhos sem medo de afundar. Lá fora, ou lá dentro, a baleia continua respirando.', btn: 'Seguir para o Dia 2', fn: () => startDay(2) }); } }
-function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => showCard({ kick: 'A SAÍDA QUE NÃO EXISTE', title: 'A baleia mergulha', body: 'A Câmara Central estremece. O que parecia uma passagem se fecha numa parede de carne, e o chão vira ácido. Jonas recua até um canto quieto, longe dos perigos, e entende que o desafio não é encontrar uma porta.', btn: 'Seguir para o Dia 3', fn: () => startDay(3) }), 900); }
+function endDay() { if (day === 1) playCut('sleep', () => showCard({ kick: 'FIM DO DIA 1', title: 'Jonas adormece', body: 'Pela primeira vez desde a tempestade, Jonas fecha os olhos sem medo de afundar. Lá fora, ou lá dentro, a baleia continua respirando.', btn: 'Seguir para o Dia 2', fn: () => startDay(2) })); }
+function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => playCut('dive', () => showCard({ kick: 'A SAÍDA QUE NÃO EXISTE', title: 'A baleia mergulha', body: 'A Câmara Central estremece. O que parecia uma passagem se fecha numa parede de carne, e o chão vira ácido. Jonas recua até um canto quieto, longe dos perigos, e entende que o desafio não é encontrar uma porta.', btn: 'Seguir para o Dia 3', fn: () => startDay(3) })), 900); }
 
 /* ================= SPECIAL INTERACTIONS ================= */
 function interactTarget() { let best = null, bd = 1e9;
@@ -1505,8 +1512,61 @@ function epiTick(dt) { if (!flags.epi || flags.epi === 'done') return; flags.epi
     case 'heat': EPI.heat = Math.min(1, t / 4); windX = -18 * EPI.heat; shakeA = Math.max(shakeA, EPI.heat * .8); if (t >= 5.2) { flags.epi = 'ask'; showCard({ kick: 'JONAS 4:7–9', title: 'O verme e o vento leste', body: 'Ao amanhecer, um verme atacou a planta e ela secou. Quando o sol nasceu, um vento quente soprou do leste e o sol queimou a cabeça de Jonas até ele desfalecer. Deus lhe perguntou se era razoável ficar tão irado por causa de uma planta. Jonas respondeu que sim, que tinha toda a razão.', btn: 'Ouvir', fn: finalQuestion }); } break;
   } }
 function finalQuestion() { EPI.heat = .4; showCard({ kick: 'JONAS 4:10–11', title: 'A última pergunta', quote: 'Você teve pena da planta, que não plantou nem fez crescer. E eu não deveria ter compaixão de Nínive, a grande cidade, com mais de cento e vinte mil pessoas e tantos animais?', ref: 'Jonas 4:10–11', body: 'O livro termina aqui, com a pergunta no ar. Ninguém registrou a resposta de Jonas.', btn: 'Fim', fn: credits }); }
+/* ================= CUTSCENES ================= */
+let CUT = null;
+const CUTS = {
+  intro: { dur: 11.2, caps: [[.3, 'Jonas fugiu para Társis, para longe da presença do Senhor.', 'Jonas 1:3'], [2.4, 'Mas o Senhor lançou um grande vento sobre o mar.', 'Jonas 1:4'], [4.3, 'Lançaram Jonas ao mar, e o mar se acalmou.', 'Jonas 1:15'], [6.7, 'E o Senhor preparou um grande peixe para engolir Jonas.', 'Jonas 1:17'], [10.3, '', '']] },
+  sleep: { dur: 5, caps: [[.4, 'Jonas dorme. Lá fora, ou lá dentro, a baleia continua respirando.', ''], [4.4, '', '']] },
+  dive: { dur: 5.4, caps: [[.4, 'A baleia mergulha fundo, e a passagem que parecia uma saída se fecha.', ''], [4.8, '', '']] },
+};
+function playCut(name, done) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; CUT = { name, t: 0, done, prev: state, ci: -1, parts: [] }; state = 'cut'; paused = true; $('#hud').hidden = true; $('#cut').hidden = false; $('#cutCap').className = ''; audioInit(); }
+function endCut() { if (!CUT) return; const c = CUT; CUT = null; $('#cut').hidden = true; $('#cutCap').className = ''; state = c.prev === 'cut' ? 'play' : c.prev; if (state === 'play') $('#hud').hidden = false; c.done && c.done(); }
+$('#cutSkip').onclick = () => endCut();
+function cutTick(dt) { const c = CUT; if (!c) return; c.t += dt; const sc = CUTS[c.name];
+  let ci = -1; sc.caps.forEach((cp, i) => { if (c.t >= cp[0]) ci = i; }); if (ci !== c.ci) { c.ci = ci; const cp = sc.caps[ci], el = $('#cutCap'); if (cp && cp[1]) { el.innerHTML = `${cp[1]}${cp[2] ? `<cite>${cp[2]}</cite>` : ''}`; el.className = 'on'; } else el.className = ''; }
+  if (c.name === 'intro' && c.t > 6.2 && !c.boom) { c.boom = 1; sfx('roar'); } if (c.name === 'intro' && Math.random() < dt * 1.2 && c.t < 4.5) sfx('splash');
+  if (c.t >= sc.dur) endCut(); }
+function drawWhaleSil(x, y, sc, ang, mouth) { ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(ang); ctx.scale(sc, sc);
+  ctx.fillStyle = '#1b2244'; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.quadraticCurveTo(-58, -26, -10, -28); ctx.quadraticCurveTo(50, -26, 80, -6); ctx.lineTo(112, -22); ctx.lineTo(106, 0); ctx.lineTo(114, 18); ctx.lineTo(80, 6); ctx.quadraticCurveTo(40, 26, -10, 24); ctx.quadraticCurveTo(-56, 22, -60, 0); ctx.fill();
+  ctx.fillStyle = '#2d3870'; ctx.beginPath(); ctx.ellipse(0, -16, 52, 8, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#5a64a0'; for (let k = 0; k < 6; k++) ctx.fillRect(-50 + k * 4, 8 + k, 40 - k * 3, 1);
+  if (mouth > 0) { ctx.fillStyle = '#0a0612'; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(-10, -4 - mouth * 10); ctx.lineTo(-10, 6 + mouth * 10); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#c9c0a8'; for (let k = 0; k < 8; k++) ctx.fillRect(-56 + k * 6, -2 - mouth * 6 * (k / 8), 1, 3); }
+  ctx.fillStyle = '#f3e6cf'; ctx.fillRect(-26, -19, 3, 3); ctx.fillStyle = '#0a0612'; ctx.fillRect(-25, -18, 2, 2); ctx.restore(); }
+function drawCut() { const c = CUT; if (!c) return; const t = c.t, W = VW, H = VH; ctx.imageSmoothingEnabled = false;
+  if (c.name === 'intro') {
+    if (t < 6.2) { const storm = t < 4.6 ? 1 : Math.max(.15, 1 - (t - 4.6) * .6); const sea = Math.round(H * .58);
+      const sky = ['#0b0816', '#110d22', '#18122e', '#211839', '#2a1e44']; for (let i = 0; i < 5; i++) { ctx.fillStyle = sky[i]; ctx.fillRect(0, Math.round(i * sea / 5), W, Math.ceil(sea / 5) + 1); }
+      const fl = storm > .6 && (Math.floor(t * 2.3) % 4 === 0) && (t * 2.3 % 1) < .18; if (fl) { ctx.fillStyle = 'rgba(210,220,255,.55)'; ctx.fillRect(0, 0, W, sea); let x = W * (.2 + (Math.floor(t * 2.3) * .37 % .6)), y = 0; ctx.fillStyle = '#fff'; while (y < sea - 6) { const nx = x + rr(-8, 8); for (let k = 0; k < 6; k++) ctx.fillRect(Math.round(lerp(x, nx, k / 6)), Math.round(y + k), 2, 1); x = nx; y += 6; } if (!c.th || t - c.th > .6) { c.th = t; noiseS(.8, .12, 300); } }
+      ctx.fillStyle = 'rgba(40,30,70,.5)'; for (let k = 0; k < 6; k++) { const cx = ((k * 97 + t * 14) % (W + 120)) - 60; ctx.fillRect(Math.round(cx), 6 + k * 7, 70, 8); }
+      for (let y = sea; y < H; y++) { const f = (y - sea) / (H - sea); ctx.fillStyle = f < .15 ? '#1e3b6e' : f < .45 ? '#173060' : '#10234a'; ctx.fillRect(0, y, W, 1); }
+      for (let r = 0; r < 7; r++) { const yy = sea + r * 6; ctx.fillStyle = r === 0 ? '#9fc4ff' : '#3b62a8'; for (let x = 0; x < W; x += 2) { const w = Math.sin(x * .045 + t * 2.4 + r) * 5 * storm + Math.sin(x * .11 - t * 3) * 2 * storm; ctx.fillRect(x, Math.round(yy + w), 2, 1); } }
+      const rock = Math.sin(t * 1.9) * .14 * storm, sx = W * .42, sy = sea - 12 + Math.sin(t * 1.9) * 4 * storm;
+      ctx.save(); ctx.translate(Math.round(sx), Math.round(sy)); ctx.rotate(rock); ctx.drawImage(HULL, -HULL.width / 2, -HULL.height + 14); ctx.restore();
+      if (t > 3.6 && t < 4.9) { const k = (t - 3.6) / 1.3, jx = lerp(sx + 6, W * .62, k), jy = lerp(sy - 40, sea + 6, k) - Math.sin(k * Math.PI) * 26; const J = JON.f[0].r; ctx.save(); ctx.translate(Math.round(jx), Math.round(jy)); ctx.rotate(k * 5); ctx.drawImage(J, -J.width / 2, -J.height / 2); ctx.restore(); }
+      if (t > 4.9 && t < 5.8) { ctx.fillStyle = '#e8f2ff'; for (let k = 0; k < 14; k++) { const a = -Math.PI * (k / 13), r = (t - 4.9) * 40; ctx.fillRect(Math.round(W * .62 + Math.cos(a) * r), Math.round(sea + 2 + Math.sin(a) * r * .6 + (t - 4.9) * 20), 2, 2); } }
+      ctx.fillStyle = `rgba(180,200,255,${(.45 * storm).toFixed(2)})`; for (let k = 0; k < 90 * storm; k++) { const x = (hash2(k, 1, 4) * W + t * 260) % W, y = (hash2(k, 2, 4) * H + t * 420) % H; ctx.fillRect(Math.round(W - x), Math.round(y), 1, 4); }
+      if (t > 5.6) { ctx.fillStyle = `rgba(16,35,74,${((t - 5.6) / .6).toFixed(2)})`; ctx.fillRect(0, 0, W, H); } }
+    else { const u = t - 6.2; for (let y = 0; y < H; y++) { const f = y / H; ctx.fillStyle = f < .2 ? '#1e4a86' : f < .45 ? '#173a70' : f < .7 ? '#112c58' : '#0a1d3e'; ctx.fillRect(0, y, W, 1); }
+      ctx.fillStyle = 'rgba(160,210,255,.07)'; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(W * (.15 + k * .17), 0); ctx.lineTo(W * (.15 + k * .17) + 30, 0); ctx.lineTo(W * (.05 + k * .17) + 60, H); ctx.lineTo(W * (.05 + k * .17), H); ctx.fill(); }
+      const jx = W * .45, jy = 20 + Math.min(u, 3.4) * 26; const J = JON.f[0].r; if (u < 3.9) { ctx.save(); ctx.translate(Math.round(jx), Math.round(jy)); ctx.rotate(.4 + u * .25); ctx.drawImage(J, -J.width / 2, -J.height / 2); ctx.restore(); }
+      ctx.fillStyle = '#b8e0ff'; for (let k = 0; k < 18; k++) { const bx = jx + Math.sin(k * 3 + u * 2) * 10 + (k % 5) * 3, by = jy - ((u * 30 + k * 13) % 80); ctx.fillRect(Math.round(bx), Math.round(by), 1 + (k % 2), 1 + (k % 2)); }
+      const wx = lerp(W + 160, jx + 52, clamp(u / 3.6, 0, 1)), mouth = u < 3.2 ? clamp(u / 1.5, 0, 1) : Math.max(0, 1 - (u - 3.2) * 3); drawWhaleSil(wx, jy + 4, Math.max(1, H / 140), 0, mouth);
+      if (u > 3.6) { ctx.fillStyle = `rgba(6,3,10,${clamp((u - 3.6) / .9, 0, 1).toFixed(2)})`; ctx.fillRect(0, 0, W, H); } } }
+  else if (c.name === 'sleep') { ctx.fillStyle = '#1a0810'; ctx.fillRect(0, 0, W, H); const br = (Math.sin(t * 2.2) + 1) / 2; ctx.fillStyle = `rgba(120,30,55,${(.15 + br * .12).toFixed(3)})`; ctx.fillRect(0, 0, W, H);
+    for (let y = Math.round(H * .62); y < H; y++) { ctx.fillStyle = y % 3 ? '#4e1626' : '#5c1b2c'; ctx.fillRect(0, y, W, 1); }
+    const cx = W / 2, gy = Math.round(H * .66); const g = ctx.createRadialGradient(cx + 22, gy - 6, 2, cx + 22, gy - 6, 70); g.addColorStop(0, 'rgba(255,170,80,.45)'); g.addColorStop(1, 'rgba(255,170,80,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(TENT, Math.round(cx - 34 - TENT.width / 2), gy - TENT.height + 2); ctx.drawImage(NSP.logs, Math.round(cx + 22 - NSP.logs.width / 2), gy - NSP.logs.height + 1);
+    for (let k = 0; k < 6; k++) { const fh = 3 + Math.floor(Math.random() * 6); ctx.fillStyle = k % 2 ? '#ffe170' : '#e2463c'; ctx.fillRect(Math.round(cx + 19 + k), gy - 4 - fh, 1, fh); }
+    const J = JON.f[0].r; ctx.save(); ctx.translate(Math.round(cx - 6), gy - 4); ctx.rotate(-Math.PI / 2); ctx.drawImage(J, -J.width / 2, -J.height / 2); ctx.restore();
+    ctx.font = '8px Silkscreen, monospace'; for (let k = 0; k < 3; k++) { const ph = (t * .6 + k / 3) % 1; ctx.fillStyle = `rgba(243,230,207,${(1 - ph).toFixed(2)})`; ctx.fillText('z', Math.round(cx - 4 + ph * 12 + k * 3), Math.round(gy - 18 - ph * 26)); }
+    if (t > 4) { ctx.fillStyle = `rgba(6,2,6,${clamp(t - 4, 0, 1).toFixed(2)})`; ctx.fillRect(0, 0, W, H); } }
+  else if (c.name === 'dive') { for (let y = 0; y < H; y++) { const f = y / H; ctx.fillStyle = f < .1 ? '#2a5c9a' : f < .35 ? '#1d4277' : f < .65 ? '#12305a' : '#081a38'; ctx.fillRect(0, y, W, 1); }
+    ctx.fillStyle = '#7fb0e8'; for (let x = 0; x < W; x += 2) ctx.fillRect(x, Math.round(4 + Math.sin(x * .07 + t * 2) * 2), 2, 1);
+    const k = t / 5.4, wx = lerp(W * .2, W * .78, k), wy = lerp(H * .18, H * .82, k); drawWhaleSil(wx, wy, Math.max(1, H / 150), .5, 0);
+    ctx.fillStyle = '#b8e0ff'; for (let i = 0; i < 26; i++) { const ph = (t * .8 + i / 26) % 1; const bx = lerp(W * .2, wx, (i % 13) / 13) + Math.sin(i * 2 + t * 3) * 6, by = lerp(H * .18, wy, (i % 13) / 13) - ph * 40; ctx.fillRect(Math.round(bx), Math.round(by), 1 + (i % 2), 1 + (i % 2)); }
+    ctx.fillStyle = `rgba(4,8,18,${clamp(k * 1.1 - .2, 0, 1).toFixed(2)})`; ctx.fillRect(0, 0, W, H); } }
 function credits() { flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
-  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: () => { freshRun(); startDay(1); } }, { label: 'Tela inicial', fn: titleScreen }] }); }
+  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: () => { freshRun(); playCut('intro', () => startDay(1)); } }, { label: 'Tela inicial', fn: titleScreen }] }); }
 function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
   if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
 function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
@@ -1578,6 +1638,7 @@ function update(dt) {
   T += dt;
   if (state === 'title') { cam.x = REGIONS[0].x * TS - VW / 2 + Math.sin(T * .1) * 60; cam.y = REGIONS[0].y * TS - VH / 2 + Math.cos(T * .08) * 30; return; }
   if (state === 'ending') { endT += dt; return; }
+  if (state === 'cut') { cutTick(dt); return; }
   if (paused) { if (menuOpen()) tutTick(0); return; }
   if (hitStop > 0) { hitStop -= dt; return; }
   playTime += dt;
@@ -1597,12 +1658,12 @@ function update(dt) {
   for (const n of nodes) if (n.shake) n.shake = Math.max(0, n.shake - dt);
   spawnTick(dt); specialsTick(dt);
   shakeA = Math.max(0, shakeA - dt * 6); hurtFlash = Math.max(0, hurtFlash - dt); inkT = Math.max(0, inkT - dt);
-  beatT -= dt; if (beatT <= 0) { beatT = isContract(DIR.ev) ? .7 : DIR.phase === 'warn' ? .5 : 1.9; sfx('beat'); }
+  beatT -= dt; if (beatT <= 0) { beatT = isContract(DIR.ev) ? .7 : DIR.phase === 'warn' ? .5 : 1.9; sfx('beat'); if (day < 4) pulses.push({ t: 0 }); }
   qTick -= dt; if (qTick <= 0) { qTick = .25; questTick(); }
   autoT -= dt; if (autoT <= 0) { autoT = 90; writeSlot('auto', true); }
   cam.x = lerp(cam.x, P.x - VW / 2, Math.min(1, dt * 5)); cam.y = lerp(cam.y, P.y - 14 - VH / 2, Math.min(1, dt * 5));
 }
-let qTick = 0, endT = 0;
+let qTick = 0, endT = 0; let pulses = [];
 
 /* ================= DRAW ================= */
 let CX = 0, CY = 0;
@@ -1668,7 +1729,7 @@ function drawMob(m) { const D = MOBS[m.t], S = SP[m.t]; let c = m.hit > 0 ? (m.f
   if (D.ai === 'pull') { if (m.st === 'aim') { for (let k = 0; k < 12; k++) { const t = k / 12; if (k % 2) px(lerp(m.x, m.ax, t), lerp(m.y - 6, m.ay - 6, t), 2, 2, '#e2463c'); } } if (m.lash > 0) { for (let k = 0; k < 16; k++) { const t = k / 16; px(lerp(m.x, P.x, t), lerp(m.y - 6, P.y - 8, t) + Math.sin(t * 9 + T * 30) * 2, 2, 2, '#d06a7e'); } } }
   if (m.trapped > 0) { sprAt(NSP.trap, m.x, m.y + 2); }
   shadow(m.x, m.y, Math.max(3, c.width / 2 - 2));
-  sprAt(c, m.x, m.y - bob, a);
+  { const sq = m.mv ? Math.round(Math.sin(T * 16 + m.ph) * 1.3) : Math.round(Math.sin(T * 2.6 + m.ph) * .7); if (sq) { const w = c.width - sq, h = c.height + sq; ctx.globalAlpha = a; ctx.drawImage(c, Math.round(m.x - CX - w / 2), Math.round(m.y - bob - CY - h), w, h); ctx.globalAlpha = 1; } else sprAt(c, m.x, m.y - bob, a); }
   if (m.hpShow > 0 && !m.dead) { const w = 16, fr = clamp(m.hp / D.hp, 0, 1), bx = m.x - w / 2, by = m.y - c.height - bob - 4; ctx.globalAlpha = Math.min(1, m.hpShow); px(bx - 1, by - 1, w + 2, 4, '#120810'); px(bx, by, w, 2, '#3a1a28'); px(bx, by, Math.max(1, Math.round(w * fr)), 2, fr > .5 ? '#c6e34a' : fr > .25 ? '#f2a640' : '#e2463c'); ctx.globalAlpha = 1; }
   if (m.trapped > 0) { ctx.globalAlpha = .7; sprAt(NSP.trap, m.x, m.y - 2); ctx.globalAlpha = 1; }
   if (m.loot && m.loot.n) { const ic = ICON[m.loot.id]; if (ic) sprAt(ic, m.x, m.y - c.height - 2); } }
@@ -1744,6 +1805,8 @@ function drawOverlays() {
   if (hurtFlash > 0) { ctx.fillStyle = `rgba(226,70,60,${hurtFlash * .55})`; for (let k = 0; k < 4; k++) { const w = 6 + k * 4; ctx.globalAlpha = .55 - k * .12; ctx.fillRect(0, 0, VW, w); ctx.fillRect(0, VH - w, VW, w); ctx.fillRect(0, 0, w, VH); ctx.fillRect(VW - w, 0, w, VH); } ctx.globalAlpha = 1; }
   if (inkT > 0) { ctx.globalAlpha = Math.min(.92, inkT / 2); ctx.fillStyle = '#1b0d1c'; for (let k = 0; k < 14; k++) { const x = hash2(k, 5, 1) * VW, y = hash2(k, 6, 1) * VH, r = 20 + hash2(k, 7, 1) * 40; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1; }
   if (day === 4 && state === 'play') { ctx.fillStyle = 'rgba(255,150,70,.07)'; ctx.fillRect(0, 0, VW, VH); if (EPI.heat > 0) { ctx.fillStyle = `rgba(255,224,130,${(EPI.heat * .32).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH); ctx.fillStyle = `rgba(255,250,220,${(EPI.heat * .25).toFixed(3)})`; for (let k = 0; k < 22; k++) { const y = (k * 37 + T * 30) % VH, x = (Math.sin(T * 2 + k) * 20 + k * 53 - T * 120) % (VW + 60); ctx.fillRect(Math.round(((x % (VW + 60)) + VW + 60) % (VW + 60) - 30), Math.round(y), 22, 1); } } }
+  if (day < 4 && state === 'play') { const ev = DIR && DIR.ev, strong = ev === 'breath' ? 2 : isContract(ev) ? 1.6 : 1; const br = (Math.sin(T * (ev === 'breath' ? 1.6 : .8)) + 1) / 2; ctx.fillStyle = `rgba(150,30,60,${((.02 + br * .035) * strong).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH);
+    pulses = pulses.filter(p => (p.t += 1 / 60) < 1.2); for (const p of pulses) { const r = p.t * Math.max(VW, VH) * .7, a = (1 - p.t / 1.2) * .12; ctx.strokeStyle = `rgba(255,150,170,${a.toFixed(3)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(Math.round(P.x - CX), Math.round(P.y - CY), r, r * .6, 0, 0, 6.283); ctx.stroke(); } }
   if (DIR && DIR.phase === 'warn' && Math.floor(T * 4) % 2) { ctx.fillStyle = 'rgba(226,70,60,.08)'; ctx.fillRect(0, 0, VW, VH); }
   if (DIR && DIR.ev === 'breath' && DIR.phase === 'run') { ctx.fillStyle = 'rgba(234,220,184,.35)'; for (let k = 0; k < 18; k++) { const x = ((hash2(k, 3, 2) * VW + T * windX * 3) % VW + VW) % VW, y = ((hash2(k, 4, 2) * VH + T * windY * 3) % VH + VH) % VH; ctx.fillRect(Math.round(x), Math.round(y), 5, 1); } }
   // objective marker
@@ -1907,7 +1970,7 @@ function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); pa
   const first = ov.querySelector('.btn'); if (first) setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (e) {} }, 30); }
 function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; if (state === 'play') paused = false; }
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
-  const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: () => { freshRun(); startDay(1); } }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: 'Como jogar', fn: () => howTo() });
+  const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: () => { freshRun(); playCut('intro', () => startDay(1)); } }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAS', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
 function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
@@ -1959,6 +2022,7 @@ addEventListener('keydown', e => { const inInput = e.target && e.target.tagName 
   const ovOpen = !$('#overlay').hidden;
   if (e.code === 'Escape' && ovOpen && state === 'play') { closeCard(); return; }
   if (ovOpen) return;
+  if (state === 'cut') { if (['Space', 'Enter', 'Escape'].includes(e.code)) { e.preventDefault(); endCut(); } return; }
   if (state !== 'play' || e.repeat) return;
   const MK = { KeyC: 'craft', KeyI: 'bag', KeyQ: 'quests', KeyM: 'map', KeyB: 'best' };
   if (e.code === 'Escape' || e.code === 'Tab') { menuOpen() ? closeMenu() : openMenu(); return; }
@@ -1986,7 +2050,7 @@ $('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'
 function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Math.max(2, Math.round(w / 200)) : Math.max(2, Math.round(Math.min(w, h * 1.6) / 380)); VW = Math.ceil(w / SCALE); VH = Math.ceil(h / SCALE); cv.width = VW; cv.height = VH; cv.style.width = VW * SCALE + 'px'; cv.style.height = VH * SCALE + 'px'; lightC.width = Math.ceil(VW / 2); lightC.height = Math.ceil(VH / 2); ctx.imageSmoothingEnabled = false; lctx.imageSmoothingEnabled = false; }
 addEventListener('resize', resize);
 let last = 0;
-function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
+function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'cut') drawCut(); else if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
 function boot(data) {
   resize(); freshRun();
   ['hp', 'food', 'light'].forEach(k => { const el = $('#i' + k[0].toUpperCase() + k.slice(1)); el.src = iconURL(k); el.width = ICON[k].width * 2; el.height = ICON[k].height * 2; });
