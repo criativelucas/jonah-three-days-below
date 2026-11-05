@@ -303,6 +303,7 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
 .slotrow .sinfo{display:flex;flex-direction:column;gap:3px;font-size:13px;min-width:0}.slotrow .sinfo span{font-size:11px;color:var(--bone-dim)}
 .slotrow .sact{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.slotrow .btn{padding:8px 12px;font-size:11px}
 .btn.arm{background:var(--blood);color:var(--bone)}
+.rng{display:flex;align-items:center;gap:10px}.rng input{width:min(240px,40vw);accent-color:var(--acid)}.rng b{min-width:28px;font-family:var(--f-label);font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
 .note{margin:0;font-size:12px;line-height:1.4;color:var(--bone-dim)}
 @media (max-width:760px){
   .slotrow{grid-template-columns:1fr}.slotrow .sact{justify-content:flex-start}
@@ -951,7 +952,7 @@ function damageMob(m, dmg, kx, ky) { const D = MOBS[m.t]; m.hp -= dmg; m.hit = .
   if (m.latched) { m.latched = false; P.latched = null; m.stun = .6; }
   if (D.ai === 'tank') m.stun = .35;
   if (m.hp <= 0) killMob(m); }
-function killMob(m) { const D = MOBS[m.t]; m.dead = true; totalKills++; kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
+function killMob(m) { const D = MOBS[m.t]; m.dead = true; sfx('squish'); totalKills++; kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
 function attack() { if (P.atk > 0 || state !== 'play' || paused) return; const w = equip.hand ? ITEMS[equip.hand.id] : null; const dmg = w ? w.dmg : 1, reach = w ? w.reach : 11; P.atk = .38; P.swing = .16; sfx('swing');
   const hx = P.x + P.fx * reach * .8, hy = P.y - 3 + P.fy * reach * .7; let hitAny = false;
   for (const m of mobs) { if (m.dead || m.npc) continue; const D = MOBS[m.t]; if (D.ai === 'ambush' && m.st === 'hidden') continue; if (dist(m.x, m.y - 4, hx, hy) > reach * .75 + m.r + 3) continue;
@@ -987,7 +988,7 @@ function mobUpdate(m, dt) {
     case 'float': tx = Math.sin(T * .5 + m.ph); ty = Math.cos(T * .37 + m.ph * 2) * .8; break;
     case 'tank': chase(); break;
     case 'charge':
-      if (m.st === 'idle') { if (dd < D.sense && !safe) { m.st = 'wind'; m.stT = .65; m.vx = ux; m.vy = uy; } else wander(); }
+      if (m.st === 'idle') { if (dd < D.sense && !safe) { m.st = 'wind'; m.stT = .65; m.vx = ux; m.vy = uy; sfx('growl'); } else wander(); }
       else if (m.st === 'wind') { m.stT -= dt; spd = 0; m.vx = ux; m.vy = uy; if (m.stT <= 0) { m.st = 'dash'; m.stT = .45; sfx('dash'); } contact = false; }
       else if (m.st === 'dash') { m.stT -= dt; spd = D.dash; tx = m.vx; ty = m.vy; if (m.stT <= 0) { m.st = 'rest'; m.stT = 1.1; } }
       else { m.stT -= dt; spd = 0; contact = false; if (m.stT <= 0) m.st = 'idle'; }
@@ -1028,16 +1029,16 @@ function mobUpdate(m, dt) {
       contact = false; break; }
     case 'hop':
       if (m.st === 'hop') { m.stT -= dt; tx = m.vx; ty = m.vy; spd = 115; m.z = Math.sin((1 - m.stT / .35) * Math.PI) * 9; if (m.stT <= 0) { m.st = 'idle'; m.z = 0; m.cd2 = 1.1; } }
-      else { contact = false; m.cd2 = (m.cd2 || 0) - dt; if (dd < D.sense && !safe && m.cd2 <= 0) { m.st = 'hop'; m.stT = .35; m.vx = ux; m.vy = uy; } else { wander(.3); spd = 18; } }
+      else { contact = false; m.cd2 = (m.cd2 || 0) - dt; if (dd < D.sense && !safe && m.cd2 <= 0) { m.st = 'hop'; m.stT = .35; m.vx = ux; m.vy = uy; sfx('chirp'); } else { wander(.3); spd = 18; } }
       break;
     case 'pulse':
       contact = false; m.ring = Math.max(0, (m.ring || 0) - dt);
-      if (m.st === 'charge') { m.stT -= dt; spd = 0; if (m.stT <= 0) { m.st = 'idle'; m.cd = 3.2; m.ring = .4; sfx('boom'); if (dd < 50 && !safe) hurtPlayer(D.dmg, m.x, m.y); } }
-      else { if (dd < D.sense && !safe) { tx = ux * .6; ty = uy * .6; } else wander(); tx += Math.sin(T * 2 + m.ph) * .4; if (dd < 62 && m.cd <= 0 && !safe) { m.st = 'charge'; m.stT = .9; sfx('inflate'); } }
+      if (m.st === 'charge') { m.stT -= dt; spd = 0; if (m.stT <= 0) { m.st = 'idle'; m.cd = 3.2; m.ring = .4; sfx('zap'); if (dd < 50 && !safe) hurtPlayer(D.dmg, m.x, m.y); } }
+      else { if (dd < D.sense && !safe) { tx = ux * .6; ty = uy * .6; } else wander(); tx += Math.sin(T * 2 + m.ph) * .4; if (dd < 62 && m.cd <= 0 && !safe) { m.st = 'charge'; m.stT = .9; sfx('charge'); } }
       break;
     case 'pull':
       m.lash = Math.max(0, (m.lash || 0) - dt);
-      if (m.st === 'aim') { m.stT -= dt; spd = 0; contact = false; if (m.stT <= 0) { m.st = 'idle'; m.cd = 3; if (dd < 118 && !safe) { hurtPlayer(D.dmg, null); P.kx = -ux * 280; P.ky = -uy * 280; m.lash = .3; sfx('dash'); if (!flags.lulaTip) { flags.lulaTip = true; toast('A lula puxa Jonas! Saia da linha quando o tentáculo mirar.', 'bad'); } } } }
+      if (m.st === 'aim') { m.stT -= dt; spd = 0; contact = false; if (m.stT <= 0) { m.st = 'idle'; m.cd = 3; if (dd < 118 && !safe) { hurtPlayer(D.dmg, null); P.kx = -ux * 280; P.ky = -uy * 280; m.lash = .3; sfx('whip'); if (!flags.lulaTip) { flags.lulaTip = true; toast('A lula puxa Jonas! Saia da linha quando o tentáculo mirar.', 'bad'); } } } }
       else { if (dd < D.sense && !safe) { if (dd < 45) { tx = -ux; ty = -uy; } else if (dd > 88) { tx = ux; ty = uy; } else { tx = -uy * .5; ty = ux * .5; } if (m.cd <= 0 && dd < 108) { m.st = 'aim'; m.stT = .7; m.ax = P.x; m.ay = P.y; } } else wander(); }
       break;
     case 'roll':
@@ -1062,9 +1063,71 @@ function toast(msg, kind = '') { const d = document.createElement('div'); d.clas
 
 /* ================= AUDIO ================= */
 let AC = null, muted = false, beatT = 0;
-function audioInit() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume().catch(() => {}); }
-function tone(f, d, type = 'square', v = .04, slide = 0, delay = 0) { if (!AC || muted) return; try { const t0 = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, f + slide), t0 + d); g.gain.setValueAtTime(v, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + d); o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + d + .02); } catch (e) {} }
-function noiseS(d, v = .05, f = 900) { if (!AC || muted) return; try { const b = AC.createBuffer(1, Math.floor(AC.sampleRate * d), AC.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length); const s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = b; fl.type = 'lowpass'; fl.frequency.value = f; g.gain.value = v; s.connect(fl); fl.connect(g); g.connect(AC.destination); s.start(); } catch (e) {} }
+const AUD = { vm: .7, vs: .8, m: null };
+try { const a = JSON.parse(localStorage.getItem('jonah-audio') || 'null'); if (a) { AUD.vm = a.vm != null ? a.vm : .7; AUD.vs = a.vs != null ? a.vs : .8; muted = !!a.mute; } } catch (e) {}
+function saveAudio() { try { localStorage.setItem('jonah-audio', JSON.stringify({ vm: AUD.vm, vs: AUD.vs, mute: muted })); } catch (e) {} }
+function audioInit() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); buildAudio(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume().catch(() => {}); }
+function gainN(v, to) { const g = AC.createGain(); g.gain.value = v; if (to) g.connect(to); return g; }
+function noiseBuf(sec, brown) { const b = AC.createBuffer(1, Math.floor(AC.sampleRate * sec), AC.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; if (brown) { last = (last + .02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; } return b; }
+function buildAudio() { const A = AC;
+  AUD.master = gainN(muted ? 0 : 1, A.destination);
+  // cave reverb: generated impulse response
+  const len = Math.floor(A.sampleRate * 2.8), ir = A.createBuffer(2, len, A.sampleRate); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  AUD.rev = A.createConvolver(); AUD.rev.buffer = ir; AUD.rev.connect(gainN(.55, AUD.master));
+  // echo
+  AUD.dly = A.createDelay(1.5); AUD.dly.delayTime.value = .42; const dlf = A.createBiquadFilter(); dlf.type = 'lowpass'; dlf.frequency.value = 1800; const fb = gainN(.38); AUD.dly.connect(dlf); dlf.connect(fb); fb.connect(AUD.dly); dlf.connect(AUD.rev); dlf.connect(gainN(.5, AUD.master));
+  AUD.music = gainN(AUD.vm, AUD.master); AUD.sfx = gainN(AUD.vs, AUD.master);
+  AUD.musRev = gainN(AUD.vm, AUD.rev); AUD.musDly = gainN(AUD.vm, AUD.dly); AUD.sfxRev = gainN(AUD.vs, AUD.rev);
+  const M = AUD.m = { chord: null, songT: 3, dripT: 1, bubT: 0, tick: 0, last: {} };
+  // drone pad
+  M.padF = A.createBiquadFilter(); M.padF.type = 'lowpass'; M.padF.frequency.value = 380; M.padF.Q.value = 2.2;
+  M.padG = gainN(0); M.padF.connect(M.padG); M.padG.connect(AUD.music); M.padG.connect(AUD.musRev);
+  M.pad = [0, 1, 2, 3].map(i => { const o = A.createOscillator(); o.type = i < 2 ? 'sawtooth' : 'triangle'; o.frequency.value = 73.4; o.detune.value = i % 2 ? 7 : -7; o.connect(M.padF); o.start(); return o; });
+  const lfo = A.createOscillator(); lfo.frequency.value = .06; const lg = gainN(150); lfo.connect(lg); lg.connect(M.padF.frequency); lfo.start();
+  // rumble (contractions) and acid sizzle
+  const rs = A.createBufferSource(); rs.buffer = noiseBuf(4, true); rs.loop = true; M.rumF = A.createBiquadFilter(); M.rumF.type = 'lowpass'; M.rumF.frequency.value = 150; M.rumG = gainN(0, AUD.music); rs.connect(M.rumF); M.rumF.connect(M.rumG); rs.start();
+  const zs = A.createBufferSource(); zs.buffer = noiseBuf(2, false); zs.loop = true; const zf = A.createBiquadFilter(); zf.type = 'highpass'; zf.frequency.value = 2600; M.sizG = gainN(0, AUD.sfx); zs.connect(zf); zf.connect(M.sizG); zs.start();
+  // choir (silence chamber, prayer, ending)
+  M.choG = gainN(0); M.choG.connect(AUD.music); M.choG.connect(AUD.musRev);
+  const vib = A.createOscillator(); vib.frequency.value = 4.6; const vg = gainN(3); vib.connect(vg); vib.start();
+  M.cho = [0, 1, 2, 3].map(i => { const o = A.createOscillator(); o.type = 'sine'; o.frequency.value = 293.7; o.detune.value = (i - 1.5) * 5; vg.connect(o.frequency); o.connect(M.choG); o.start(); return o; });
+}
+function applyVolumes() { saveAudio(); if (!AC || !AUD.master) return; const t = AC.currentTime; AUD.master.gain.setTargetAtTime(muted ? 0 : 1, t, .05); for (const [g, v] of [[AUD.music, AUD.vm], [AUD.musRev, AUD.vm], [AUD.musDly, AUD.vm], [AUD.sfx, AUD.vs], [AUD.sfxRev, AUD.vs]]) g.gain.setTargetAtTime(v, t, .05); }
+const CH = { d1: [73.42, 110, 146.83, 174.61], d2: [69.3, 103.83, 138.59, 164.81], d3: [73.42, 110, 146.83, 185], sil: [73.42, 110, 146.83, 164.81], end: [98, 146.83, 196, 246.94] };
+const SCALE_MIN = [220, 261.63, 293.66, 349.23, 392, 440], SCALE_MAJ = [220, 246.94, 293.66, 329.63, 369.99, 440];
+function setT(param, v, tc = .6) { param.setTargetAtTime(v, AC.currentTime, tc); }
+function whaleCall() { const A = AC, t = A.currentTime, sc = (day === 3 || state === 'ending') ? SCALE_MAJ : SCALE_MIN; const oct = Math.random() < .55 ? .5 : 1; const f1 = pickM(sc) * oct, f2 = pickM(sc) * oct;
+  const o = A.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + 1.5); o.frequency.exponentialRampToValueAtTime(f2 * (Math.random() < .5 ? .84 : 1.12), t + 3);
+  const v = A.createOscillator(); v.frequency.value = 4.2; const vg = gainN(f1 * .012); v.connect(vg); vg.connect(o.frequency);
+  const g = gainN(0); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .9); g.gain.setValueAtTime(.045, t + 2); g.gain.linearRampToValueAtTime(0, t + 3.4);
+  o.connect(g); g.connect(AUD.music); g.connect(AUD.musRev); g.connect(AUD.musDly); o.start(t); v.start(t); o.stop(t + 3.6); v.stop(t + 3.6); }
+function drip() { const A = AC, t = A.currentTime, f = rr(1500, 3200); const o = A.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .6, t + .07); const g = gainN(0); g.gain.setValueAtTime(.035, t); g.gain.exponentialRampToValueAtTime(.0001, t + .09); o.connect(g); g.connect(AUD.musDly); g.connect(AUD.music); o.start(t); o.stop(t + .1); }
+function bubble() { const A = AC, t = A.currentTime, f = rr(260, 520); const o = A.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 2.6, t + .05); const g = gainN(0); g.gain.setValueAtTime(.03, t); g.gain.exponentialRampToValueAtTime(.0001, t + .07); o.connect(g); g.connect(AUD.sfx); o.start(t); o.stop(t + .08); }
+function musicTick(dt) { if (!AC || !AUD.m || AC.state !== 'running') return; const M = AUD.m;
+  const inPlay = state === 'play', rg = inPlay && P ? regionOf(P.x, P.y) : null, sil = rg && rg.id === 'silencio';
+  M.songT -= dt; if (M.songT <= 0) { M.songT = rr(7, 15); if (state !== 'pray' && !sil) whaleCall(); }
+  M.dripT -= dt; if (M.dripT <= 0) { M.dripT = rr(.9, 3.4); if (inPlay || state === 'title') drip(); }
+  if (inPlay && tideLevel > .3 && !paused) { M.bubT -= dt; if (M.bubT <= 0) { M.bubT = rr(.05, .3); bubble(); } }
+  M.tick -= dt; if (M.tick > 0) return; M.tick = .25;
+  let chord = CH.d1, padV = .045, cut = 380, rum = 0, cho = 0, siz = 0, rumCut = 150;
+  if (state === 'title') { padV = .04; }
+  else if (state === 'ending') { chord = CH.end; padV = .03; cut = 800; cho = .03; rum = .07; rumCut = 520; }
+  else if (state === 'pray' || (flags && flags.praying)) { chord = CH.sil; padV = .014; cho = .06; cut = 520; }
+  else if (inPlay) { chord = sil ? CH.sil : day === 1 ? CH.d1 : day === 2 ? CH.d2 : CH.d3; if (sil) { padV = .022; cho = .028; }
+    if (DIR) { const run = DIR.phase === 'run';
+      if (DIR.phase === 'warn') { cut = 650 + Math.sin(T * 6) * 120; rum = .06; }
+      if (run && isContract(DIR.ev)) { cut = 1100; rum = DIR.ev === 'grande' ? .4 : .27; }
+      if (run && DIR.ev === 'dive') { rum = .15; cut = 300; }
+      if (run && DIR.ev === 'blackout') { cut = 210; }
+      if (run && DIR.ev === 'bloom') { cut = 720; }
+      if (run && DIR.ev === 'tide') { cut = 520; rum = .05; } }
+    if (!paused && P && isAcidAt(P.x, P.y)) siz = .05;
+    if (menuOpen()) { padV *= .6; cut *= .65; rum *= .4; } }
+  const L = M.last, upd = (k, v, param, tc) => { if (L[k] == null || Math.abs(L[k] - v) > .002) { L[k] = v; setT(param, v, tc); } };
+  upd('pv', padV, M.padG.gain, 1.2); upd('cut', cut, M.padF.frequency, .5); upd('rum', rum, M.rumG.gain, .4); upd('rc', rumCut, M.rumF.frequency, .5); upd('siz', siz, M.sizG.gain, .1); upd('cho', cho, M.choG.gain, 1.5);
+  if (M.chord !== chord) { M.chord = chord; const t = AC.currentTime; M.pad.forEach((o, i) => o.frequency.setTargetAtTime(chord[i], t, 1.4)); M.cho.forEach((o, i) => o.frequency.setTargetAtTime(chord[i] * 4, t, 1.4)); } }
+function tone(f, d, type = 'square', v = .04, slide = 0, delay = 0, bus = 'sfx', rev = .2) { if (!AC || muted || !AUD.sfx) return; try { const t0 = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, f + slide), t0 + d); g.gain.setValueAtTime(v, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + d); o.connect(g); g.connect(bus === 'music' ? AUD.music : AUD.sfx); if (rev) { const r = gainN(rev); g.connect(r); r.connect(bus === 'music' ? AUD.musRev : AUD.sfxRev); } o.start(t0); o.stop(t0 + d + .02); } catch (e) {} }
+function noiseS(d, v = .05, f = 900, type = 'lowpass', rev = .2) { if (!AC || muted || !AUD.sfx) return; try { const b = AC.createBuffer(1, Math.floor(AC.sampleRate * d), AC.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length); const s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = b; fl.type = type; fl.frequency.value = f; g.gain.value = v; s.connect(fl); fl.connect(g); g.connect(AUD.sfx); if (rev) { const r = gainN(rev); g.connect(r); r.connect(AUD.sfxRev); } s.start(); } catch (e) {} }
 function sfx(k) { switch (k) {
   case 'pick': tone(660, .06, 'square', .03); tone(990, .08, 'square', .03, 0, .05); break;
   case 'craft': tone(520, .07, 'square', .035); tone(780, .07, 'square', .035, 0, .06); tone(1040, .1, 'square', .035, 0, .12); break;
@@ -1073,7 +1136,16 @@ function sfx(k) { switch (k) {
   case 'hurt': tone(200, .22, 'sawtooth', .06, -120); noiseS(.12, .05, 700); break;
   case 'warn': tone(70, .9, 'sine', .14, -20); tone(140, .3, 'square', .02, 0, .1); break;
   case 'event': tone(98, .5, 'triangle', .07, 40); break;
-  case 'beat': tone(52, .16, 'sine', .13, -10); tone(48, .18, 'sine', .1, -8, .2); break;
+  case 'beat': tone(52, .16, 'sine', .14, -10, 0, 'music', .3); tone(48, .18, 'sine', .11, -8, .2, 'music', .3); break;
+  case 'step': noiseS(.07, .03, rr(350, 700), 'lowpass', .05); tone(rr(70, 95), .06, 'sine', .025, -20, 0, 'sfx', 0); break;
+  case 'stepAcid': noiseS(.12, .035, 4200, 'highpass', .05); break;
+  case 'squish': noiseS(.18, .08, 600); tone(160, .2, 'sine', .06, -110); break;
+  case 'growl': tone(70, .5, 'sawtooth', .045, -20); noiseS(.4, .035, 300); break;
+  case 'chirp': tone(1400, .08, 'square', .018, 600); break;
+  case 'charge': tone(300, .9, 'sawtooth', .025, 1400); break;
+  case 'zap': tone(1800, .25, 'sawtooth', .04, -1600); noiseS(.25, .06, 6000, 'highpass'); break;
+  case 'whip': noiseS(.15, .06, 2500, 'bandpass'); tone(500, .15, 'triangle', .03, -350); break;
+  case 'roar': tone(55, 1.4, 'sawtooth', .06, -20, 0, 'sfx', .4); tone(82, 1.2, 'sawtooth', .035, -30, .1, 'sfx', .4); noiseS(1.2, .08, 250, 'lowpass', .4); break;
   case 'eat': tone(300, .05, 'square', .03); tone(260, .05, 'square', .03, 0, .07); break;
   case 'equip': tone(440, .06, 'triangle', .04); tone(660, .06, 'triangle', .04, 0, .05); break;
   case 'mem': [523, 659, 784, 1046].forEach((f, i) => tone(f, .5, 'triangle', .04, 0, i * .12)); break;
@@ -1100,7 +1172,7 @@ function startEvent(id) { DIR.ev = id; DIR.t = 0; const E = EVENTS[id]; DIR.dur 
   if (id === 'bloom') { for (let k = 0; k < 3; k++) { const sp = findSpot(P.x, P.y, 20, 90); if (sp) dropItem('cogumelo', 1, sp.x, sp.y); } }
   if (id === 'swarm') { for (let k = 0; k < 5; k++) { const sp = findSpot(P.x, P.y, 120, 200); if (sp) spawnMob(pickM(pool(day)), sp.x, sp.y); } }
   if (id === 'blackout') { for (let k = 0; k < 2; k++) { const sp = findSpot(P.x, P.y, 110, 180); if (sp) spawnMob('sombra', sp.x, sp.y); } }
-  if (EVENTS[id].lvl >= 1) sfx('event'); }
+  if (isContract(id)) sfx('roar'); else if (EVENTS[id].lvl >= 1) sfx('event'); }
 function endEvent(id) { if (isContract(id)) { setContract(false); if (day === 2) contrCount++; }
   if (id === 'grande' && day === 1) { flags.bigDone = true; const g = folds.find(f => f.key === 'G1'); if (g) { g.closed = false; burst(g.x, g.y, '#e392a3', 40); } toast('A contração rasgou a membrana. Uma passagem se abriu a leste.', 'good'); } }
 function directorTick(dt) {
@@ -1292,6 +1364,7 @@ function playerTick(dt) {
   P.kx *= Math.pow(.002, dt); P.ky *= Math.pow(.002, dt);
   moveEnt(P, mx * spd * dt + P.kx * dt + windX * dt, my * spd * dt + P.ky * dt + windY * dt);
   P.anim += P.moving ? dt * 8 : 0;
+  if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .3 / (feet && feet.spd || 1); sfx(acid ? 'stepAcid' : 'step'); } }
   if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
   P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2)); if (P.food <= 0) P.hp -= dt * 1.1;
   if (P.food > 55 && P.hp < 100) P.hp = Math.min(100, P.hp + dt * .45);
@@ -1573,8 +1646,12 @@ function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); le
     <span class="lbl" style="margin-top:6px">Regiões</span>${REGIONS.map(r => `<div class="rg ${visited.has(r.id) ? '' : 'no'}"><span>${visited.has(r.id) ? r.n : '???'}</span><span>${regionOf(P.x, P.y) === r ? 'aqui' : ''}</span></div>`).join('')}</div></div>`; }
 function renderBestTab(b) { b.innerHTML = `<div class="pad"><span class="lbl">${seen.size}/${Object.keys(MOBS).length} criaturas vistas</span><div class="best" style="max-height:none">${Object.keys(MOBS).map(k => { const D = MOBS[k], s = seen.has(k); const c = s ? SP[k].r : SP.sil[k]; let u = ''; try { u = c.toDataURL(); } catch (e) {} return `<div class="beast ${s ? '' : 'unk'}"><img class="pi" src="${u}" width="${c.width * 3}" height="${c.height * 3}" alt=""><div><span class="dd">DIA ${D.day}</span><b>${s ? D.n : '???'}</b>${s ? D.d + (kills[k] ? ` <span class="dd">· ${kills[k]} derrotad${kills[k] > 1 ? 'os' : 'o'}</span>` : '') : 'Ainda não encontrada.'}</div></div>`; }).join('')}</div></div>`; }
 function renderOptsTab(b) { b.innerHTML = `<div class="pad"><div class="opt"><span>Som</span><button class="btn ${muted ? 'alt' : ''}" id="oMute">${muted ? 'Desligado' : 'Ligado'}</button></div>
+  <div class="opt"><label for="vMus">Música e ambiente</label><span class="rng"><input type="range" id="vMus" min="0" max="100" value="${Math.round(AUD.vm * 100)}"><b id="vMusN">${Math.round(AUD.vm * 100)}</b></span></div>
+  <div class="opt"><label for="vSfx">Efeitos</label><span class="rng"><input type="range" id="vSfx" min="0" max="100" value="${Math.round(AUD.vs * 100)}"><b id="vSfxN">${Math.round(AUD.vs * 100)}</b></span></div>
   <div class="opt" style="flex-direction:column;align-items:stretch"><span class="lbl">Controles</span><div class="keys"><kbd>WASD / setas</kbd><span>Andar</span><kbd>Espaço / J</kbd><span>Atacar</span><kbd>E / K</kbd><span>Coletar, abrir, descansar</span><kbd>Esc / Tab</kbd><span>Pausar e abrir este diário</span><kbd>C · I · Q · M · B</kbd><span>Criar · Mochila · Missões · Mapa · Bestiário</span><kbd>1–0</kbd><span>Usar itens da barra rápida</span><kbd>Botão direito</kbd><span>Soltar item da barra</span><kbd>Setas + Enter</kbd><span>Escolher e criar receitas (aba Criar)</span></div></div></div>`;
-  $('#oMute').onclick = () => { muted = !muted; renderMenu(); }; }
+  $('#oMute').onclick = () => { muted = !muted; applyVolumes(); renderMenu(); };
+  $('#vMus').oninput = e => { AUD.vm = e.target.value / 100; $('#vMusN').textContent = e.target.value; applyVolumes(); };
+  $('#vSfx').oninput = e => { AUD.vs = e.target.value / 100; $('#vSfxN').textContent = e.target.value; applyVolumes(); sfx('pick'); }; }
 let qMin = innerWidth < 760;
 function buildQuests() { $('#qTitle').textContent = `Missões · Dia ${day}`; const qs = QUESTS[day]; let h = '', firstCur = true, lockShown = false;
   for (const q of qs) { const st = qState[q.id]; if (!st) { if (!lockShown) { h += `<div class="q lock"><b></b><span>Ainda desconhecido…</span></div>`; lockShown = true; } continue; } const cur = st === 'active' && firstCur; if (cur) firstCur = false; h += `<div class="q ${st === 'done' ? 'done' : ''} ${cur ? 'cur' : ''}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }
@@ -1616,7 +1693,7 @@ function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML 
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
   const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: () => { freshRun(); startDay(1); } }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAH', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
-function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar com o item da mão</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras.</p>`, btn: 'Voltar', fn: titleScreen }); }
+function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar com o item da mão</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
 function bigMap() { openMenu('map'); }
 
@@ -1690,7 +1767,7 @@ $('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'
 function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Math.max(2, Math.round(w / 200)) : Math.max(2, Math.round(Math.min(w, h * 1.6) / 380)); VW = Math.ceil(w / SCALE); VH = Math.ceil(h / SCALE); cv.width = VW; cv.height = VH; cv.style.width = VW * SCALE + 'px'; cv.style.height = VH * SCALE + 'px'; lightC.width = Math.ceil(VW / 2); lightC.height = Math.ceil(VH / 2); ctx.imageSmoothingEnabled = false; lctx.imageSmoothingEnabled = false; }
 addEventListener('resize', resize);
 let last = 0;
-function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { update(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
+function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
 function boot(data) {
   resize(); freshRun();
   ['hp', 'food', 'light'].forEach(k => { const el = $('#i' + k[0].toUpperCase() + k.slice(1)); el.src = iconURL(k); el.width = ICON[k].width * 2; el.height = ICON[k].height * 2; });
