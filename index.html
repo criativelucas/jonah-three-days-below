@@ -313,6 +313,17 @@ details.mem p{margin:0;padding:0 12px 12px;font-size:13px;line-height:1.5;color:
 .slotrow .sact{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.slotrow .btn{padding:8px 12px;font-size:11px}
 .btn.arm{background:var(--blood);color:var(--bone)}
 .rng{display:flex;align-items:center;gap:10px}.rng input{width:min(240px,40vw);accent-color:var(--acid)}.rng b{min-width:28px;font-family:var(--f-label);font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
+.toast.ach{border-color:var(--amber);color:var(--amber)}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:46vh;overflow:auto}
+.pad .achs{max-height:none}
+.ach{display:grid;grid-template-columns:28px 1fr;gap:8px;padding:9px 10px;background:#0b0408;border:2px solid var(--line);font-size:12px;line-height:1.3;color:#6b5560}
+.ach b{display:block;font-size:13px}.ach span{display:block}.ach small{display:block;margin-top:3px;font-family:var(--f-label);font-size:9px;color:var(--bone-dim)}
+.ach.on{color:var(--bone);border-color:#7a5a1c}.ach.on span{color:var(--bone-dim)}
+.medal{font-size:20px;line-height:1;color:#4a3540}.ach.on .medal{color:var(--amber)}
+.diffs{display:grid;gap:8px}
+.diff{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;background:#0b0408;border:2px solid var(--line);font-size:13px;line-height:1.3}
+.diff b{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1}.diff span{color:var(--bone-dim)}
+.diff[aria-pressed="true"]{border-color:var(--acid);background:#141a06}
 .note{margin:0;font-size:12px;line-height:1.4;color:var(--bone-dim)}
 @media (max-width:760px){
   .slotrow{grid-template-columns:1fr}.slotrow .sact{justify-content:flex-start}
@@ -548,6 +559,7 @@ const ICON_ROWS = {
   bile: ["..R..", ".gg.", "gjjg", "gjlg", ".gg."], peixe_salgado: ["..nnnn.N", ".nwnnnnN", "nnnnnnNN", ".nnnnn.N", "..nnn..."],
   lanca_coral: [".....ff", "....fFf", "...rff.", "..r....", ".r.....", "r......"], bomba: ["...y..", "..Y...", ".gggg.", "gjjjjg", "gjljjg", ".gggg."],
   incenso: ["..l...", "...l..", "..ll..", ".oooo.", "ojjjjo", ".oooo."],
+  i_ach: ["jjjjjjj", "jJjjjJj", ".jjjjj.", "..jjj..", "...j...", "..jjj..", ".JJJJJ."],
   i_save: ["nnnnnnn", "nNwwwNn", "nNwwwNn", "nnnnnnn", "nnUUUnn", "nnUuUnn", "nnnnnnn"],
   i_craft: [".nnnnn.", "nnNNNnn", "...r...", "...r...", "...r...", "...R..."],
   i_bag: ["..RRR..", ".R...R.", "rrrrrrr", "roooooR", "royyyoR", "roooooR", "RRRRRRR"],
@@ -845,6 +857,9 @@ const PLAZAS = [{ x: 34, y: 23 }, { x: 49, y: 51 }, { x: 64, y: 23 }];
 const inCityT = (x, y) => x > 22 && x < 78 && y > 14 && y < 60;
 const LINKS = [['destrocos', 'juncao'], ['juncao', 'costelas'], ['juncao', 'lago'], ['costelas', 'cilios'], ['lago', 'cilios'], ['lago', 'central'], ['cilios', 'central'], ['cilios', 'silencio']];
 let pave = null, wkind = null;
+const DIFFS = { facil: { n: 'História', d: 'Para curtir a narrativa: metade do dano, fome mais lenta e menos criaturas. Nada se perde ao desmaiar.', dmg: .5, food: .6, cap: .6, lose: 0 }, normal: { n: 'Sobrevivência', d: 'O equilíbrio pensado para o jogo.', dmg: 1, food: 1, cap: 1, lose: .5 }, dificil: { n: 'Pesadelo', d: 'Criaturas mais fortes e numerosas, fome mais rápida e mais perdas ao desmaiar.', dmg: 1.4, food: 1.3, cap: 1.35, lose: .75 } };
+let DIFF = 'normal', SEED = 20261105;
+const DF = () => DIFFS[DIFF] || DIFFS.normal;
 let tiles, foldAt, folds, solid, tideMap, regionMap, bridgeMap, reveal, tun, pockets, ground;
 const idx = (x, y) => y * MW + x;
 const inB = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -875,10 +890,16 @@ function genNineveh() { setRegions(REGIONS_NIN); R = mulberry(4040);
     if (ok) for (let y = hy; y < hy + h; y++) for (let x = hx; x < hx + w; x++) W_(x, y); }
   regionMap = new Uint8Array(MW * MH).fill(255);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (tiles[idx(x, y)] === WALL) continue; let best = 255, bd = 1e9; if (inCityT(x, y)) best = 2; else for (const r of REGIONS) { const d = Math.hypot(x - r.x, y - r.y) / (r.r + 4); if (d < bd) { bd = d; best = r.i; } } if (x >= 64 && x <= 79 && y >= 40 && y <= 58) best = 3; regionMap[idx(x, y)] = best; } }
+function validWorld(d) { const sp = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 8); if (!sp) return false; if (!folds.some(f => f.key === 'G1') || !folds.some(f => f.key === 'G3')) return false;
+  const flood = open => { const seen = new Uint8Array(MW * MH), regs = new Set(), q = [[Math.floor(sp.x / TS), Math.floor(sp.y / TS)]]; seen[idx(q[0][0], q[0][1])] = 1;
+    while (q.length) { const [x, y] = q.pop(); const r = regionMap[idx(x, y)]; if (r < REGIONS.length) regs.add(REGIONS[r].id); for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + a, ny = y + b; if (!inB(nx, ny)) continue; const i = idx(nx, ny); if (seen[i] || tiles[i] === WALL || solid[i]) continue; const f = foldAt[i]; if (f >= 0) { const F = folds[f]; if (F.type === 'open' || (F.type === 'gate' && !open.includes(F.key))) continue; } seen[i] = 1; q.push([nx, ny]); } } return regs; };
+  const a = flood([]), b = flood(['G1']), c = flood(['G1', 'G3']); const all = ['juncao', 'costelas', 'lago', 'cilios', 'central'];
+  if (d === 1 && a.has('juncao')) return false; if (b.has('silencio')) return false; if (!all.every(k => b.has(k))) return false; return c.has('silencio'); }
+function findSeed() { for (let k = 0; k < 40; k++) { SEED = 1000 + Math.floor(Math.random() * 1e8); let ok = true; for (const d of [1, 2, 3]) { genWorld(d); if (!validWorld(d)) { ok = false; break; } } if (ok) return SEED; } SEED = 20261105; return SEED; }
 function genWorld(day) {
   if (day === 4) { genNineveh(); return; }
   setRegions(REGIONS_WHALE); pave = wkind = null;
-  R = mulberry(20261105);
+  R = mulberry(SEED);
   tiles = new Uint8Array(MW * MH); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = [];
   for (const r of REGIONS) carveBlob(r.x, r.y, r.r, r.i);
   tun = {};
@@ -1016,14 +1037,14 @@ function craft(rid) { const r = RECIPES.find(x => x.id === rid); if (!r || r.day
   const outId = r.give || rid, outN = r.out || 1; if (!r.place) { const it0 = ITEMS[outId]; const direct = it0.slot && (!equip[it0.slot] || (it0.slot === 'hand' && !equip.hand2)); if (!direct && !canFit(outId)) { warnFull(); return; } }
   if (r.place && !place(r.place)) return;
   for (const k in r.in) take(k, r.in[k]);
-  crafted[rid] = (crafted[rid] || 0) + 1; sfx('craft');
+  crafted[rid] = (crafted[rid] || 0) + 1; sfx('craft'); if (rid === 'tocha') unlock('primeira_luz'); if (rid === 'sandalias') unlock('sandalia');
   if (!r.place) { const it = ITEMS[outId]; if (it.slot && !equip[it.slot]) { equip[it.slot] = { id: outId, dur: it.fuel || 0 }; got[outId] = (got[outId] || 0) + 1; sfx('equip'); toast(`${it.n} criado e equipado`, 'good'); } else if (it.slot === 'hand' && !equip.hand2) { equip.hand2 = { id: outId, dur: 0 }; got[outId] = (got[outId] || 0) + 1; sfx('equip'); toast(`${it.n} criado e guardado na reserva (R troca)`, 'good'); } else addItem(outId, outN, true); floatTxt(`+${outN > 1 ? outN + ' ' : ' '}${it.n}`, P.x, P.y - 24, '#c6e34a'); }
   invDirty = true; lastCrafted = rid; refreshMenus(); if (r.place && menuOpen()) closeMenu(); return true; }
 function place(kind) { const fx_ = P.x + P.fx * 18, fy_ = P.y + P.fy * 14;
   if (kind === 'bridge') { const dx = Math.abs(P.fx) >= Math.abs(P.fy) ? Math.sign(P.fx) : 0, dy = dx ? 0 : Math.sign(P.fy) || 1; let tx = Math.floor(P.x / TS), ty = Math.floor(P.y / TS), put = 0; for (let k = 1; k <= 5 && put < 3; k++) { const x = tx + dx * k, y = ty + dy * k; if (!inB(x, y)) break; const i = idx(x, y); if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; put++; structs.push({ k: 'bridge', i, x: (x + .5) * TS, y: (y + .5) * TS }); for (const off of [-1, 1]) { const j = dx ? idx(x, y + off) : idx(x + off, y); if (inB(x, y + off) && tiles[j] === ACID && !bridgeMap[j]) { bridgeMap[j] = 1; structs.push({ k: 'bridge', i: j }); } } } else if (put && tiles[i] !== ACID) break; else if (tiles[i] === WALL) break; }
     if (!put) { toast('Fique de frente para o ácido (até 5 passos).', 'bad'); return false; } toast('Prancha colocada sobre o ácido.', 'good'); return true; }
   if (isSolidP(fx_, fy_) || tileAt(fx_, fy_) !== FLOOR) { toast('Não há espaço ali. Vire para um chão livre.', 'bad'); return false; }
-  if (kind === 'shelter') { if (shelter) { const tx = Math.floor(shelter.x / TS), ty = Math.floor(shelter.y / TS); solid[idx(tx, ty)] = 0; structs = structs.filter(s => s !== shelter); toast('O abrigo antigo foi desmontado e levado.'); } shelter = { k: 'shelter', x: fx_, y: fy_ }; structs.push(shelter); solid[idx(Math.floor(fx_ / TS), Math.floor(fy_ / TS))] = 1; toast('Abrigo montado. Aqui as criaturas não entram.', 'good'); return true; }
+  if (kind === 'shelter') { if (shelter) { const tx = Math.floor(shelter.x / TS), ty = Math.floor(shelter.y / TS); solid[idx(tx, ty)] = 0; structs = structs.filter(s => s !== shelter); toast('O abrigo antigo foi desmontado e levado.'); } shelter = { k: 'shelter', x: fx_, y: fy_ }; structs.push(shelter); solid[idx(Math.floor(fx_ / TS), Math.floor(fy_ / TS))] = 1; toast('Abrigo montado. Aqui as criaturas não entram.', 'good'); unlock('abrigo'); return true; }
   if (kind === 'fire') { structs.push({ k: 'fire', x: fx_, y: fy_, fuel: 150 }); return true; }
   if (kind === 'trap') { structs.push({ k: 'trap', x: fx_, y: fy_, uses: 3 }); return true; }
   return false; }
@@ -1037,20 +1058,20 @@ let spawnT = 6;
 function pool(d) { return Object.keys(MOBS).filter(k => MOBS[k].day === d); }
 function spawnTick(dt) { if (day === 4) return; spawnT -= dt; if (spawnT > 0) return; spawnT = 2.6; if (playTime < 40 && day === 1) return;
   const rg = regionOf(P.x, P.y); if (rg && rg.id === 'silencio') return;
-  const cap = [0, 5, 8, 10][day] + (DIR.ev === 'swarm' ? 6 : 0); const n = mobs.filter(m => !m.npc).length; if (n >= cap) return;
+  const cap = Math.round(([0, 5, 8, 10][day] + (DIR.ev === 'swarm' ? 6 : 0)) * DF().cap); const n = mobs.filter(m => !m.npc).length; if (n >= cap) return;
   let d = day; if (day > 1 && Math.random() < .25) d = ri(1, day - 1);
   let t = pickM(pool(d)); if (t === 'sombra' && DIR.ev !== 'blackout' && Math.random() < .5) t = 'lanternim';
   const D = MOBS[t]; const sp = findSpot(P.x, P.y, 150, 260, D.where === 'acid' ? 'acid' : 'floor'); if (!sp) return;
   if (D.ai === 'swarm') { for (let k = 0; k < 4; k++) { const s2 = findSpot(sp.x, sp.y, 0, 24) || sp; spawnMob(t, s2.x, s2.y); } } else spawnMob(t, sp.x, sp.y); }
 
-function hurtPlayer(dmg, sx, sy, kind) { if (P.iframe > 0 || state !== 'play') return; let a = 0; if (equip.body) a = ITEMS[equip.body.id].armor; const real = Math.max(1, Math.round(dmg * (1 - a))); P.hp -= real; P.iframe = .55; hitStop = Math.max(hitStop, .05); P.combo = 0; hurtFlash = .35; shakeA = Math.max(shakeA, 3); sfx('hurt');
+function hurtPlayer(dmg, sx, sy, kind) { if (P.iframe > 0 || state !== 'play') return; let a = 0; if (equip.body) a = ITEMS[equip.body.id].armor; const real = Math.max(1, Math.round(dmg * DF().dmg * (1 - a))); P.hp -= real; P.iframe = .55; hitStop = Math.max(hitStop, .05); P.combo = 0; hurtFlash = .35; shakeA = Math.max(shakeA, 3); sfx('hurt');
   if (sx != null) { const d = dist(sx, sy, P.x, P.y) || 1; P.kx = (P.x - sx) / d * 140; P.ky = (P.y - sy) / d * 140; }
   floatTxt('-' + real, P.x, P.y - 20, '#e2463c'); if (buddy) buddy.scared = 1; }
 function damageMob(m, dmg, kx, ky, crit) { const D = MOBS[m.t]; m.hp -= dmg; m.hit = .15; m.hpShow = 2.4; m.kx = kx * 160; m.ky = ky * 160; floatTxt(crit ? dmg + '!' : '-' + dmg, m.x, m.y - 16, crit ? '#ffe170' : '#fff7c8'); if (crit) floatTxt('CRÍTICO', m.x, m.y - 26, '#ffe170'); sfx(crit ? 'crit' : 'hit'); burst(m.x, m.y - 6, crit ? '#ffe170' : '#fff7c8', crit ? 8 : 4);
   if (m.latched) { m.latched = false; P.latched = null; m.stun = .6; }
   if (D.ai === 'tank') m.stun = .35;
   if (m.hp <= 0) killMob(m); }
-function killMob(m) { const D = MOBS[m.t]; m.dead = true; sfx('squish'); totalKills++; kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
+function killMob(m) { const D = MOBS[m.t]; m.dead = true; sfx('squish'); totalKills++; GST.kills++; if (GST.kills >= 50) unlock('cacador'); else if (GST.kills % 5 === 0) saveAch(); kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
 const THRUST = { lanca: 1, arpao: 1, lanca_esp: 1, lanca_coral: 1 };
 const wKind = w => !equip.hand ? 'punch' : THRUST[equip.hand.id] ? 'thrust' : 'swing';
 let hitStop = 0;
@@ -1073,7 +1094,7 @@ function attack() { if (P.atk > 0 || state !== 'play' || paused || P.roll > 0) r
     if (D.ai === 'shade' && !inLight(m.x, m.y)) { floatTxt('imune no escuro', m.x, m.y - 18, '#a77ae6'); continue; }
     let dmg = (w ? w.dmg : 1) * (fin ? 1.6 : 1); const crit = Math.random() < .12; if (crit) dmg *= 1.5; dmg = Math.max(1, Math.round(dmg));
     const d = dist(m.x, m.y, P.x, P.y) || 1, kb = (w && w.kb || 1) * (fin ? 2 : 1); damageMob(m, dmg, (m.x - P.x) / d * kb, (m.y - P.y) / d * kb, crit);
-    if (fin && !m.dead) m.stun = Math.max(m.stun || 0, .5); hitAny = true; anyHit++; }
+    if (fin && !m.dead) m.stun = Math.max(m.stun || 0, .5); if (fin && m.dead) unlock('combo'); hitAny = true; anyHit++; }
   if (anyHit) { hitStop = fin ? .1 : .055; if (fin) shakeA = Math.max(shakeA, 3); }
   for (const n of nodes) { if (n.gone || n.hidden || (n.k !== 'bile' && n.k !== 'nerve')) continue; if (dist(n.x, n.y - 6, hx, hy) < reach * .75 + 8) { if (n.k === 'bile') popBile(n); else triggerNerve(n); hitAny = true; } }
   if (hitAny) shakeA = Math.max(shakeA, 1.5); }
@@ -1091,7 +1112,7 @@ function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - 
   const D = MOBS[m.t]; m.age += dt; m.cd -= dt; m.hit -= dt; if (m.hpShow > 0) m.hpShow -= dt;
   const dx = P.x - m.x, dy = P.y - m.y, dd = Math.hypot(dx, dy) || 1, ux = dx / dd, uy = dy / dd;
   const safe = inSafe(P.x, P.y);
-  if (dd < 120) { if (!seen.has(m.t)) { seen.add(m.t); toast(`Nova criatura: ${D.n}. Veja no Bestiário.`, 'mem'); } }
+  if (dd < 120) { if (!seen.has(m.t)) { seen.add(m.t); toast(`Nova criatura: ${D.n}. Veja no Bestiário.`, 'mem'); if (seen.size >= Object.keys(MOBS).length) unlock('bestiario'); } }
   m.kx *= Math.pow(.004, dt); m.ky *= Math.pow(.004, dt);
   if (m.trapped > 0) { m.trapped -= dt; moveEnt(m, m.kx * dt, m.ky * dt); return; }
   if (m.stun > 0) { m.stun -= dt; moveEnt(m, m.kx * dt, m.ky * dt); return; }
@@ -1121,7 +1142,7 @@ function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - 
       else if (m.st === 'up') { m.stT -= dt; contact = true; if (m.stT > 1.25 && D.where === 'acid') { tx = m.vx; ty = m.vy; spd = 120; } if (m.stT <= 0) { m.st = 'hidden'; m.cd = 2.2; const sp = findSpot(m.x, m.y, 20, 70, D.where === 'acid' ? 'acid' : 'floor'); if (sp) { m.x = sp.x; m.y = sp.y; } } }
       break;
     case 'latch':
-      if (m.latched) { m.x = P.x + 5; m.y = P.y + 1; P.latched = m; contact = false; if (m.cd <= 0) { m.cd = 1; P.hp -= 4 * (1 - (equip.body ? ITEMS[equip.body.id].armor : 0)); hurtFlash = .2; floatTxt('-4', P.x, P.y - 20, '#e2463c'); } return; }
+      if (m.latched) { m.x = P.x + 5; m.y = P.y + 1; P.latched = m; contact = false; if (m.cd <= 0) { m.cd = 1; P.hp -= 4 * DF().dmg * (1 - (equip.body ? ITEMS[equip.body.id].armor : 0)); hurtFlash = .2; floatTxt('-4', P.x, P.y - 20, '#e2463c'); } return; }
       chase(); if (dd < 9 && m.cd <= 0 && P.iframe <= 0) { m.latched = true; m.cd = .6; toast('Uma lampreia grudou em Jonas! Ataque para soltar.', 'bad'); }
       contact = false; break;
     case 'ranged':
@@ -1455,8 +1476,8 @@ function interact() { if (state !== 'play' || paused) return; const t = interact
 function special(n) { const D = NODES[n.k];
   if (n.k === 'bottle') { n.gone = true; sfx('pick'); showCard({ kick: 'A GARRAFA MISTERIOSA', title: 'Uma mensagem enrolada', body: pickM(BOTTLES), btn: 'Guardar a rolha', fn: () => addItem('concha', 1) }); return; }
   if (n.k === 'chest') { n.gone = true; sfx('mem'); showCard({ kick: 'O TESOURO DECEPCIONANTE', title: 'Um baú dourado!', body: 'Jonas força a tampa, o coração acelerado. Dentro há… uma sandália. Uma só. Talvez com corda e gosma ela sirva para alguma coisa (aba Travessia).', btn: 'Pegar a sandália', fn: () => addItem('sandalia', 1) }); return; }
-  if (n.k === 'memory') { n.gone = true; mems.add(n.mem); sfx('mem'); if (buddy) buddy.happy = 2; const M = MEMS[n.mem]; burst(n.x, n.y - 10, '#62f4e2', 30); showCard({ kick: 'LEMBRANÇA', title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
-  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
+  if (n.k === 'memory') { n.gone = true; mems.add(n.mem); if (mems.size >= 9) unlock('memorias'); sfx('mem'); if (buddy) buddy.happy = 2; const M = MEMS[n.mem]; burst(n.x, n.y - 10, '#62f4e2', 30); showCard({ kick: 'LEMBRANÇA', title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
+  if (n.k === 'reflect') { if (n.used) { toast('O lugar continua quieto.'); return; } n.used = true; refl.add(n.rf); if (refl.size >= 6) unlock('reflexoes'); const Rf = REFLECTS[n.rf]; sfx('mem'); showCard({ kick: 'MOMENTO DE REFLEXÃO', title: 'Jonas para e lembra', quote: Rf.q, ref: Rf.ref, body: Rf.d, btn: 'Seguir', cls: 'clear' }); return; }
   if (n.k === 'bile') { if (hasKnife()) { addItem('bile', 1); sfx('pick'); burst(n.x, n.y - 6, '#b9dc3c', 6); spendNode(n); } else popBile(n); return; }
   if (n.k === 'nerve') { triggerNerve(n); return; }
   if (n.k === 'spore') { sfx('mem'); burst(n.x, n.y - 6, '#62f4e2', 16); if (equip.light) { const it = ITEMS[equip.light.id]; equip.light.dur = Math.min(it.fuel, equip.light.dur + it.fuel * .4); toast(`Os esporos renovam a luz da ${it.n.toLowerCase()}.`, 'good'); invDirty = true; } else { P.spore = 25; toast('Os esporos grudam em Jonas e brilham por um tempo.', 'good'); } spendNode(n); return; }
@@ -1474,7 +1495,7 @@ function special(n) { const D = NODES[n.k];
   if (n.k === 'altar') { if (qState.pray !== 'active') { toast('Ainda não. Algo precisa acontecer antes.'); return; } pray(); } }
 function openTrade() { const offers = TRADES[day]; const html = offers.map((o, i) => { const side = obj => Object.entries(obj).map(([k, v]) => `<span class="chip${k in o.g && count(k) < v && obj === o.g ? ' miss' : ''}">${iconImg(k, 2)} ${v} ${ITEMS[k].n}</span>`).join(''); return `<div class="trade"><div class="side">${side(o.g)}</div><span class="lbl">por</span><div class="side">${side(o.r)}</div><button class="mk" data-tr="${i}" ${hasAll(o.g) ? '' : 'disabled'}>Trocar</button></div>`; }).join('');
   showCard({ kick: 'O MERCADOR IMPROVÁVEL', title: 'Um caranguejo de chapéu', body: '“Trocas justas, preços absurdos. Conchas, por favor.”', html, btn: 'Até logo' });
-  document.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => { const o = offers[+b.dataset.tr]; if (!hasAll(o.g)) return; for (const k in o.g) take(k, o.g[k]); for (const k in o.r) addItem(k, o.r[k], true); sfx('craft'); toast('Troca feita. O caranguejo parece satisfeito.', 'good'); openTrade(); }); }
+  document.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => { const o = offers[+b.dataset.tr]; if (!hasAll(o.g)) return; for (const k in o.g) take(k, o.g[k]); for (const k in o.r) addItem(k, o.r[k], true); sfx('craft'); GST.trades++; saveAch(); if (GST.trades >= 3) unlock('mercador'); toast('Troca feita. O caranguejo parece satisfeito.', 'good'); openTrade(); }); }
 /* ================= ONBOARDING ================= */
 const TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches;
 let tipsOn = true; try { tipsOn = localStorage.getItem('jonah-tips') !== 'off'; } catch (e) {}
@@ -1565,8 +1586,28 @@ function drawCut() { const c = CUT; if (!c) return; const t = c.t, W = VW, H = V
     const k = t / 5.4, wx = lerp(W * .2, W * .78, k), wy = lerp(H * .18, H * .82, k); drawWhaleSil(wx, wy, Math.max(1, H / 150), .5, 0);
     ctx.fillStyle = '#b8e0ff'; for (let i = 0; i < 26; i++) { const ph = (t * .8 + i / 26) % 1; const bx = lerp(W * .2, wx, (i % 13) / 13) + Math.sin(i * 2 + t * 3) * 6, by = lerp(H * .18, wy, (i % 13) / 13) - ph * 40; ctx.fillRect(Math.round(bx), Math.round(by), 1 + (i % 2), 1 + (i % 2)); }
     ctx.fillStyle = `rgba(4,8,18,${clamp(k * 1.1 - .2, 0, 1).toFixed(2)})`; ctx.fillRect(0, 0, W, H); } }
-function credits() { flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
-  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: () => { freshRun(); playCut('intro', () => startDay(1)); } }, { label: 'Tela inicial', fn: titleScreen }] }); }
+/* ================= NEW GAME & ACHIEVEMENTS ================= */
+let ACH = {}, GST = { kills: 0, trades: 0 }; try { ACH = JSON.parse(localStorage.getItem('jonah-ach') || '{}') || {}; GST = Object.assign(GST, JSON.parse(localStorage.getItem('jonah-gst') || '{}')); } catch (e) {}
+const ACHS = [
+  ['primeira_luz', 'Primeira luz', 'Crie a primeira tocha.'], ['abrigo', 'Lar estranho', 'Monte um abrigo dentro da baleia.'], ['combo', 'Golpe final', 'Derrote uma criatura com o terceiro golpe do combo.'],
+  ['respiradouro', 'Voo curto', 'Seja lançado por um respiradouro.'], ['mercador', 'Freguês', 'Faça 3 trocas com o Mercador Improvável.'], ['sandalia', 'Calçado abençoado', 'Crie as Sandálias reforçadas.'],
+  ['cacador', 'Caçador das profundezas', 'Derrote 50 criaturas (somando todas as partidas).'], ['bestiario', 'Naturalista', 'Veja todas as 18 criaturas.'], ['memorias', 'Memória completa', 'Encontre as 9 lembranças.'],
+  ['reflexoes', 'Coração quieto', 'Visite os 6 lugares de reflexão.'], ['sem_desmaio', 'Fôlego de baleia', 'Chegue ao fim do Dia 3 sem desmaiar.'], ['rapido', 'Viagem curta', 'Chegue ao fim do Dia 3 em menos de 45 minutos.'],
+  ['pesadelo', 'Coragem', 'Chegue ao fim do Dia 3 no modo Pesadelo.'], ['ninive', 'Pregador relutante', 'Conclua o epílogo em Nínive.'],
+];
+function saveAch() { try { localStorage.setItem('jonah-ach', JSON.stringify(ACH)); localStorage.setItem('jonah-gst', JSON.stringify(GST)); } catch (e) {} }
+function unlock(id) { if (ACH[id]) return; const a = ACHS.find(x => x[0] === id); if (!a) return; ACH[id] = Date.now(); saveAch(); toast(`🏆 Conquista: ${a[1]}`, 'ach'); [659, 784, 988, 1319].forEach((f, i) => tone(f, .3, 'square', .03, 0, i * .08)); }
+function achListHtml() { return `<div class="achs">${ACHS.map(([id, n, d]) => `<div class="ach ${ACH[id] ? 'on' : ''}"><span class="medal">${ACH[id] ? '★' : '☆'}</span><div><b>${n}</b><span>${d}</span>${ACH[id] ? `<small>${new Date(ACH[id]).toLocaleDateString('pt-BR')}</small>` : ''}</div></div>`).join('')}</div>`; }
+function achCard() { showCard({ kick: `CONQUISTAS · ${Object.keys(ACH).length}/${ACHS.length}`, title: 'Conquistas', html: achListHtml() + `<p class="note">Criaturas derrotadas em todas as partidas: ${GST.kills}</p>`, btn: 'Voltar', fn: titleScreen }); }
+function newGameCard() { let sel = 'normal', rnd = false;
+  const html = `<div class="diffs">${Object.entries(DIFFS).map(([k, v]) => `<button class="diff" data-df="${k}" aria-pressed="${k === sel}"><b>${v.n}</b><span>${v.d}</span></button>`).join('')}</div>
+    <div class="opt"><span>Mapa da baleia<br><small class="note">Aleatório gera outro interior a cada partida.</small></span><button class="btn alt" id="mapT">Clássico</button></div>`;
+  showCard({ kick: 'NOVA JORNADA', title: 'Escolha a dificuldade', html, buttons: [{ label: 'Começar', fn: () => { freshRun(); DIFF = sel; SEED = 20261105; if (rnd) { toast('Gerando um novo interior…'); findSeed(); } playCut('intro', () => startDay(1)); } }, { label: 'Voltar', fn: titleScreen }] });
+  document.querySelectorAll('.diff').forEach(b => b.onclick = () => { sel = b.dataset.df; document.querySelectorAll('.diff').forEach(x => x.setAttribute('aria-pressed', x === b)); sfx('pick'); });
+  $('#mapT').onclick = function () { rnd = !rnd; this.textContent = rnd ? 'Aleatório' : 'Clássico'; this.classList.toggle('alt', !rnd); sfx('pick'); }; }
+function endRunAch() { if (deaths === 0) unlock('sem_desmaio'); if (playTime < 2700) unlock('rapido'); if (DIFF === 'dificil') unlock('pesadelo'); }
+function credits() { unlock('ninive'); flags.epi = 'done'; flags.epilogueDone = true; questTick(); writeSlot('auto', true); EPI.heat = 0;
+  showCard({ kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira e uma pergunta sem resposta.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
 function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
   if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
 function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
@@ -1577,7 +1618,7 @@ function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(d
   if (merchant) { merchant.life -= dt; if (merchant.life <= 0) { merchant = null; toast('O Mercador Improvável foi embora.'); } }
   // nodes regrow
   for (const n of nodes) { if (n.cd > 0) n.cd -= dt; if (n.k !== 'vent') continue; n.puff = Math.max(0, (n.puff || 0) - dt); n.t = (n.t == null ? n.ph : n.t) + dt; if (n.t > 4.2) { n.t = 0; n.puff = .7; if (dist(n.x, n.y, P.x, P.y) < 200) noiseS(.4, .05, 500); }
-    if (n.puff > .45) { if (dist(n.x, n.y, P.x, P.y) < 13 && !(P.ventT > 0)) { let fx_ = P.fx, fy_ = P.fy; if (isSolidP(P.x + fx_ * 40, P.y + fy_ * 40)) { fx_ = -fx_; fy_ = -fy_; } P.kx = fx_ * 360; P.ky = fy_ * 360; P.iframe = Math.max(P.iframe, .35); P.ventT = .6; floatTxt('Fuuu!', P.x, P.y - 24, '#f3e6cf'); if (!flags.ventTip) { flags.ventTip = true; toast('Respiradouros lançam Jonas longe. Use-os para atravessar o ácido!', 'mem'); } }
+    if (n.puff > .45) { if (dist(n.x, n.y, P.x, P.y) < 13 && !(P.ventT > 0)) { let fx_ = P.fx, fy_ = P.fy; if (isSolidP(P.x + fx_ * 40, P.y + fy_ * 40)) { fx_ = -fx_; fy_ = -fy_; } P.kx = fx_ * 360; P.ky = fy_ * 360; P.iframe = Math.max(P.iframe, .35); P.ventT = .6; unlock('respiradouro'); floatTxt('Fuuu!', P.x, P.y - 24, '#f3e6cf'); if (!flags.ventTip) { flags.ventTip = true; toast('Respiradouros lançam Jonas longe. Use-os para atravessar o ácido!', 'mem'); } }
       for (const m of mobs) if (!m.npc && dist(m.x, m.y, n.x, n.y) < 13) { m.kx = rr(-1, 1) * 260; m.ky = rr(-1, 1) * 260; m.stun = .5; } } }
   P.ventT = Math.max(0, (P.ventT || 0) - dt);
   for (const f of folds) if (f.tempOpen > 0) { f.tempOpen -= dt; if (f.tempOpen <= 0) { f.tempOpen = 0; if (!isContract(DIR.ev)) { f.closed = true; for (const p of pockets) if (p.fold === f.id && dist(P.x, P.y, p.x, p.y) < p.r) { P.x = p.out.x; P.y = p.out.y; toast('A bolsa se fecha e expulsa Jonas.'); } const pt = idx(Math.floor(P.x / TS), Math.floor(P.y / TS)); if (f.tiles.includes(pt)) { const sp = nearestFree(P.x, P.y, 8); if (sp) { P.x = sp.x; P.y = sp.y; } } } } }
@@ -1592,10 +1633,10 @@ function pray() { paused = true; flags.praying = true; state = 'pray'; let i = 0
   ov.onclick = () => { clearTimeout(prayT); show(); };
   show(); }
 let prayT = 0;
-function ending() { state = 'ending'; paused = true; $('#hud').hidden = true; const ov = $('#overlay'); ov.onclick = null; ov.className = 'clear'; ov.hidden = true; endT = 0;
+function ending() { endRunAch(); state = 'ending'; paused = true; $('#hud').hidden = true; const ov = $('#overlay'); ov.onclick = null; ov.className = 'clear'; ov.hidden = true; endT = 0;
   setTimeout(() => showCard({ kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${mems.size}/9</b>lembranças</div></div>`, buttons: [{ label: 'Seguir para o Epílogo: Nínive', fn: () => startDay(4) }, { label: 'Tela inicial', fn: titleScreen }] }), 2600); }
 const fmtTime = s => `${Math.floor(s / 60)}m${String(Math.floor(s % 60)).padStart(2, '0')}`;
-function die() { deaths++; const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < .5) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
+function die() { deaths++; const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < DF().lose) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
   const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(REGIONS[0].x * TS, REGIONS[0].y * TS, 6); if (sp) { P.x = sp.x; P.y = sp.y; }
   P.hp = 60; P.food = Math.max(P.food, 45); P.latched = null; for (const m of mobs) { if (m.latched) m.latched = false; if (dist(m.x, m.y, P.x, P.y) < 150) m.dead = m.gone = true; }
   showCard({ kick: 'JONAS DESMAIOU', title: 'A escuridão por um instante', body: `Ele acorda ${shelter ? 'no abrigo' : 'entre os destroços'}, dolorido. ${lost.length ? 'Perdeu pelo caminho: ' + lost.join(', ') + '.' : 'Nada se perdeu.'}`, btn: 'Levantar' }); }
@@ -1618,8 +1659,8 @@ function playerTick(dt) {
   moveEnt(P, mx * spd * dt + P.kx * dt + windX * dt, my * spd * dt + P.ky * dt + windY * dt);
   P.anim += P.moving ? dt * 8 : 0;
   if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .3 / (feet && feet.spd || 1); sfx(acid ? 'stepAcid' : 'step'); } }
-  if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
-  if (day === 4) P.food = 100; else P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2)); if (P.food <= 0) P.hp -= dt * 1.1;
+  if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * DF().dmg * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
+  if (day === 4) P.food = 100; else P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2) * DF().food); if (P.food <= 0) P.hp -= dt * 1.1;
   if (P.food > 55 && P.hp < 100) P.hp = Math.min(100, P.hp + dt * .45);
   if (inSafe(P.x, P.y) && P.hp < 100) P.hp = Math.min(100, P.hp + dt * 1.2);
   if (equip.light) { equip.light.dur -= dt; if (equip.light.dur <= 0) { const it = ITEMS[equip.light.id]; if (it.refill && count(it.refill)) { take(it.refill, 1); equip.light.dur = it.fuel; toast(`${it.n} reabastecida com ${ITEMS[it.refill].n}.`); } else { toast(`${it.n} apagou.`, 'bad'); equip.light = null; } invDirty = true; } }
@@ -1843,7 +1884,7 @@ const TABNAME = { luz: 'Luz', armas: 'Armas', vida: 'Sobrevivência', trav: 'Tra
 const SOURCES = { madeira: 'Destroços, casco do navio, Grande gole', corda: 'Cordames e caixas do navio', tecido: 'Velas rasgadas e caixas', concha: 'Conchas no chão (muitas no Lago Ácido), piolhos', osso: 'Ossadas pelo chão, ratos', alga: 'Algas verdes (voltam a crescer)', cogumelo: 'Cogumelos-luz azuis (voltam a crescer)', oleo: 'Barris; gordura branca com a Faca de concha', pregos: 'Destroços, caixas, Caranguejo de Lata', gosma: 'Papilas rosadas com a faca, larvas, águas-vivas', peixe: 'Grande gole, Enguia Ácida, Lampreia', tinta: 'Polvo de Tinta (Dia 2)', espinho: 'Baiacu-Bolha (Dia 2), Ouriço-Rolante (Dia 3)', carapaca: 'Caranguejo de Lata, Isópode Colossal', dente: 'Cação Faminto (Dia 3)', bulbo: 'Peixe-Lanterna (Dia 3)', perola: 'Caixas escondidas que só abrem nas contrações', sandalia: 'Baú dourado na Galeria das Costelas (Dia 2)', coral: 'Corais laranja no Lago Ácido e na Floresta de Cílios (precisa de algo na mão)', sal: 'Cristais brancos na Galeria das Costelas, no Lago e na Câmara Central (faca)', fibra: 'Cílios rosados da Floresta de Cílios (faca)', ambar: 'Às vezes aparece ao cortar gordura', bile: 'Bolsas verdes de bile (com faca, sem se queimar), Arraia-Elétrica' };
 const NPC_BEFORE = ['Forasteiro, a cidade é grande: são três dias para atravessá-la.', 'Você está cheirando a peixe. Muito.', 'Os deuses de Nínive são muitos. O seu é qual?', 'Cuidado com as carroças na rua principal.', 'Dizem que o rei não dorme desde a última guerra.'];
 const NPC_AFTER = ['Pano de saco é áspero, mas é o que temos.', 'Até o gado está jejuando.', 'Quem sabe Ele tenha compaixão de nós.', 'Joguei fora os meus ídolos. Não serviam para nada.', 'Meu vizinho devolveu o que roubou. Ninguém acreditou.'];
-const MENU_TABS = [['craft', 'Criar', 'i_craft', 'C'], ['bag', 'Mochila', 'i_bag', 'I'], ['quests', 'Diário', 'i_quest', 'Q'], ['map', 'Mapa', 'i_map', 'M'], ['best', 'Bestiário', 'i_best', 'B'], ['save', 'Salvar', 'i_save', ''], ['opts', 'Ajustes', 'i_gear', '']];
+const MENU_TABS = [['craft', 'Criar', 'i_craft', 'C'], ['bag', 'Mochila', 'i_bag', 'I'], ['quests', 'Diário', 'i_quest', 'Q'], ['map', 'Mapa', 'i_map', 'M'], ['best', 'Bestiário', 'i_best', 'B'], ['ach', 'Conquistas', 'i_ach', ''], ['save', 'Salvar', 'i_save', ''], ['opts', 'Ajustes', 'i_gear', '']];
 let menuTab = 'craft', craftFilter = 'all', craftQuery = '', craftSel = null, bagSel = null, lastCrafted = null;
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const recName = r => r.n || ITEMS[r.id].n, recDesc = r => r.d || ITEMS[r.id].d, recOut = r => r.give || r.id;
@@ -1860,7 +1901,7 @@ function renderMenu(keepScroll, anim) { const m = $('#menu'); const sc = keepScr
   <div class="mtabs" role="tablist">${MENU_TABS.map(([k, l, ic, key]) => `<button class="mtab" role="tab" aria-selected="${menuTab === k}" data-mt="${k}">${iconImg(ic, 2)}<span>${l}</span>${key ? `<kbd>${key}</kbd>` : ''}${k === 'craft' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div><div class="mbody" id="mBody"></div></div>`;
   $('#mClose').onclick = closeMenu; m.onclick = e => { if (e.target === m) closeMenu(); };
   m.querySelectorAll('.mtab').forEach(b => b.onclick = () => { menuTab = b.dataset.mt; if (menuTab === 'craft') TUTF.craftMenu = true; renderMenu(); sfx('pick'); });
-  const b = $('#mBody'); ({ craft: renderCraftTab, bag: renderBagTab, quests: renderQuestTab, map: renderMapTab, best: renderBestTab, save: renderSaveTab, opts: renderOptsTab })[menuTab](b);
+  const b = $('#mBody'); ({ craft: renderCraftTab, bag: renderBagTab, quests: renderQuestTab, map: renderMapTab, best: renderBestTab, save: renderSaveTab, ach: b => { b.innerHTML = `<div class="pad"><span class="lbl">${Object.keys(ACH).length}/${ACHS.length} conquistas · dificuldade ${DF().n}${SEED !== 20261105 ? ' · mapa aleatório' : ''}</span>${achListHtml()}</div>`; }, opts: renderOptsTab })[menuTab](b);
   const sc2 = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); if (sc2) sc2.scrollTop = top; }
 function propsOf(id) { const it = ITEMS[id]; if (!it) return []; const p = []; const slotN = { hand: 'Mão', light: 'Luz', body: 'Corpo', feet: 'Pés' };
   if (it.slot) p.push('Equipa em: ' + slotN[it.slot]); if (it.dmg) p.push('Dano ' + it.dmg); if (it.reach) p.push('Alcance ' + it.reach); if (it.kb) p.push('Empurrão forte'); if (it.light) p.push('Luz ' + it.light); if (it.fuel) p.push('Dura ' + Math.round(it.fuel / 60 * 10) / 10 + ' min'); if (it.refill) p.push('Recarga: ' + ITEMS[it.refill].n); if (it.armor) p.push('Armadura ' + Math.round(it.armor * 100) + '%'); if (it.acid != null) p.push(it.acid === 0 ? 'Imune a ácido' : 'Ácido −' + Math.round((1 - it.acid) * 100) + '%'); if (it.spd) p.push('Velocidade +' + Math.round((it.spd - 1) * 100) + '%'); if (it.food) p.push('Fome +' + it.food); if (it.hp) p.push((it.hp > 0 ? 'Vida +' : 'Vida ') + it.hp); return p; }
@@ -1970,7 +2011,7 @@ function showCard(o) { if (menuOpen()) closeMenu(); const ov = $('#overlay'); pa
   const first = ov.querySelector('.btn'); if (first) setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (e) {} }, 30); }
 function closeCard() { const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = ''; if (state === 'play') paused = false; }
 function titleScreen() { state = 'title'; paused = true; $('#hud').hidden = true; const last = latestSlot(); const any = SLOT_KEYS.some(k => readSlot(k));
-  const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: () => { freshRun(); playCut('intro', () => startDay(1)); } }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: 'Como jogar', fn: () => howTo() });
+  const btns = []; if (last) btns.push({ label: `Continuar · Dia ${last.d.day}`, fn: () => loadGame(readSlot(last.k)) }); btns.push({ label: last ? 'Novo jogo' : 'Começar a jornada', fn: newGameCard }); if (any) btns.push({ label: 'Carregar', fn: loadScreen }); btns.push({ label: `Conquistas ${Object.keys(ACH).length}/${ACHS.length}`, fn: achCard }); btns.push({ label: 'Como jogar', fn: () => howTo() });
   showCard({ kick: 'UM SURVIVAL DE TRÊS DIAS E TRÊS NOITES', logo: true, title: 'JONAS', body: 'Engolido pelo grande peixe, Jonas precisa sobreviver dentro de um mundo vivo que respira, se contorce e digere. Explore, colete, construa e enfrente criaturas, mas lembre: a baleia se move quando quer.', buttons: btns }); }
 function howTo() { showCard({ kick: 'CONTROLES', title: 'Como jogar', html: `<div class="keys"><kbd>WASD / setas</kbd><span>Andar em oito direções</span><kbd>Espaço / J</kbd><span>Atacar; o 3º golpe seguido é um golpe forte</span><kbd>Shift / L</kbd><span>Rolar: desvia de ataques por um instante</span><kbd>R</kbd><span>Trocar entre a arma da mão e a reserva</span><kbd>E / K</kbd><span>Coletar, abrir, conversar, descansar</span><kbd>Esc / Tab</kbd><span>Pausar: criar, equipar e ver missões com calma</span><kbd>C · I · Q · M · B</kbd><span>Abrir direto Criar, Mochila, Diário, Mapa ou Bestiário</span><kbd>1–0</kbd><span>Usar, comer ou equipar itens do inventário</span><kbd>No celular</kbd><span>Joystick à esquerda, Atacar e Usar à direita</span></div><p>Fique de olho no mostrador do canto: o Diretor Orgânico avisa antes de cada evento perigoso. Dobras pulsantes se fecham nas contrações, e a maré digestiva faz o ácido subir pelas bordas. O abrigo é sempre seguro.</p><p>Interaja com o cenário: respiradouros lançam Jonas longe, nódulos nervosos abrem bolsas escondidas, bolsas de esporos renovam a luz e bolsas de bile explodem (com faca, dá para coletar com segurança). O jogo salva sozinho; no menu de pausa há três espaços extras. Jogue com som: a baleia avisa pelo coração antes das contrações.</p>`, btn: 'Voltar', fn: titleScreen }); }
 function bestiary() { openMenu('best'); }
@@ -1980,7 +2021,7 @@ function bigMap() { openMenu('map'); }
 const SLOT_KEYS = ['auto', '1', '2', '3'];
 function packBits(a) { let s = ''; for (let i = 0; i < a.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) if (a[i + j]) b |= 1 << j; s += String.fromCharCode(b); } return btoa(s); }
 function unpackBits(str, n) { const a = new Uint8Array(n); try { const s = atob(str || ''); for (let i = 0; i < s.length; i++) { const b = s.charCodeAt(i); for (let j = 0; j < 8; j++) if ((b >> j) & 1) a[i * 8 + j] = 1; } } catch (e) {} return a; }
-function serialize() { return { v: 2, t: Date.now(), day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
+function serialize() { return { v: 2, t: Date.now(), diff: DIFF, seed: SEED, deaths, day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
 function save() { writeSlot('auto', true); }
 function snap() { return state === 'play' ? serialize() : null; }
 function writeSlot(k, quiet) { if (state !== 'play' || !P) return false; try { localStorage.setItem('jonah-slot-' + k, JSON.stringify(serialize())); if (!quiet) toast(k === 'auto' ? 'Jogo salvo.' : `Jogo salvo no espaço ${k}.`, 'good'); return true; } catch (e) { if (!quiet) toast('Não foi possível salvar neste navegador.', 'bad'); return false; } }
@@ -1988,7 +2029,7 @@ function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-sl
 function latestSlot() { let best = null; for (const k of SLOT_KEYS) { const d = readSlot(k); if (d && (!best || d.t > best.d.t)) best = { k, d }; } return best; }
 function nodeSolids(n) { const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
 function loadGame(d) { EPI.night = 0; EPI.heat = 0; if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
-  freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0;
+  freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0; DIFF = d.diff || 'normal'; SEED = d.seed || 20261105; deaths = d.deaths || 0;
   P.hp = d.P.hp; P.food = d.P.food; P.fx = d.P.fx || 0; P.fy = d.P.fy == null ? 1 : d.P.fy;
   genWorld(day); reveal = unpackBits(d.reveal, MW * MH);
   mobs = []; pickups = []; fx = []; proj = []; merchant = null; tideLevel = 0;
@@ -2004,7 +2045,7 @@ function loadGame(d) { EPI.night = 0; EPI.heat = 0; if (!d) { toast('Este jogo s
   newDirector(); spawnT = 8; autoT = 90; state = 'play'; paused = false; $('#hud').hidden = false;
   invDirty = true; updateDock(); buildQuests(); buildHotbar(); updateDayUI(); toast(`Jogo carregado · Dia ${day}`, 'good'); }
 const slotLabel = k => k === 'auto' ? 'Automático' : 'Espaço ' + k;
-function slotInfo(d) { return d ? `<b>Dia ${d.day} · ${esc(d.region || DAYS[d.day].name)}</b><span>${fmtTime(d.playTime || 0)} de jogo · ${(d.mems || []).length}/9 lembranças · ${new Date(d.t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>` : `<b>Vazio</b><span>Nenhum jogo salvo aqui.</span>`; }
+function slotInfo(d) { return d ? `<b>${d.day === 4 ? 'Epílogo' : 'Dia ' + d.day} · ${(DIFFS[d.diff] || DIFFS.normal).n} · ${esc(d.region || DAYS[d.day].name)}</b><span>${fmtTime(d.playTime || 0)} de jogo · ${(d.mems || []).length}/9 lembranças · ${new Date(d.t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>` : `<b>Vazio</b><span>Nenhum jogo salvo aqui.</span>`; }
 function armButton(b, label, fn) { if (b.dataset.arm) { fn(); return; } const old = b.textContent; b.dataset.arm = '1'; b.textContent = label; b.classList.add('arm'); setTimeout(() => { if (b.isConnected) { b.dataset.arm = ''; b.textContent = old; b.classList.remove('arm'); } }, 3000); }
 function renderSaveTab(b) { const rows = SLOT_KEYS.map(k => { const d = readSlot(k); return `<div class="slotrow"><div class="sname">${slotLabel(k)}</div><div class="sinfo">${k === 'auto' && !d ? '<b>Vazio</b><span>O jogo salva aqui sozinho.</span>' : slotInfo(d)}</div><div class="sact">${k !== 'auto' ? `<button class="btn" data-save="${k}" data-full="${d ? 1 : ''}">Salvar aqui</button>` : ''}${d ? `<button class="btn alt" data-load="${k}">Carregar</button>` : ''}</div></div>`; }).join('');
   b.innerHTML = `<div class="pad"><span class="lbl">Salvar e continuar</span><p class="note">O jogo também salva sozinho no espaço Automático ao começar cada dia, concluir missões, descansar no abrigo e a cada 90 segundos.</p>${rows}<div class="opt"><span>Voltar à tela inicial (salva antes no Automático)</span><button class="btn alt" id="toTitle">Tela inicial</button></div><p class="note">Os jogos ficam guardados neste navegador. Em outro aparelho ou navegador, eles não aparecem.</p></div>`;
