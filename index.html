@@ -394,6 +394,10 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
 .phint{display:block;margin-top:14px;text-align:center}
 @keyframes blinkH{50%{opacity:.35}}
 #overlay.praying{cursor:pointer}
+#bossBar{position:absolute;left:50%;top:calc(84px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:min(460px,70vw);padding:6px 12px 8px;text-align:center;pointer-events:none;z-index:6}
+#bossBar span{display:block;font-family:var(--f-label);font-size:11px;letter-spacing:.14em;color:var(--bone);margin-bottom:4px;text-transform:uppercase}
+#bossBar i{display:block;height:8px;background:#3a1a28;border:2px solid #120810}
+#bossBar u{display:block;height:100%;width:100%;background:linear-gradient(#ff6a5a,#c2253a);transition:width .25s}
 #overlay.roll{display:block;padding:0;overflow:hidden;background:#05020a;cursor:pointer}
 #overlay.roll .pbg{filter:brightness(.34);animation:none}
 .rollwrap{position:absolute;inset:0;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
@@ -437,6 +441,7 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
       <div id="miniWrap" class="px" title="Mapa (M)"><canvas id="mini"></canvas></div>
       <div id="quests" class="px"><h3 id="qHead"><span id="qTitle">Missões</span><span id="qTog">−</span></h3><div id="qList"></div></div>
     </div>
+    <div id="bossBar" class="px" hidden><span id="bossName"></span><i><u id="bossHp"></u></i></div>
     <div id="event" class="px" hidden><div class="lbl"><span id="evTag">Evento</span><span id="evLvl"></span></div><div id="evName"></div><div id="evDesc"></div><span id="evTime"><i></i></span></div>
     <div id="region"></div>
     <div id="toasts"></div>
@@ -455,7 +460,7 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const TS = 16; let MW = 144, MH = 104;
+const TS = 16; let MW = 188, MH = 135;
 let VW = 384, VH = 216, SCALE = 4;
 const cv = $('#view'), ctx = cv.getContext('2d');
 const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -514,7 +519,14 @@ const MOB_ROWS = {
   merchant: [".....yyyyy.....", "...yyyyyyyyy...", "....xxxxxxx....", ".xx.xkxxxkx.xx.", "xXx.xxxxxxx.xXx", ".xxXxxxxxxxXxx.", "...xxxxxxxxx...", "..xXxXxXxXxXx..", "..x.x.....x.x..", ".x...x...x...x."],
   peixinho: ["..fff..F", ".ffkfffF", "ffffffFF", ".fffff.F", "..fff..."],
 };
+Object.assign(MOB_ROWS, {
+  bcrab: [".xxx................xxx.", "xXXxx..............xxXXx", "xXxXx..............xXxXx", ".xxx....nnnnnnnn....xxx.", "..x...nnNnNNnNnNnn...x..", "..xx.nnNnnnnnnnnNnn.xx..", "...xnnNnnnnnnnnnnNnnx...", "....nNnnkknnnnkknnNn....", "....nNnnnnnnnnnnnnNn....", "...xnnNNnnnnnnnnNNnnx...", "..x.xnnnNNNNNNNNnnnx.x..", ".x..x..x..x..x..x..x..x.", ".x.x..x..x....x..x..x.x.", "x..x.x..x......x..x.x..x"],
+  beel: ["....pppp......", "...pPPPPp.....", "..pPPePPPp....", "..pPPPPPPPp...", ".pPPPkkkPPp...", ".pPkk...kPp...", ".pPPkkkkPPp...", "..pPPPPPPp....", "...pPPPPp.....", "...pPPPPpp....", "....pPPPPp....", "....pPPPPPp...", ".....pPPPPp...", ".....pPPPPPp..", "......pPPPPp..", "......pPPPPPp.", "..gggggggggggg", ".ggGggGggGgggg"],
+  bshade: [".....DDDDDD.....", "...DDiiiiiiDD...", "..DiiiiiiiiiiD..", ".DiiqqiiiiqqiiD.", ".DiiqliiiiqliiD.", "DiiiiiiiiiiiiiiD", "DiiiiizzzziiiiiD", "DiiiiiiiiiiiiiiD", ".DiiiiiiiiiiiiD.", "DDiiiiiiiiiiiiDD", "D.DiiiiiiiiiiD.D", "D..DiiiiiiiiD..D", "...DiiiiiiiiD...", "..DiiiiiiiiiiD..", "..DiiiiiiiiiiD..", ".DiiiDiiiiDiiiD.", ".DiiD.DiiD.DiiD.", "DiiD..DiiD..DiiD", "DiD...DiD....DiD", "DD....DD......DD"],
+});
 const SP = {}; for (const k in MOB_ROWS) SP[k] = set3(mk(MOB_ROWS[k]));
+const scale2 = c => { const n = C(c.width * 2, c.height * 2), x = n.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, n.width, n.height); return n; };
+for (const k of ['bcrab', 'beel', 'bshade']) { const b = SP[k]; SP[k] = { r: scale2(b.r), l: scale2(b.l), w: scale2(b.w), wl: scale2(b.wl) }; }
 SP.sil = {}; for (const k in MOB_ROWS) SP.sil[k] = tintC(SP[k].r, '#3a2430');
 
 const NODE_ROWS = {
@@ -538,6 +550,7 @@ const NODE_ROWS = {
   cache: ["RRRRRRRRRRR", "RjjjjjjjjjR", "RoRoooooRoR", "RooRoooRooR", "RoooRwRoooR", "RooooRooooR", "RoooRoRoooR", "RRRRRRRRRRR"],
   bottle: ["..cc..", "..CC..", "..uu..", ".uuuu.", "uqwuuu", "uquuuu", "uquuuu", "uuuuuu", "uuuuuu", ".uuuu."],
   altar: ["....nnnnnnnn....", "..nnnnnnnnnnnn..", ".nNNNNNNNNNNNNn.", "nnnnnnnnnnnnnnnn", "NnnnnnnnnnnnnnnN", "NNNNNNNNNNNNNNNN", ".NNNNNNNNNNNNNN."],
+  bench: ["oooooooooooooo", "rrrrrrrrrrrrrr", "RRRnRRRRRRbbRR", ".R..........R.", ".R..........R.", ".R..........R.", ".RR........RR."],
   logs: [".RoooooR.", "ooRRRRRoo", "RoooooooR", ".RR...RR."],
   trap: ["y.y.y.y.y.y.", ".Y.Y.Y.Y.Y.", "y.y.y.y.y.y.", ".Y.Y.Y.Y.Y.", "y.y.y.y.y.y.", ".Y.Y.Y.Y.Y."],
 };
@@ -554,7 +567,22 @@ Object.assign(NODE_ROWS, {
   tuft: ["g.g.g", ".gGg.", "..G.."],
 });
 NODE_ROWS.plantDead = NODE_ROWS.plantN.map(r => r.replace(/g/g, 'o').replace(/G/g, 'R').replace(/j/g, 'Y'));
+Object.assign(NODE_ROWS, {
+  lamassu: ["..jj..............", ".hhhh.............", ".hssh..AAAAAAA....", ".hshh.AaaaaaaaA...", ".hhhAAaAAaAAaaaA..", "..hhaaaaaaaaaaaaA.", "..AaaaaaaaaaaaaaaA", "..AaaaaaaaaaaaaaaA", "...AaaaaaaaaaaaaA.", "...AaaAaaaaAaaAA..", "...Aa.Aa...Aa.Aa..", "...Aa.Aa...Aa.Aa..", "...AA.AA...AA.AA..", "NNNNNNNNNNNNNNNNNN", "nnnnnnnnnnnnnnnnnn", "NNNNNNNNNNNNNNNNNN"],
+  obelisk: ["...jj...", "..jJJj..", "..aaaa..", "..aAaa..", "..aaaa..", "..aaAa..", "..aaaa..", "..aAaa..", "..aaaa..", "..aaAa..", "..aaaa..", "..aAaa..", "..aaaa..", ".AaaaaA.", "NNNNNNNN", "nnnnnnnn"],
+  fountain: ["......nn......", ".....nuun.....", "......nn......", "..NnnnnnnnnN..", ".nnnnnnnnnnnn.", "nNuuuuuuuuuuNn", "nNuUuuuuUuuuNn", "nNuuuuUuuuuuNn", ".nnnnnnnnnnnn.", "..NNNNNNNNNN.."],
+  column: ["AAAAAAAA", "AaaaaaaA", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", ".aaAaaa.", "AaaaaaaA", "NNNNNNNN"],
+  throne: ["...jjjjjjjj...", "..jJvvvvvvJj..", "..jvVvvvvVvj..", "..jvvvvvvvvj..", "..jvvvvvvvvj..", "jjjjjjjjjjjjjj", "jJvvvvvvvvvvJj", "jJjjjjjjjjjjJj", ".J..........J.", "NNNNNNNNNNNNNN", "nnnnnnnnnnnnnn"],
+  cart: ["..oooooooooooo..", ".orrrrrrrrrrrro.", ".RrrrrrrrrrrrrR.", ".R..ffjj.gg...R.", "..kk........kk..", ".kRRk......kRRk.", "..kk........kk.."],
+  camel: ["...........aa.", "....aa....aAAa", "...aAAa...aa..", "..aAAAAaaaa...", ".aAAAAAAAAa...", "aAAAAAAAAAa...", ".aAAAAAAAa....", ".A.A...A.A....", ".A.A...A.A....", ".k.k...k.k...."],
+  goat: ["..........kk", "..TTTTTT.Tt.", ".TtttttttTt.", "TtttttttttT.", ".TtttttttT..", "..T.T..T.T..", "..k.k..k.k.."],
+  banner: ["Rvvvvv", "Rvjvvv", "RvvjvV", "RvvvvV", "Rvv.vV", "R.....", "R.....", "R.....", "R.....", "R.....", "R.....", "RR...."],
+  statue: ["...hh...", "..hssh..", "..hssh..", "...ss...", ".aaaaaa.", "aAaaaaAa", "aaaaaaaa", ".aaAaaa.", ".aaaaaa.", ".aa..aa.", "AAAAAAAA", "NNNNNNNN"],
+  brazier: ["ooooooo", ".ooooo.", "..RRR..", "..R.R..", ".R...R."],
+  flowers: ["x.j.x", ".gGg.", "v.g.f", ".gGg."],
+});
 const NSP = {}; for (const k in NODE_ROWS) NSP[k] = mk(NODE_ROWS[k]);
+NSP.lamassuF = flipC(NSP.lamassu);
 function makeLeafy(w, h, seed, cols, opts) { const c = C(w, h), x = c.getContext('2d'), rnd = mulberry(seed);
   if (opts.poles) { x.fillStyle = '#5a361c'; x.fillRect(4, 8, 2, h - 8); x.fillRect(w - 6, 8, 2, h - 8); x.fillStyle = '#8a5a32'; x.fillRect(5, 8, 1, h - 8); x.fillRect(w - 5, 8, 1, h - 8); x.fillStyle = '#6b4224'; x.fillRect(2, 8, w - 4, 2); }
   if (opts.stem) { x.fillStyle = cols[1]; for (let y = h - 1; y > h * .45; y--) x.fillRect(Math.round(w / 2 + Math.sin(y * .4) * 1.5), y, 2, 1); }
@@ -574,6 +602,10 @@ const NPC_SP = NPC_COLS.map(([a, b], i) => set3(mk(PERSON.map(r => r.replace(/C/
 const NPC_KNEEL = mk(KNEEL);
 const KING_SP = set3(mk(["..j.j.j...", "..jjjjj...", ...PERSON.map(r => r.replace(/C/g, 'v').replace(/c/g, 'j'))]));
 const KING_KNEEL = mk(["..........", ...KNEEL]);
+const GUARD_SP = set3(mk(["...NNNN...", "..NnnnnN..", ...PERSON.slice(2).map(r => r.replace(/C/g, 'X').replace(/c/g, 'j'))]));
+const NOBLE_SP = set3(mk(PERSON.map(r => r.replace(/C/g, 'u').replace(/c/g, 'j'))));
+const KID_ROWS = ["..hhh...", ".hhhhh..", ".hsssh..", ".sksks..", "..sss...", ".CCCCC..", "sCCcCCs.", ".CCCCC..", ".CCcCC..", "..s.s...", "..R.R..."];
+const KID_SP = NPC_COLS.map(([a, b]) => set3(mk(KID_ROWS.map(r => r.replace(/C/g, a).replace(/c/g, b)))));
 
 const ICON_ROWS = {
   madeira: ["oooooooo", "rrrrrrrR", "RRRRRRRR", "........", "oooooooo", "rrrrrrrR", "RRRRRRRR"],
@@ -609,6 +641,14 @@ const ICON_ROWS = {
   sandalias: ["yy....", "RyR...", "RooR..", "RyyoRR", "RRRRRR"],
   sinalizador: ["..ll..", ".lxxl.", "..xx..", "..XX..", "..xx..", "..XX.."],
   fogueira: ["...x...", "..xex..", ".xelex.", "..xex..", "RoooooR", ".RRRRR."],
+  prancha: ["RRRRRRR", "ooooooo", "rrrrrrr", "ooooooo", "RRRRRRR", ".n...n."],
+  foice: [".bbbb..", "b...bb.", "......b", ".....b.", "....R..", "...R...", "..R....", ".R....."],
+  gancho: ["..bbb..", ".b...b.", ".b.....", "..b....", "...b...", "...y...", "...Y...", "...y..."],
+  mascara: [".gggg.", "gGgGgg", "gkggkg", "gggggg", ".gGGg.", "..gg.."],
+  espelho: [".nnnn.", "nlbbln", "nbllbn", "nblbln", "nbbllb", ".nnnn."],
+  garra: ["x.....", "xx....", ".xx..x", "..xxxx", "..XXX."],
+  escama: ["..pp..", ".pllp.", "pplppp", ".pPPp.", "..PP.."],
+  bancada: ["oooooooo", "rrrrrrrr", "R.n..b.R", "R......R", "R......R"],
   abrigo: ["....R....", "...ccc...", "..cccCc..", ".ccczcCc.", "cccczzCcc", "RRRRRRRRR"],
   ponte: ["RRRRRRR", "ooooooo", "rrrrrrr", "ooooooo", "RRRRRRR", "y.....y"],
   rede: ["y.y.y.y", ".Y.Y.Y.", "y.y.y.y", ".Y.Y.Y.", "y.y.y.y"],
@@ -760,34 +800,47 @@ const ITEMS = {
   botas: { n: 'Botas de vela', d: 'Reduz 75% do dano do ácido.', slot: 'feet', acid: .25 },
   sandalias: { n: 'Sandálias reforçadas', d: 'Imune a ácido e 15% mais rápido.', slot: 'feet', acid: 0, spd: 1.15 },
   sinalizador: { n: 'Sinalizador', d: 'Clarão por 20s. Sombras fogem.', use: 'flare' },
+  prancha: { n: 'Prancha de travessia', d: 'Atravessa uma fenda no chão. Usada uma vez.' },
+  foice: { n: 'Foice de osso', d: 'Corta membranas grossas e papilas. Dano 3.', slot: 'hand', dmg: 3, reach: 15 },
+  gancho: { n: 'Gancho de osso', d: 'Ferramenta. Com ele Jonas escala paredões de costela.' },
+  mascara: { n: 'Máscara de alga', d: 'Ferramenta. Filtra nuvens venenosas.' },
+  espelho: { n: 'Escudo-espelho', d: 'Reduz 40% do dano. Reflete a luz: sombras sofrem o dobro.', slot: 'body', armor: .4 },
+  garra: { n: 'Garra de couraça', d: 'Troféu do Caranguejo-Couraça. Dura como pedra.' },
+  escama: { n: 'Escama-mãe', d: 'Escama espelhada da Enguia-Mãe.' },
 };
 const TABS = [['luz', 'Luz', 't_luz'], ['armas', 'Armas', 't_armas'], ['vida', 'Sobrevivência', 't_vida'], ['trav', 'Travessia', 't_trav'], ['prot', 'Proteção', 't_prot']];
 const RECIPES = [
   { id: 'tocha', tab: 'luz', day: 1, in: { madeira: 2, tecido: 1 } },
   { id: 'fogueira', tab: 'luz', day: 1, in: { madeira: 3, oleo: 1 }, place: 'fire', n: 'Fogueira', d: 'Luz, calor e lugar para cozinhar.' },
-  { id: 'lanterna', tab: 'luz', day: 2, in: { pregos: 2, oleo: 1, tecido: 1 } },
+  { id: 'lanterna', tab: 'luz', day: 2, in: { pregos: 2, oleo: 1, tecido: 1 }, bench: true },
   { id: 'sinalizador', tab: 'luz', day: 2, in: { oleo: 1, tecido: 1, tinta: 1 } },
-  { id: 'lanterna_viva', tab: 'luz', day: 3, in: { bulbo: 1, pregos: 2, gosma: 2 } },
+  { id: 'lanterna_viva', tab: 'luz', day: 3, in: { bulbo: 1, pregos: 2, gosma: 2 }, bench: true },
   { id: 'faca', tab: 'armas', day: 1, in: { concha: 2, madeira: 1 } },
+  { id: 'foice', tab: 'armas', day: 1, in: { osso: 3, concha: 2, corda: 1 }, bench: true },
   { id: 'remo', tab: 'armas', day: 1, in: { madeira: 3, corda: 1 } },
-  { id: 'lanca', tab: 'armas', day: 1, in: { osso: 2, corda: 1, madeira: 1 } },
-  { id: 'arpao', tab: 'armas', day: 2, in: { pregos: 2, madeira: 2, corda: 2 } },
-  { id: 'lanca_esp', tab: 'armas', day: 2, in: { espinho: 3, osso: 2, corda: 1 } },
+  { id: 'lanca', tab: 'armas', day: 1, in: { osso: 2, corda: 1, madeira: 1 } , bench: true },
+  { id: 'arpao', tab: 'armas', day: 2, in: { pregos: 2, madeira: 2, corda: 2 } , bench: true },
+  { id: 'lanca_esp', tab: 'armas', day: 2, in: { espinho: 3, osso: 2, corda: 1 } , bench: true },
   { id: 'abrigo', tab: 'vida', day: 1, in: { madeira: 4, tecido: 3, corda: 2 }, place: 'shelter', n: 'Abrigo', d: 'Ponto seguro. Criaturas não entram. Descanse para curar.' },
+  { id: 'bancada', tab: 'vida', day: 1, in: { madeira: 5, pregos: 2, corda: 1 }, place: 'bench', n: 'Bancada', d: 'Mesa de trabalho. Armas, ferramentas e proteções só podem ser feitas perto dela.' },
   { id: 'bandagem', tab: 'vida', day: 1, in: { tecido: 2, alga: 1 } },
   { id: 'peixe_assado', tab: 'vida', day: 1, in: { peixe: 1 }, fire: true },
   { id: 'ensopado', tab: 'vida', day: 1, in: { alga: 2, cogumelo: 1 }, fire: true },
   { id: 'ponte', tab: 'trav', day: 2, in: { madeira: 3, corda: 2 }, place: 'bridge', n: 'Prancha-ponte', d: 'Cobre até 3 trechos de ácido à frente de Jonas.' },
-  { id: 'botas', tab: 'trav', day: 2, in: { tecido: 3, gosma: 2, corda: 1 } },
-  { id: 'sandalias', tab: 'trav', day: 2, in: { sandalia: 1, corda: 2, gosma: 1 } },
+  { id: 'botas', tab: 'trav', day: 2, in: { tecido: 3, gosma: 2, corda: 1 }, bench: true },
+  { id: 'sandalias', tab: 'trav', day: 2, in: { sandalia: 1, corda: 2, gosma: 1 }, bench: true },
+  { id: 'prancha', tab: 'trav', day: 1, in: { madeira: 3, corda: 1, pregos: 1 }, bench: true },
+  { id: 'gancho', tab: 'trav', day: 2, in: { osso: 2, corda: 3, garra: 1 }, bench: true },
   { id: 'rede', tab: 'trav', day: 1, in: { corda: 3, pregos: 1 }, place: 'trap', n: 'Rede-armadilha', d: 'Prende criaturas por alguns segundos.' },
   { id: 'corda_tr', tab: 'vida', day: 2, in: { fibra: 3 }, give: 'corda', out: 2, n: 'Corda trançada', d: 'Três fibras de cílio viram duas cordas.' },
   { id: 'peixe_salgado', tab: 'vida', day: 2, in: { peixe: 1, sal: 1 } },
-  { id: 'lanca_coral', tab: 'armas', day: 2, in: { coral: 3, osso: 1, corda: 1 } },
+  { id: 'lanca_coral', tab: 'armas', day: 2, in: { coral: 3, osso: 1, corda: 1 }, bench: true },
   { id: 'bomba', tab: 'armas', day: 2, in: { bile: 2, tecido: 1, gosma: 1 } },
   { id: 'incenso', tab: 'prot', day: 2, in: { ambar: 1, oleo: 1 } },
-  { id: 'escudo', tab: 'prot', day: 2, in: { madeira: 4, pregos: 2, corda: 1 } },
-  { id: 'colete', tab: 'prot', day: 2, in: { carapaca: 3, corda: 2 } },
+  { id: 'escudo', tab: 'prot', day: 2, in: { madeira: 4, pregos: 2, corda: 1 }, bench: true },
+  { id: 'colete', tab: 'prot', day: 2, in: { carapaca: 3, corda: 2 }, bench: true },
+  { id: 'mascara', tab: 'prot', day: 2, in: { alga: 3, tecido: 2, gosma: 1 } },
+  { id: 'espelho', tab: 'prot', day: 3, in: { escama: 1, concha: 4, pregos: 2 }, bench: true },
 ];
 const MOBS = {
   larva: { n: 'Larva Gástrica', day: 1, hp: 4, spd: 16, dmg: 6, ai: 'chase', sense: 80, drop: [['gosma', 1, .8]], d: 'Rasteja devagar atrás de qualquer calor.' },
@@ -807,6 +860,9 @@ const MOBS = {
   camarao: { n: 'Camarão-Saltador', day: 1, hp: 3, spd: 0, dmg: 5, ai: 'hop', sense: 95, drop: [['peixe', 1, .6]], d: 'Pula em arco na direção de Jonas. Ataque quando ele pousar.' },
   arraia: { n: 'Arraia-Elétrica', day: 2, hp: 9, spd: 22, dmg: 11, ai: 'pulse', sense: 110, glow: [34, '91,143,240'], drop: [['coral', 1, .6], ['bile', 1, .4]], d: 'Carrega um choque em volta de si. Quando faiscar, afaste-se.' },
   lula: { n: 'Lula Abissal', day: 3, hp: 12, spd: 26, dmg: 6, ai: 'pull', sense: 130, drop: [['tinta', 2, 1]], d: 'Laça Jonas com um tentáculo e o puxa para perto.' },
+  bcrab: { n: 'Caranguejo-Couraça', day: 9, boss: true, hp: 70, spd: 26, dmg: 14, ai: 'bcrab', sense: 999, drop: [['garra', 1, 1], ['carapaca', 4, 1], ['perola', 1, 1]], d: 'Guardião dos destroços. A carapaça bloqueia golpes fracos: faça-o bater na parede e ataque enquanto está atordoado.' },
+  beel: { n: 'Enguia-Mãe', day: 9, boss: true, hp: 90, spd: 0, dmg: 16, ai: 'beel', sense: 999, drop: [['escama', 1, 1], ['bile', 3, 1], ['peixe', 3, 1]], d: 'Mora no fundo do pântano de bile. Só pode ser ferida quando emerge. Arpão e lanças farpadas ferem mais.' },
+  bshade: { n: 'Sombra Gigante', day: 9, boss: true, hp: 80, spd: 34, dmg: 13, ai: 'bshade', sense: 999, drop: [['oleo', 3, 1]], d: 'A fuga de Jonas tomou forma. Só pode ser ferida dentro de uma luz forte. O Escudo-espelho dobra o dano.' },
   isopode: { n: 'Isópode Colossal', day: 3, hp: 26, spd: 12, dmg: 14, ai: 'tank', sense: 90, drop: [['carapaca', 3, 1]], d: 'Couraça pesada. Lento, mas vale a luta.' },
 };
 const NODES = {
@@ -839,7 +895,8 @@ const NODES = {
   npc: { n: 'Ninivita', act: 'Conversar', special: 'npc' },
   king: { n: 'Rei de Nínive', act: 'Falar com o rei', special: 'king' },
   site: { n: 'Alto da colina', act: 'Fazer uma enramada', special: 'site' },
-  palm: { decor: true }, well: { decor: true }, stall: { decor: true }, pot: { decor: true }, sheep: { decor: true }, tuft: { decor: true }, plantN: { decor: true }, worm: { decor: true },
+  obst: { n: 'Obstáculo', act: 'Examinar', special: 'obst' },
+  palm: { decor: true }, well: { decor: true }, lamassu: { decor: true }, obelisk: { decor: true }, fountain: { decor: true }, column: { decor: true }, cart: { decor: true }, camel: { decor: true }, goat: { decor: true }, banner: { decor: true }, statue: { decor: true }, brazier: { decor: true }, flowers: { decor: true }, stall: { decor: true }, pot: { decor: true }, sheep: { decor: true }, tuft: { decor: true }, plantN: { decor: true }, worm: { decor: true },
 };
 const MEMS = {
   chamado: { n: 'A palavra', d: '“Levanta-te, vai à grande cidade de Nínive e clama contra ela.” A ordem veio clara. Nínive, a cidade do inimigo. Jonas ouviu e ficou muito tempo parado.' },
@@ -864,6 +921,17 @@ const MEMS = {
 const MEM_ACT = { 1: ['chamado', 'jope', 'vento', 'sino', 'sorte', 'mar'], 2: ['orgulho', 'inimigo', 'clemente', 'moeda', 'calado', 'porao'], 3: ['culpa', 'algas', 'votos', 'guardado', 'perdao', 'voto'] };
 const ACT_NAME = { 1: 'O que aconteceu', 2: 'Os erros de Jonas', 3: 'Culpa, entrega e perdão' };
 const MEM_TOTAL = 18;
+const OBST = {
+  fenda: { n: 'Fenda no chão', act: 'Atravessar', need: () => count('prancha') > 0, needTxt: 'Prancha de travessia (bancada)', use: () => take('prancha', 1), done: 'Jonas estende a prancha e atravessa a fenda.' },
+  membrana: { n: 'Membrana grossa', act: 'Cortar', need: () => hasTool('foice'), needTxt: 'Foice de osso (bancada)', done: 'A foice rasga a membrana de cima a baixo.' },
+  trevas: { n: 'Névoa negra', act: 'Afastar com a luz', need: () => lightR() >= 60, needTxt: 'uma luz acesa (tocha ou melhor)', done: 'A luz abre caminho na névoa.' },
+  trevas2: { n: 'Trevas profundas', act: 'Afastar com a luz', need: () => lightR() >= 120 || P.flare > 0, needTxt: 'Lanterna viva ou Sinalizador aceso', done: 'A luz forte rasga as trevas.' },
+  veneno: { n: 'Nuvem venenosa', act: 'Atravessar', need: () => hasTool('mascara'), needTxt: 'Máscara de alga', done: 'Com a máscara no rosto, Jonas atravessa a nuvem.' },
+  alto: { n: 'Paredão de costela', act: 'Escalar', need: () => hasTool('gancho'), needTxt: 'Gancho de osso (bancada)', done: 'O gancho prende no osso. Jonas sobe e deixa a corda pendurada.' },
+  sombras: { n: 'Muralha de sombras', act: 'Dispersar', need: () => count('incenso') > 0 || (P.repel || 0) > 0, needTxt: 'Incenso de âmbar', use: () => { if (!((P.repel || 0) > 0)) take('incenso', 1); }, done: 'O perfume do âmbar espalha as sombras.' },
+  casca: { n: 'Crosta calcificada', act: 'Explodir', need: () => count('bomba') > 0, needTxt: 'Bomba de bile', use: () => take('bomba', 1), done: 'A bomba estoura a crosta em pedaços.' },
+};
+function openObst(n, msg) { if (n.open) return; n.open = true; for (const i of n.tiles) solid[i] = 0; burst(n.x, n.y - 6, '#fff7c8', 24); shakeA = Math.max(shakeA, 2); sfx('craft'); toast(msg || OBST[n.type].done, 'good'); GST.obst = (GST.obst || 0) + 1; }
 const MEM_IMG = {}; [1, 2, 3].forEach(d => MEM_ACT[d].forEach((k, i) => MEM_IMG[k] = `dia${d}_mem0${i + 1}_${k}`));
 const REFL_IMG = [null, 'dia1_ref_tarsis', 'dia2_ref_marinheiros', 'dia1_ref_porao', 'dia2_ref_hebreu', 'dia3_ref_peixe', 'dia3_ref_templo', 'dia1_ref_vento', 'dia2_ref_dormindo', 'dia3_ref_culpa'];
 const FRAME_URL = id => `frames/${id}.webp`;
@@ -921,32 +989,59 @@ const DAYS = [null,
 
 /* ================= WORLD ================= */
 const WALL = 0, FLOOR = 1, ACID = 2;
-const WH_BASE = [['destrocos', 21, 54, 10], ['juncao', 49, 52, 6], ['costelas', 70, 23, 13], ['lago', 71, 77, 14], ['cilios', 108, 36, 13], ['central', 108, 82, 9], ['silencio', 133, 72, 6]];
+const WMW = 188, WMH = 135;
+const WH_BASE = [['destrocos', 27, 70, 13], ['juncao', 64, 68, 8], ['costelas', 91, 30, 17], ['lago', 92, 100, 18], ['cilios', 140, 47, 17], ['central', 140, 107, 12], ['silencio', 173, 94, 8]];
 const WH_NAMES = [null,
   ['Destroços do Navio', 'Garganta', 'Galeria das Costelas', 'Lago Ácido', 'Floresta de Cílios', 'Câmara Central', 'Câmara do Silêncio'],
   ['Bolsa de Ar', 'Válvula Estreita', 'Catedral de Ossos', 'Pântano de Bile', 'Jardim de Corais', 'Câmara Central', 'Câmara do Silêncio'],
   ['Recanto Quieto', 'Passagem Funda', 'Cemitério de Costelas', 'Mar Interior', 'Bosque de Cílios', 'Câmara Central', 'Câmara do Silêncio']];
-function whaleLayout(d) { return WH_BASE.map(([id, x, y, r], i) => ({ id, n: WH_NAMES[d][i], x: d === 2 ? 143 - x : x, y: d === 3 ? 103 - y : y, r })); }
+function whaleLayout(d) { return WH_BASE.map(([id, x, y, r], i) => ({ id, n: WH_NAMES[d][i], x: d === 2 ? WMW - 1 - x : x, y: d === 3 ? WMH - 1 - y : y, r })); }
 let REGIONS_WHALE = whaleLayout(1);
+const NMW = 152, NMH = 108;
+const NC = { X0: 26, X1: 114, Y0: 16, Y1: 92, gy0: 50, gy1: 54, PX0: 80, PX1: 111, PY0: 58, PY1: 89, HX0: 84, HX1: 107, HY0: 69, HY1: 87, door0: 94, door1: 96 };
+const HILL = { x: 134, y: 52 };
 const REGIONS_NIN = [
-  { id: 'deserto', n: 'Deserto diante de Nínive', x: 10, y: 37, r: 8 },
-  { id: 'portao', n: 'Portão Oeste', x: 23, y: 37, r: 3 },
-  { id: 'cidade', n: 'Nínive, a grande cidade', x: 50, y: 37, r: 24 },
-  { id: 'palacio', n: 'Palácio do Rei', x: 71, y: 47, r: 5 },
-  { id: 'colina', n: 'Colina a leste da cidade', x: 96, y: 37, r: 8 },
+  { id: 'deserto', n: 'Deserto diante de Nínive', x: 12, y: 52, r: 9 },
+  { id: 'portao', n: 'Portão Oeste', x: 27, y: 52, r: 3 },
+  { id: 'cidade', n: 'Nínive, a grande cidade', x: 66, y: 52, r: 34 },
+  { id: 'palacio', n: 'Palácio do Rei', x: 95, y: 74, r: 9 },
+  { id: 'colina', n: 'Colina a leste da cidade', x: HILL.x, y: HILL.y, r: 9 },
+  { id: 'jardins', n: 'Jardins do Rei', x: 36, y: 24, r: 7 },
+  { id: 'mercado', n: 'Praça do Mercado', x: 47, y: 33, r: 6 },
 ];
 let REGIONS = REGIONS_WHALE, RG = {};
 function setSize(w, h) { if (MW === w && MH === h) return; MW = w; MH = h; reveal = null; try { mini.width = MW; mini.height = MH; miniImg = null; } catch (e) {} }
 function setRegions(list) { REGIONS = list; RG = {}; list.forEach((r, i) => { r.i = i; RG[r.id] = r; }); }
 setRegions(REGIONS_WHALE);
-const PLAZAS = [{ x: 34, y: 23 }, { x: 49, y: 51 }, { x: 64, y: 23 }];
-const inCityT = (x, y) => x > 22 && x < 78 && y > 14 && y < 60;
+const PLAZAS = [{ x: 47, y: 33 }, { x: 64, y: 73 }, { x: 95, y: 33 }];
+const inCityT = (x, y) => x > NC.X0 && x < NC.X1 && y > NC.Y0 && y < NC.Y1;
+const inPalaceT = (x, y) => x >= NC.PX0 && x <= NC.PX1 && y >= NC.PY0 && y <= NC.PY1;
 const LINKS = [['destrocos', 'juncao'], ['juncao', 'costelas'], ['juncao', 'lago'], ['costelas', 'cilios'], ['lago', 'cilios'], ['lago', 'central'], ['cilios', 'central'], ['cilios', 'silencio']];
 let pave = null, wkind = null;
 const DIFFS = { facil: { n: 'História', d: 'Para curtir a narrativa: metade do dano, fome mais lenta e menos criaturas. Nada se perde ao desmaiar.', dmg: .5, food: .6, cap: .6, lose: 0 }, normal: { n: 'Sobrevivência', d: 'O equilíbrio pensado para o jogo.', dmg: 1, food: 1, cap: 1, lose: .5 }, dificil: { n: 'Pesadelo', d: 'Criaturas mais fortes e numerosas, fome mais rápida e mais perdas ao desmaiar.', dmg: 1.4, food: 1.3, cap: 1.35, lose: .75 } };
-let DIFF = 'normal', SEED = 20261105;
+let DIFF = 'normal', SEED = 20261109;
 const DF = () => DIFFS[DIFF] || DIFFS.normal;
 let tiles, foldAt, folds, solid, tideMap, regionMap, bridgeMap, reveal, tun, pockets, ground;
+let obst = [], den = null;
+const OBST_PLAN = { 1: [['costelas', 'fenda'], ['cilios', 'membrana'], ['central', 'trevas'], ['costelas', 'membrana']], 2: [['costelas', 'alto'], ['cilios', 'veneno'], ['lago', 'membrana'], ['central', 'fenda']], 3: [['costelas', 'trevas2'], ['lago', 'sombras'], ['cilios', 'casca'], ['juncao', 'alto']] };
+const DEN_PLAN = { 1: ['costelas', 'Covil da Couraça'], 2: ['lago', 'Poço da Enguia-Mãe'], 3: ['cilios', 'Abismo da Sombra'] };
+function carveLine(ax, ay, bx, by, w) { const L = Math.hypot(bx - ax, by - ay) || 1, st = Math.ceil(L * 2), pts = []; for (let i = 0; i <= st; i++) { const t = i / st, x = lerp(ax, bx, t), y = lerp(ay, by, t); pts.push({ x, y }); for (let yy = Math.floor(y - w - 1); yy <= y + w + 1; yy++) for (let xx = Math.floor(x - w - 1); xx <= x + w + 1; xx++) if (inB(xx, yy) && Math.hypot(xx + .5 - x, yy + .5 - y) < w) tiles[idx(xx, yy)] = FLOOR; } return pts; }
+function makeAlcove(regId, rad, extra, w) { const r = RG[regId]; if (!r) return null;
+  for (let tries = 0; tries < 80; tries++) { const a = R() * 6.283, ex = r.x + Math.cos(a) * (r.r + extra + rad), ey = r.y + Math.sin(a) * (r.r + extra + rad);
+    if (ex < rad + 4 || ey < rad + 4 || ex > MW - rad - 5 || ey > MH - rad - 5) continue;
+    let ok = true; for (let y = Math.floor(ey - rad - 3); y <= ey + rad + 3 && ok; y++) for (let x = Math.floor(ex - rad - 3); x <= ex + rad + 3; x++) if (!inB(x, y) || tiles[idx(x, y)] !== WALL) { ok = false; break; }
+    if (!ok) continue;
+    const L = Math.hypot(ex - r.x, ey - r.y), nx = -(ey - r.y) / L, ny = (ex - r.x) / L; let sx = null, sy = null;
+    for (let d = rad + 1; d < L && ok; d += .5) { const x = ex + (r.x - ex) * d / L, y = ey + (r.y - ey) * d / L, ti = idx(Math.floor(x), Math.floor(y));
+      if (tiles[ti] !== WALL) { if (regionMap[ti] !== r.i || foldAt[ti] >= 0 || tiles[ti] === ACID) ok = false; else { sx = x; sy = y; } break; }
+      for (const o of [-w - 1.2, w + 1.2]) { const ox = Math.floor(x + nx * o), oy = Math.floor(y + ny * o); if (!inB(ox, oy) || (tiles[idx(ox, oy)] !== WALL && regionMap[idx(ox, oy)] !== r.i)) { ok = false; break; } } }
+    if (!ok || sx == null || Math.hypot(ex - sx, ey - sy) - rad < 3.5) continue;
+    for (let y = Math.floor(ey - rad - 1); y <= ey + rad + 1; y++) for (let x = Math.floor(ex - rad - 1); x <= ex + rad + 1; x++) if (inB(x, y) && Math.hypot(x + .5 - ex, (y + .5 - ey) * 1.1) < rad + (vnoise(x * .4, y * .4, 91) - .5) * .8) tiles[idx(x, y)] = FLOOR;
+    const pts = carveLine(sx, sy, ex, ey, w); return { cx: ex, cy: ey, rad, pts, sx, sy, r }; }
+  return null; }
+function corridorTiles(al, dist0, rad) { const L = Math.hypot(al.cx - al.sx, al.cy - al.sy), t = Math.min(dist0 / L, .6); const gx = lerp(al.sx, al.cx, t), gy = lerp(al.sy, al.cy, t), out = [];
+  for (let y = Math.floor(gy - rad - 1); y <= gy + rad + 1; y++) for (let x = Math.floor(gx - rad - 1); x <= gx + rad + 1; x++) { if (!inB(x, y)) continue; const i = idx(x, y); if (tiles[i] === FLOOR && Math.hypot(x + .5 - gx, y + .5 - gy) < rad && regionMap[i] === 255) out.push(i); }
+  return { gx, gy, tiles: out }; }
 const idx = (x, y) => y * MW + x;
 const inB = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
 function carveBlob(cx, cy, r, s) { for (let y = Math.floor(cy - r - 5); y <= cy + r + 5; y++) for (let x = Math.floor(cx - r - 5); x <= cx + r + 5; x++) { if (!inB(x, y)) continue; const d = Math.hypot(x - cx, (y - cy) * 1.18) / r; const n = vnoise(x * .2, y * .2, 40 + s) - .5; if (d < 1 + n * .55) tiles[idx(x, y)] = FLOOR; } }
@@ -958,33 +1053,56 @@ function makeFold(pts, t, type, key, rad = 3.2) { const p = pts[Math.floor(t * (
   for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) { if (!inB(x, y)) continue; const i = idx(x, y); if (tiles[i] !== WALL && foldAt[i] < 0 && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) { foldAt[i] = f.id; f.tiles.push(i); } }
   folds.push(f); return f; }
 function acidAt(pts, t, rad) { const p = pts[Math.floor(t * (pts.length - 1))]; for (let y = Math.floor(p.y - rad - 1); y <= p.y + rad + 1; y++) for (let x = Math.floor(p.x - rad - 1); x <= p.x + rad + 1; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && Math.hypot(x + .5 - p.x, y + .5 - p.y) < rad) tiles[idx(x, y)] = ACID; }
-function genNineveh() { setSize(112, 80); setRegions(REGIONS_NIN); R = mulberry(4040);
+function genNineveh() { setSize(NMW, NMH); setRegions(REGIONS_NIN); R = mulberry(4040);
   tiles = new Uint8Array(MW * MH).fill(FLOOR); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = []; tun = {}; bridgeMap = new Uint8Array(MW * MH); pave = new Uint8Array(MW * MH); wkind = new Uint8Array(MW * MH); reveal = new Uint8Array(MW * MH);
-  const W_ = (x, y, k = 1) => { if (inB(x, y)) { tiles[idx(x, y)] = WALL; wkind[idx(x, y)] = k; } }, P_ = (x, y) => { if (inB(x, y)) pave[idx(x, y)] = 1; };
+  const W_ = (x, y, k = 1) => { if (inB(x, y)) { tiles[idx(x, y)] = WALL; wkind[idx(x, y)] = k; } }, P_ = (x, y, v = 1) => { if (inB(x, y) && tiles[idx(x, y)] !== WALL) pave[idx(x, y)] = v; };
+  const { X0, X1, Y0, Y1, gy0, gy1, PX0, PX1, PY0, PY1, HX0, HX1, HY0, HY1, door0, door1 } = NC;
+  // desert edge
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const e = Math.min(x, y, MW - 1 - x, MH - 1 - y); if (e < 3 + vnoise(x * .15, y * .15, 77) * 4) W_(x, y, 0); }
-  const X0 = 20, X1 = 80, Y0 = 12, Y1 = 62;
+  // city walls with two gates
   for (let x = X0; x <= X1; x++) for (const t of [0, 1]) { W_(x, Y0 + t); W_(x, Y1 - t); }
-  for (let y = Y0; y <= Y1; y++) if (y < 35 || y > 39) for (const t of [0, 1]) { W_(X0 + t, y); W_(X1 - t, y); }
-  for (let x = X0; x <= X1; x++) for (let y = 35; y <= 39; y++) P_(x, y);
-  for (let x = X0 + 2; x <= X1 - 2; x++) for (const y of [22, 23, 50, 51]) P_(x, y);
-  for (let y = Y0 + 2; y <= Y1 - 2; y++) for (const x of [33, 34, 35, 48, 49, 50, 63, 64, 65]) P_(x, y);
-  for (const p of PLAZAS) for (let y = p.y - 6; y <= p.y + 6; y++) for (let x = p.x - 6; x <= p.x + 6; x++) if (Math.hypot(x - p.x, (y - p.y) * 1.2) < 5.5) P_(x, y);
-  for (let x = 66; x <= 77; x++) for (let y = 40; y <= 43; y++) P_(x, y);
-  for (let x = 66; x <= 77; x++) for (let y = 44; y <= 56; y++) W_(x, y);
-  for (let by = Y0 + 3; by < Y1 - 4; by += 6) for (let bx = X0 + 3; bx < X1 - 5; bx += 7) { const w = 3 + Math.floor(R() * 3), h = 2 + Math.floor(R() * 2), hx = bx + Math.floor(R() * 2), hy = by + Math.floor(R() * 2); let ok = true;
-    for (let y = hy - 1; y <= hy + h && ok; y++) for (let x = hx - 1; x <= hx + w; x++) if (!inB(x, y) || pave[idx(x, y)] || tiles[idx(x, y)] === WALL) { ok = false; break; }
-    if (ok) for (let y = hy; y < hy + h; y++) for (let x = hx; x < hx + w; x++) W_(x, y); }
+  for (let y = Y0; y <= Y1; y++) if (y < gy0 || y > gy1) for (const t of [0, 1]) { W_(X0 + t, y); W_(X1 - t, y); }
+  for (let x = X0 + 6; x < X1 - 4; x += 9) for (const yy of [Y0 - 1, Y1 + 1]) { W_(x, yy); W_(x + 1, yy); }
+  // palace outer wall (north gate) and throne hall
+  for (let x = PX0; x <= PX1; x++) { W_(x, PY0, 2); W_(x, PY1, 2); }
+  for (let y = PY0; y <= PY1; y++) { W_(PX0, y, 2); W_(PX1, y, 2); }
+  for (let x = door0; x <= door1; x++) { tiles[idx(x, PY0)] = FLOOR; wkind[idx(x, PY0)] = 0; }
+  for (let x = HX0; x <= HX1; x++) { W_(x, HY0, 2); W_(x, HY1, 2); }
+  for (let y = HY0; y <= HY1; y++) { W_(HX0, y, 2); W_(HX1, y, 2); }
+  for (let x = door0; x <= door1; x++) { tiles[idx(x, HY0)] = FLOOR; wkind[idx(x, HY0)] = 0; }
+  // streets
+  for (let x = X0; x <= X1; x++) for (let y = gy0; y <= gy1; y++) P_(x, y);
+  for (let x = X0 + 2; x <= X1 - 2; x++) for (const y of [32, 33]) P_(x, y);
+  for (let x = X0 + 2; x < PX0 - 1; x++) for (const y of [72, 73]) P_(x, y);
+  for (let y = Y0 + 2; y <= Y1 - 2; y++) for (const x of [46, 47, 48, 70, 71, 72]) P_(x, y);
+  for (let y = Y0 + 2; y < PY0; y++) for (const x of [94, 95, 96]) P_(x, y);
+  for (const p of PLAZAS) for (let y = p.y - 7; y <= p.y + 7; y++) for (let x = p.x - 7; x <= p.x + 7; x++) if (Math.hypot(x - p.x, (y - p.y) * 1.2) < 6.5) P_(x, y);
+  // palace floors: courtyard, polished hall, red carpet to the throne
+  for (let y = PY0 + 1; y < HY0; y++) for (let x = PX0 + 1; x < PX1; x++) P_(x, y, 4);
+  for (let y = HY0 + 1; y < HY1; y++) for (let x = HX0 + 1; x < HX1; x++) P_(x, y, 4);
+  for (let y = HY0; y < HY1 - 1; y++) for (let x = door0 - 1; x <= door1 + 1; x++) P_(x, y, 3);
+  for (let y = HY1 - 6; y < HY1; y++) for (let x = door0 - 4; x <= door1 + 4; x++) P_(x, y, 3);
+  // royal gardens (north-west)
+  for (let y = Y0 + 3; y <= 29; y++) for (let x = X0 + 3; x <= 43; x++) if (!pave[idx(x, y)]) P_(x, y, 2);
+  // houses
+  const freeBlock = (hx, hy, w, h) => { for (let y = hy - 1; y <= hy + h; y++) for (let x = hx - 1; x <= hx + w; x++) { if (!inB(x, y) || pave[idx(x, y)] || tiles[idx(x, y)] === WALL || inPalaceT(x, y)) return false; if (Math.hypot(x - X0, y - (gy0 + gy1) / 2) < 6 || Math.hypot(x - X1, y - (gy0 + gy1) / 2) < 6) return false; } return true; };
+  for (let pass = 0; pass < 3; pass++) for (let by = Y0 + 3; by < Y1 - 3; by += 5) for (let bx = X0 + 3; bx < X1 - 3; bx += 5) { const w = 2 + Math.floor(R() * 4), h = 2 + Math.floor(R() * 2), hx = bx + Math.floor(R() * 3), hy = by + Math.floor(R() * 3);
+    if (R() < .08) continue; if (freeBlock(hx, hy, w, h)) for (let y = hy; y < hy + h; y++) for (let x = hx; x < hx + w; x++) W_(x, y); }
   regionMap = new Uint8Array(MW * MH).fill(255);
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (tiles[idx(x, y)] === WALL) continue; let best = 255, bd = 1e9; if (inCityT(x, y)) best = 2; else for (const r of REGIONS) { const d = Math.hypot(x - r.x, y - r.y) / (r.r + 4); if (d < bd) { bd = d; best = r.i; } } if (x >= 64 && x <= 79 && y >= 40 && y <= 58) best = 3; regionMap[idx(x, y)] = best; } }
-function validWorld(d) { const sp = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 8); if (!sp) return false; if (!folds.some(f => f.key === 'G1') || !folds.some(f => f.key === 'G3')) return false;
+  const ri = id => REGIONS.findIndex(r => r.id === id);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (tiles[idx(x, y)] === WALL) continue; let best = 255, bd = 1e9;
+    if (inPalaceT(x, y)) best = ri('palacio'); else if (inCityT(x, y)) best = pave[idx(x, y)] === 2 ? ri('jardins') : Math.hypot(x - PLAZAS[0].x, y - PLAZAS[0].y) < 7 ? ri('mercado') : ri('cidade');
+    else for (const r of REGIONS) { if (r.id === 'cidade' || r.id === 'palacio' || r.id === 'jardins' || r.id === 'mercado') continue; const d = Math.hypot(x - r.x, y - r.y) / (r.r + 4); if (d < bd) { bd = d; best = r.i; } }
+    regionMap[idx(x, y)] = best; } }
+function validWorld(d) { const sp = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 8); if (!sp) return false; if (!den || obst.length < 3) return false; if (!folds.some(f => f.key === 'G1') || !folds.some(f => f.key === 'G3')) return false;
   const flood = open => { const seen = new Uint8Array(MW * MH), regs = new Set(), q = [[Math.floor(sp.x / TS), Math.floor(sp.y / TS)]]; seen[idx(q[0][0], q[0][1])] = 1;
     while (q.length) { const [x, y] = q.pop(); const r = regionMap[idx(x, y)]; if (r < REGIONS.length) regs.add(REGIONS[r].id); for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + a, ny = y + b; if (!inB(nx, ny)) continue; const i = idx(nx, ny); if (seen[i] || tiles[i] === WALL || solid[i]) continue; const f = foldAt[i]; if (f >= 0) { const F = folds[f]; if (F.type === 'open' || (F.type === 'gate' && !open.includes(F.key))) continue; } seen[i] = 1; q.push([nx, ny]); } } return regs; };
   const a = flood([]), b = flood(['G1']), c = flood(['G1', 'G3']); const all = ['juncao', 'costelas', 'lago', 'cilios', 'central'];
   if (d === 1 && a.has('juncao')) return false; if (b.has('silencio')) return false; if (!all.every(k => b.has(k))) return false; return c.has('silencio'); }
-function findSeed() { for (let k = 0; k < 40; k++) { SEED = 1000 + Math.floor(Math.random() * 1e8); let ok = true; for (const d of [1, 2, 3]) { genWorld(d); if (!validWorld(d)) { ok = false; break; } } if (ok) return SEED; } SEED = 20261105; return SEED; }
+function findSeed() { for (let k = 0; k < 40; k++) { SEED = 1000 + Math.floor(Math.random() * 1e8); let ok = true; for (const d of [1, 2, 3]) { genWorld(d); if (!validWorld(d) || (k < 25 && obst.length < 4)) { ok = false; break; } } if (ok) return SEED; } SEED = 20261109; return SEED; }
 function genWorld(day) {
   if (day === 4) { genNineveh(); return; }
-  setSize(144, 104); REGIONS_WHALE = whaleLayout(day); setRegions(REGIONS_WHALE); pave = wkind = null;
+  setSize(WMW, WMH); REGIONS_WHALE = whaleLayout(day); setRegions(REGIONS_WHALE); pave = wkind = null;
   R = mulberry(SEED + day * 7919);
   tiles = new Uint8Array(MW * MH); foldAt = new Int16Array(MW * MH).fill(-1); folds = []; solid = new Uint8Array(MW * MH); tideMap = new Uint8Array(MW * MH); pockets = [];
   for (const r of REGIONS) carveBlob(r.x, r.y, r.r, r.i);
@@ -1012,11 +1130,26 @@ function genWorld(day) {
   makeFold(g, .44, 'gate', 'G3', 2.8);
   makeFold(tun['juncao>costelas'], .5, 'close'); makeFold(tun['lago>cilios'], .5, 'close'); makeFold(tun['cilios>central'], .5, 'close');
   makeFold(g, .62, 'close', null, 2.6); makeFold(g, .8, 'close', null, 2.4);
+  // side caves behind obstacles (memories wait inside) and the guardian's den
+  obst = []; den = null;
+  for (const [reg, type] of OBST_PLAN[day]) { const al = makeAlcove(reg, 2.6, 3, 1.5); if (!al) continue;
+    const ct = corridorTiles(al, 2.6, 2.4); if (ct.tiles.length < 2) continue;
+    for (let y = Math.floor(al.cy - 4); y <= al.cy + 4; y++) for (let x = Math.floor(al.cx - 4); x <= al.cx + 4; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && regionMap[idx(x, y)] === 255) regionMap[idx(x, y)] = al.r.i;
+    obst.push({ type, reg, tiles: ct.tiles, gx: ct.gx, gy: ct.gy, cx: al.cx, cy: al.cy }); }
+  { const [dreg, dname] = DEN_PLAN[day]; const al = makeAlcove(dreg, 7.5, 6, 2.1);
+    if (al) { REGIONS.push({ id: 'covil', n: dname, x: Math.round(al.cx), y: Math.round(al.cy), r: 7 }); setRegions(REGIONS); const di = RG.covil.i;
+      for (let y = Math.floor(al.cy - 10); y <= al.cy + 10; y++) for (let x = Math.floor(al.cx - 10); x <= al.cx + 10; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && regionMap[idx(x, y)] === 255 && Math.hypot(x - al.cx, y - al.cy) < 9.5) regionMap[idx(x, y)] = di;
+      if (day === 2) for (let y = Math.floor(al.cy - 4); y <= al.cy + 4; y++) for (let x = Math.floor(al.cx - 4); x <= al.cx + 4; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && Math.hypot(x + .5 - al.cx, (y + .5 - al.cy) * 1.15) < 3.3) tiles[idx(x, y)] = ACID;
+      const L = Math.hypot(al.cx - al.sx, al.cy - al.sy); const f = makeFold(al.pts, Math.min(.5, 3 / L), 'gate', 'GB', 2.8);
+      const dt_ = []; for (let y = Math.floor(al.cy - 9); y <= al.cy + 9; y++) for (let x = Math.floor(al.cx - 9); x <= al.cx + 9; x++) if (inB(x, y) && regionMap[idx(x, y)] === di) dt_.push(idx(x, y));
+      den = { x: (al.cx + .5) * TS, y: (al.cy + .5) * TS, r: 7.5, fold: f.id, tiles: dt_ }; } }
+  for (let i = 0; i < MW * MH; i++) if (tiles[i] === FLOOR && regionMap[i] === 255) { const x = i % MW, y = Math.floor(i / MW); let best = 255, bd = 1e9; for (const r of REGIONS) { const d = Math.hypot(x - r.x, y - r.y) / (r.r + 4); if (d < bd) { bd = d; best = r.i; } } regionMap[i] = best; }
   { const st = nearestFree(RG.destrocos.x * TS, RG.destrocos.y * TS, 10); if (st) { const seen = new Uint8Array(MW * MH), q = [[Math.floor(st.x / TS), Math.floor(st.y / TS)]]; seen[idx(q[0][0], q[0][1])] = 1;
     while (q.length) { const [x, y] = q.pop(); for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + a, ny = y + b; if (!inB(nx, ny)) continue; const i = idx(nx, ny); if (seen[i] || tiles[i] === WALL) continue; seen[i] = 1; q.push([nx, ny]); } }
     for (let i = 0; i < MW * MH; i++) if (!seen[i] && tiles[i] !== WALL) { tiles[i] = WALL; foldAt[i] = -1; regionMap[i] = 255; } for (const f of folds) f.tiles = f.tiles.filter(i => tiles[i] !== WALL); } }
+  { const fl = (x, y) => inB(Math.floor(x), Math.floor(y)) && tiles[idx(Math.floor(x), Math.floor(y))] !== WALL; obst = obst.filter(o => fl(o.cx, o.cy) && o.tiles.every(i => tiles[i] !== WALL)); if (den && !fl(den.x / TS, den.y / TS)) den = null; }
   // tide: floor within 2 tiles of acid
-  for (let y = 2; y < MH - 2; y++) for (let x = 2; x < MW - 2; x++) { const i = idx(x, y); if (tiles[i] !== FLOOR || foldAt[i] >= 0) continue; const rg = REGIONS[regionMap[i]]; if (rg && (rg.id === 'destrocos' || rg.id === 'silencio' || rg.id === 'juncao')) continue; let near = false; for (let j = -2; j <= 2 && !near; j++) for (let k = -2; k <= 2; k++) if (tiles[idx(x + k, y + j)] === ACID) { near = true; break; } if (near) tideMap[i] = 1; }
+  for (let y = 2; y < MH - 2; y++) for (let x = 2; x < MW - 2; x++) { const i = idx(x, y); if (tiles[i] !== FLOOR || foldAt[i] >= 0) continue; const rg = REGIONS[regionMap[i]]; if (rg && (rg.id === 'destrocos' || rg.id === 'silencio' || rg.id === 'juncao' || rg.id === 'covil')) continue; let near = false; for (let j = -2; j <= 2 && !near; j++) for (let k = -2; k <= 2; k++) if (tiles[idx(x + k, y + j)] === ACID) { near = true; break; } if (near) tideMap[i] = 1; }
   bridgeMap = new Uint8Array(MW * MH);
   if (!reveal) reveal = new Uint8Array(MW * MH);
 }
@@ -1047,13 +1180,17 @@ function renderGround() {
         let n = vnoise(X * .04, Y * .05, 1) * .6 + vnoise(X * .15, Y * .15, 2) * .4 + dth * .22;
         if (!north && py < 4) n -= (4 - py) * .09; if (!flr(tx - 1, ty) && px < 3) n -= (3 - px) * .07; if (!flr(tx + 1, ty) && px > 12) n -= (px - 12) * .07;
         c = FL[clamp(Math.floor(n * 6), 0, 5)];
-        if (NIN && pave[i]) { const row = Math.floor(Y / 6), joint = Y % 6 === 0 || (X + (row % 2) * 5) % 10 === 0; c = joint ? [0x6e, 0x60, 0x50] : PV[clamp(Math.floor((vnoise(X * .3, Y * .3, 8) + dth * .3) * 4), 0, 3)]; }
-        else if (NIN && Math.hypot(tx - 96, ty - 37) < 11) c = GR[clamp(Math.floor(n * 6), 0, 5)];
+        if (NIN && pave[i] === 2) c = GR[clamp(Math.floor(n * 6), 0, 5)];
+        else if (NIN && pave[i] === 3) { const edge = (px < 1 || px > 14) && (!pave[idx(tx - 1, ty)] || pave[idx(tx - 1, ty)] !== 3 || !pave[idx(tx + 1, ty)] || pave[idx(tx + 1, ty)] !== 3); c = (px === 0 && pave[idx(tx - 1, ty)] !== 3) || (px === 15 && pave[idx(tx + 1, ty)] !== 3) ? [0xf4, 0xcd, 0x4f] : ((X >> 2) + (Y >> 2)) % 5 === 0 ? [0x8a, 0x20, 0x2a] : [0xa8, 0x2a, 0x34]; }
+        else if (NIN && pave[i] === 4) { const ch = ((tx + ty) % 2) === 0; c = (px === 0 || py === 0) ? [0x9a, 0x8e, 0x7a] : ch ? [0xd6, 0xcc, 0xb4] : [0xc2, 0xb6, 0x9c]; if (dth > .8) c = [c[0] - 8, c[1] - 8, c[2] - 8]; }
+        else if (NIN && pave[i]) { const row = Math.floor(Y / 6), joint = Y % 6 === 0 || (X + (row % 2) * 5) % 10 === 0; c = joint ? [0x6e, 0x60, 0x50] : PV[clamp(Math.floor((vnoise(X * .3, Y * .3, 8) + dth * .3) * 4), 0, 3)]; }
+        else if (NIN && Math.hypot(tx - HILL.x, ty - HILL.y) < 11) c = GR[clamp(Math.floor(n * 6), 0, 5)];
       } else if (NIN && south && py >= TS - 11) { const k = wkind[i], f = (py - (TS - 11)) / 11;
-        if (k) { const row = Math.floor((py - (TS - 11)) / 3), joint = (py - (TS - 11)) % 3 === 0 || (X + (row % 2) * 3) % 7 === 0; c = py === TS - 11 ? [0xf0, 0xd2, 0x96] : joint ? [0x7a, 0x55, 0x30] : f < .5 ? [0xc0, 0x92, 0x58] : [0xa8, 0x7c, 0x48]; }
+        if (k === 2) { const yy = py - (TS - 11); c = yy === 0 ? [0xf4, 0xcd, 0x4f] : yy < 3 ? [0x5b, 0x8f, 0xf0] : yy < 5 ? [0xf4, 0xcd, 0x4f] : ((X >> 2) % 2) ? [0x27, 0x43, 0x8f] : [0x3a, 0x5c, 0xb8]; }
+        else if (k) { const row = Math.floor((py - (TS - 11)) / 3), joint = (py - (TS - 11)) % 3 === 0 || (X + (row % 2) * 3) % 7 === 0; c = py === TS - 11 ? [0xf0, 0xd2, 0x96] : joint ? [0x7a, 0x55, 0x30] : f < .5 ? [0xc0, 0x92, 0x58] : [0xa8, 0x7c, 0x48]; }
         else { const v = 1 - f * .8 + dth * .25 + (vnoise(X * .4, 2, 9) - .5) * .4; c = v > 1 ? [0xd4, 0xae, 0x72] : v > .7 ? [0xb8, 0x90, 0x58] : v > .45 ? [0x9a, 0x74, 0x44] : [0x7c, 0x5a, 0x34]; }
       } else if (NIN) { const k = wkind[i], n = vnoise(X * .12, Y * .12, 3) + dth * .25;
-        c = k ? (n > .62 ? [0xe6, 0xc4, 0x86] : n > .38 ? [0xd6, 0xb2, 0x74] : [0xc8, 0xa2, 0x66]) : (n > .62 ? [0xc8, 0xa0, 0x62] : n > .38 ? [0xb8, 0x90, 0x56] : [0xa8, 0x82, 0x4c]);
+        c = k === 2 ? (n > .5 ? [0x9a, 0xb4, 0xe6] : [0x7a, 0x96, 0xd0]) : k ? (n > .62 ? [0xe6, 0xc4, 0x86] : n > .38 ? [0xd6, 0xb2, 0x74] : [0xc8, 0xa2, 0x66]) : (n > .62 ? [0xc8, 0xa0, 0x62] : n > .38 ? [0xb8, 0x90, 0x56] : [0xa8, 0x82, 0x4c]);
         if (k && (px === 0 || px === 15 || py === 0) && !south) c = [0xb0, 0x88, 0x52];
       } else if (south && py >= TS - 11) {
         const f = (py - (TS - 11)) / 11; const st = vnoise(X * .5, 3, 5) * .5 + vnoise(X * .13, Y * .08, 6) * .5;
@@ -1093,37 +1230,41 @@ function freshRun() {
 }
 
 /* ================= INVENTORY ================= */
-const MAXS = 15;
+const MAXS = 10; // quick bar size; the bag itself has no limit
 let invDirty = true;
+const itemCat = id => { const it = ITEMS[id]; return it.slot ? 0 : (it.use || it.food || it.hp) ? 1 : 2; };
+const ITEM_ORDER = {}; Object.keys(ITEMS).forEach((k, i) => ITEM_ORDER[k] = i);
+function sortInv() { inv.sort((a, b) => itemCat(a.id) - itemCat(b.id) || ITEM_ORDER[a.id] - ITEM_ORDER[b.id]); }
+function quickIdx() { const q = []; for (let i = 0; i < inv.length && q.length < MAXS; i++) if (itemCat(inv[i].id) < 2) q.push(i); return q; }
 function count(id) { let n = 0; for (const s of inv) if (s.id === id) n += s.n; return n; }
 const stackable = id => !ITEMS[id].slot;
-function canFit(id) { return stackable(id) ? (inv.some(s => s.id === id) || inv.length < MAXS) : inv.length < MAXS; }
+function canFit(id) { return true; }
 let fullWarnT = 0;
-function warnFull() { if (T - fullWarnT > 3) { fullWarnT = T; toast('Inventário cheio. Clique com o botão direito (ou segure) num item para soltá-lo.', 'bad'); } }
+function warnFull() { if (T - fullWarnT > 3) { fullWarnT = T; toast('Mochila cheia.', 'bad'); } }
 function addItem(id, n = 1, quiet) { invDirty = true;
-  if (stackable(id)) { if (!canFit(id)) { dropItem(id, n, P.x, P.y + 6, true); warnFull(); return false; }
-    const s = inv.find(s => s.id === id); if (s) s.n += n; else inv.push({ id, n }); got[id] = (got[id] || 0) + n;
+  if (stackable(id)) { const s = inv.find(s => s.id === id); if (s) s.n += n; else { inv.push({ id, n }); sortInv(); } got[id] = (got[id] || 0) + n;
     if (!quiet) floatTxt(`+${n} ${ITEMS[id].n}`, P.x, P.y - 22, '#eadab6'); return true; }
-  let added = 0; for (let k = 0; k < n; k++) { if (inv.length < MAXS) { inv.push({ id, n: 1, dur: ITEMS[id].fuel || 0 }); added++; } else { dropItem(id, 1, P.x, P.y + 6, true); } }
-  got[id] = (got[id] || 0) + added; if (added < n) warnFull(); if (added && !quiet) floatTxt(`+ ${ITEMS[id].n}`, P.x, P.y - 22, '#c6e34a'); return added === n; }
+  let added = 0; for (let k = 0; k < n; k++) { inv.push({ id, n: 1, dur: ITEMS[id].fuel || 0 }); added++; } sortInv();
+  got[id] = (got[id] || 0) + added; if (added && !quiet) floatTxt(`+ ${ITEMS[id].n}`, P.x, P.y - 22, '#c6e34a'); return added === n; }
 function dropSlot(i) { const s = inv[i]; if (!s) return; inv.splice(i, 1); invDirty = true; pickups.push({ id: s.id, n: s.n, dur: s.dur, x: P.x + P.fx * 10, y: P.y + P.fy * 8 + 4, z: 6, vz: 0, t: 0, lock: true }); toast(`${ITEMS[s.id].n} solto no chão.`); hideTip(); }
 function take(id, n) { for (let i = inv.length - 1; i >= 0 && n > 0; i--) { const s = inv[i]; if (s.id !== id) continue; const t = Math.min(n, s.n); s.n -= t; n -= t; if (s.n <= 0) inv.splice(i, 1); } invDirty = true; }
 function hasAll(req) { for (const k in req) if (count(k) < req[k]) return false; return true; }
 function dropItem(id, n, x, y, lock) { pickups.push({ id, n, x: x + rr(-6, 6), y: y + rr(-4, 4), z: 10, vz: 0, t: 0, lock: !!lock }); }
 function useSlot(i) { const s = inv[i]; if (!s) return; const it = ITEMS[s.id];
-  if (it.slot) { inv.splice(i, 1); const prev = equip[it.slot]; equip[it.slot] = { id: s.id, dur: s.dur || it.fuel || 0 }; if (prev) { if (it.slot === 'hand' && !equip.hand2) { equip.hand2 = prev; toast(`${it.n} na mão · ${ITEMS[prev.id].n} na reserva (R troca)`); } else { inv.push({ id: prev.id, n: 1, dur: prev.dur }); toast(`${it.n} equipado`); } } else toast(`${it.n} equipado`); sfx('equip'); invDirty = true; return; }
+  if (it.slot) { inv.splice(i, 1); const prev = equip[it.slot]; equip[it.slot] = { id: s.id, dur: s.dur || it.fuel || 0 }; if (prev) { if (it.slot === 'hand' && !equip.hand2) { equip.hand2 = prev; toast(`${it.n} na mão · ${ITEMS[prev.id].n} na reserva (R troca)`); } else { inv.push({ id: prev.id, n: 1, dur: prev.dur }); sortInv(); toast(`${it.n} equipado`); } } else toast(`${it.n} equipado`); sfx('equip'); invDirty = true; return; }
   if (it.use === 'bomb') { take(s.id, 1); proj.push({ x: P.x + P.fx * 6, y: P.y - 8, vx: P.fx * 160, vy: P.fy * 160, life: .45, k: 'bomb', own: 'p', dmg: 0 }); sfx('swing'); if (menuOpen()) closeMenu(); return; }
   if (it.use === 'repel') { take(s.id, 1); P.repel = 30; sfx('flare'); toast('O incenso queima. As criaturas mantêm distância.', 'good'); return; }
   if (it.use === 'flare') { take(s.id, 1); P.flare = 20; sfx('flare'); toast('O sinalizador acende. As sombras recuam.', 'good'); return; }
   if (it.food || it.hp) { TUTF.ate = true; take(s.id, 1); P.food = clamp(P.food + (it.food || 0), 0, 100); P.hp = clamp(P.hp + (it.hp || 0), 0, 100); sfx('eat'); floatTxt(it.hp < 0 ? 'Argh…' : 'Nhac', P.x, P.y - 24, it.hp < 0 ? '#e2463c' : '#c6e34a'); if (buddy) buddy.happy = 1.2; return; }
   toast(`${it.n}: ${it.d}`); }
-function unequip(slot) { const e = equip[slot]; if (!e) return; if (inv.length >= MAXS) { toast('Inventário cheio.', 'bad'); return; } inv.push({ id: e.id, n: 1, dur: e.dur }); equip[slot] = null; invDirty = true; }
+function unequip(slot) { const e = equip[slot]; if (!e) return; inv.push({ id: e.id, n: 1, dur: e.dur }); sortInv(); equip[slot] = null; invDirty = true; }
 const lightR = () => { let r = 24; if (equip.light) r = ITEMS[equip.light.id].light * (equip.light.id === 'tocha' ? (.94 + Math.sin(T * 13) * .04 + Math.sin(T * 7.3) * .03) : 1); if (P.spore > 0) r = Math.max(r, 60); if (P.flare > 0) r = Math.max(r, 170); return r; };
 
 /* ================= CRAFTING ================= */
+function nearBench() { return structs.some(s => s.k === 'bench' && dist(s.x, s.y, P.x, P.y) < 56); }
 function nearFire() { return structs.some(s => s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, P.x, P.y) < 48); }
-function canCraft(r) { return r.day <= day && hasAll(r.in) && (!r.fire || nearFire()); }
-function craft(rid) { const r = RECIPES.find(x => x.id === rid); if (!r || r.day > day) return; if (r.fire && !nearFire()) { toast('Precisa estar perto de uma fogueira acesa.', 'bad'); return; } if (!hasAll(r.in)) { toast('Faltam materiais.', 'bad'); return; }
+function canCraft(r) { return r.day <= day && hasAll(r.in) && (!r.fire || nearFire()) && (!r.bench || nearBench()); }
+function craft(rid) { const r = RECIPES.find(x => x.id === rid); if (!r || r.day > day) return; if (r.fire && !nearFire()) { toast('Precisa estar perto de uma fogueira acesa.', 'bad'); return; } if (r.bench && !nearBench()) { toast('Precisa estar perto da bancada (aba Sobrevivência).', 'bad'); return; } if (!hasAll(r.in)) { toast('Faltam materiais.', 'bad'); return; }
   const outId = r.give || rid, outN = r.out || 1; if (!r.place) { const it0 = ITEMS[outId]; const direct = it0.slot && (!equip[it0.slot] || (it0.slot === 'hand' && !equip.hand2)); if (!direct && !canFit(outId)) { warnFull(); return; } }
   if (r.place && !place(r.place)) return;
   for (const k in r.in) take(k, r.in[k]);
@@ -1137,15 +1278,16 @@ function place(kind) { const fx_ = P.x + P.fx * 18, fy_ = P.y + P.fy * 14;
   if (kind === 'shelter') { if (shelter) { const tx = Math.floor(shelter.x / TS), ty = Math.floor(shelter.y / TS); solid[idx(tx, ty)] = 0; structs = structs.filter(s => s !== shelter); toast('O abrigo antigo foi desmontado e levado.'); } shelter = { k: 'shelter', x: fx_, y: fy_ }; structs.push(shelter); solid[idx(Math.floor(fx_ / TS), Math.floor(fy_ / TS))] = 1; toast('Abrigo montado. Aqui as criaturas não entram.', 'good'); unlock('abrigo'); return true; }
   if (kind === 'fire') { structs.push({ k: 'fire', x: fx_, y: fy_, fuel: 150 }); return true; }
   if (kind === 'trap') { structs.push({ k: 'trap', x: fx_, y: fy_, uses: 3 }); return true; }
+  if (kind === 'bench') { const old = structs.find(s => s.k === 'bench'); if (old) { solid[idx(Math.floor(old.x / TS), Math.floor(old.y / TS))] = 0; structs = structs.filter(s => s !== old); toast('A bancada antiga foi desmontada e levada.'); } structs.push({ k: 'bench', x: fx_, y: fy_ }); solid[idx(Math.floor(fx_ / TS), Math.floor(fy_ / TS))] = 1; toast('Bancada montada. Agora dá para fazer ferramentas e armas aqui.', 'good'); return true; }
   return false; }
 
 /* ================= ENTITIES ================= */
-function spawnMob(t, x, y) { const D = MOBS[t]; const m = { t, x, y, hp: D.hp, r: t === 'isopode' || t === 'cacao' ? 7 : 5, cd: 0, st: 'idle', stT: 0, wt: 0, wa: 0, vx: 0, vy: 0, kx: 0, ky: 0, hit: 0, ph: Math.random() * 6, flip: false, stun: 0, trapped: 0, age: 0 };
+function spawnMob(t, x, y) { const D = MOBS[t]; const bossHp = D.boss ? Math.round(D.hp * (DIFF === 'facil' ? .6 : DIFF === 'dificil' ? 1.3 : 1)) : D.hp; const m = { t, x, y, hp: bossHp, maxhp: bossHp, r: D.boss ? (t === 'bcrab' ? 13 : 11) : t === 'isopode' || t === 'cacao' ? 7 : 5, cd: 0, st: 'idle', stT: 0, wt: 0, wa: 0, vx: 0, vy: 0, kx: 0, ky: 0, hit: 0, ph: Math.random() * 6, flip: false, stun: 0, trapped: 0, age: 0 };
   if (D.ai === 'ambush') m.st = 'hidden'; if (D.ai === 'roll') { const a = Math.random() * 6.28; m.vx = Math.cos(a); m.vy = Math.sin(a); }
   mobs.push(m); return m; }
-function findSpot(cx, cy, rmin, rmax, want = 'floor') { for (let k = 0; k < 40; k++) { const a = Math.random() * 6.28, d = rr(rmin, rmax); const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; const tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (!inB(tx, ty)) continue; const i = idx(tx, ty); if (want === 'acid' ? tiles[i] !== ACID || bridgeMap[i] : tiles[i] !== FLOOR) continue; if (isSolidT(tx, ty) && want !== 'acid') continue; const rg = regionMap[i]; if (rg === 254 || (REGIONS[rg] && REGIONS[rg].id === 'silencio')) continue; if (inSafe(x, y) || (shelter && dist(x, y, shelter.x, shelter.y) < SAFE_R + 30)) continue; return { x: (tx + .5) * TS, y: (ty + .6) * TS }; } return null; }
+function findSpot(cx, cy, rmin, rmax, want = 'floor') { for (let k = 0; k < 40; k++) { const a = Math.random() * 6.28, d = rr(rmin, rmax); const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; const tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (!inB(tx, ty)) continue; const i = idx(tx, ty); if (want === 'acid' ? tiles[i] !== ACID || bridgeMap[i] : tiles[i] !== FLOOR) continue; if (isSolidT(tx, ty) && want !== 'acid') continue; const rg = regionMap[i]; if (rg === 254 || (REGIONS[rg] && (REGIONS[rg].id === 'silencio' || REGIONS[rg].id === 'covil'))) continue; if (inSafe(x, y) || (shelter && dist(x, y, shelter.x, shelter.y) < SAFE_R + 30)) continue; return { x: (tx + .5) * TS, y: (ty + .6) * TS }; } return null; }
 let spawnT = 6;
-function pool(d) { return Object.keys(MOBS).filter(k => MOBS[k].day === d); }
+function pool(d) { return Object.keys(MOBS).filter(k => MOBS[k].day === d && !MOBS[k].boss); }
 function spawnTick(dt) { if (day === 4) return; spawnT -= dt; if (spawnT > 0) return; spawnT = 2.6; if (playTime < 40 && day === 1) return;
   const rg = regionOf(P.x, P.y); if (rg && rg.id === 'silencio') return;
   const cap = Math.round(([0, 5, 8, 10][day] + (DIR.ev === 'swarm' ? 6 : 0)) * DF().cap); const n = mobs.filter(m => !m.npc).length; if (n >= cap) return;
@@ -1161,7 +1303,7 @@ function damageMob(m, dmg, kx, ky, crit) { const D = MOBS[m.t]; m.hp -= dmg; m.h
   if (m.latched) { m.latched = false; P.latched = null; m.stun = .6; }
   if (D.ai === 'tank') m.stun = .35;
   if (m.hp <= 0) killMob(m); }
-function killMob(m) { const D = MOBS[m.t]; m.dead = true; sfx('squish'); totalKills++; GST.kills++; if (GST.kills >= 50) unlock('cacador'); else if (GST.kills % 5 === 0) saveAch(); kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
+function killMob(m) { const D = MOBS[m.t]; m.dead = true; if (D.boss) { for (const [id, n] of D.drop) addItem(id, n); bossDefeated(m); return; } sfx('squish'); totalKills++; GST.kills++; if (GST.kills >= 50) unlock('cacador'); else if (GST.kills % 5 === 0) saveAch(); kills[m.t] = (kills[m.t] || 0) + 1; for (const [id, n, p] of D.drop) if (Math.random() < p) dropItem(id, n, m.x, m.y); if (m.loot) dropItem(m.loot.id, m.loot.n, m.x, m.y); burst(m.x, m.y - 4, D.ai === 'shade' ? '#2b1a3a' : '#e8a0b0', 14); }
 const THRUST = { lanca: 1, arpao: 1, lanca_esp: 1, lanca_coral: 1 };
 const wKind = w => !equip.hand ? 'punch' : THRUST[equip.hand.id] ? 'thrust' : 'swing';
 let hitStop = 0;
@@ -1182,20 +1324,48 @@ function attack() { if (P.atk > 0 || state !== 'play' || paused || P.roll > 0) r
     const inRange = kind === 'thrust' ? segDist(m.x, m.y - 4, ax, ay, bx, by) < m.r + 5 : dist(m.x, m.y - 4, hx, hy) < reach * (fin ? .9 : .75) + m.r + 3;
     if (!inRange) continue;
     if (D.ai === 'shade' && !inLight(m.x, m.y)) { floatTxt('imune no escuro', m.x, m.y - 18, '#a77ae6'); continue; }
-    let dmg = (w ? w.dmg : 1) * (fin ? 1.6 : 1); const crit = Math.random() < .12; if (crit) dmg *= 1.5; dmg = Math.max(1, Math.round(dmg));
-    const d = dist(m.x, m.y, P.x, P.y) || 1, kb = (w && w.kb || 1) * (fin ? 2 : 1); damageMob(m, dmg, (m.x - P.x) / d * kb, (m.y - P.y) / d * kb, crit);
-    if (fin && !m.dead) m.stun = Math.max(m.stun || 0, .5); if (fin && m.dead) unlock('combo'); hitAny = true; anyHit++; }
+    const bm = bossMult(m, D, w); if (bm === 0) continue;
+    let dmg = (w ? w.dmg : 1) * (fin ? 1.6 : 1) * bm; const crit = Math.random() < .12; if (crit) dmg *= 1.5; dmg = Math.max(1, Math.round(dmg));
+    const d = dist(m.x, m.y, P.x, P.y) || 1, kb = (w && w.kb || 1) * (fin ? 2 : 1) * (D.boss ? .1 : 1); damageMob(m, dmg, (m.x - P.x) / d * kb, (m.y - P.y) / d * kb, crit);
+    if (fin && !m.dead && !D.boss) m.stun = Math.max(m.stun || 0, .5); if (fin && m.dead) unlock('combo'); hitAny = true; anyHit++; }
   if (anyHit) { hitStop = fin ? .1 : .055; if (fin) shakeA = Math.max(shakeA, 3); }
   for (const n of nodes) { if (n.gone || n.hidden || (n.k !== 'bile' && n.k !== 'nerve')) continue; if (dist(n.x, n.y - 6, hx, hy) < reach * .75 + 8) { if (n.k === 'bile') popBile(n); else triggerNerve(n); hitAny = true; } }
   if (hitAny) shakeA = Math.max(shakeA, 1.5); if (OPTS.calm) hitStop = Math.min(hitStop, .03); }
 function explodeBomb(x, y) { burst(x, y - 4, '#c6e34a', 26); burst(x, y - 4, '#ffe170', 10); shakeA = Math.max(shakeA, 3.5); sfx('boom');
   for (const m of mobs) { if (m.dead || m.npc) continue; const d = dist(m.x, m.y, x, y); if (d < 36) damageMob(m, 10, (m.x - x) / (d || 1) * 1.5, (m.y - y) / (d || 1) * 1.5); }
-  for (const n of nodes) { if (n.gone || n.hidden) continue; if (dist(n.x, n.y, x, y) < 36) { if (n.k === 'bile') popBile(n); if (n.k === 'nerve') triggerNerve(n); } } }
-const hasKnife = () => count('faca') > 0 || (equip.hand && equip.hand.id === 'faca');
+  for (const n of nodes) { if (n.gone || n.hidden) continue; if (dist(n.x, n.y, x, y) < 36) { if (n.k === 'bile') popBile(n); if (n.k === 'nerve') triggerNerve(n); } if (n.k === 'obst' && n.type === 'casca' && !n.open && dist(n.x, n.y, x, y) < 44) openObst(n); } }
+const hasTool = id => count(id) > 0 || ['hand', 'hand2', 'body', 'light', 'feet'].some(k => equip[k] && equip[k].id === id);
+const hasKnife = () => hasTool('faca') || hasTool('foice');
 function spendNode(n) { const D = NODES[n.k]; n.uses = (n.uses || 1) - 1; n.shake = .25; if (n.uses <= 0) { if (D.regrow) { n.hidden = true; n.rg = D.regrow; } else n.gone = true; } }
 function popBile(n) { dropItem('bile', 1, n.x, n.y); burst(n.x, n.y - 6, '#b9dc3c', 18); sfx('splash'); if (dist(P.x, P.y, n.x, n.y) < 24) { const feet = equip.feet ? ITEMS[equip.feet.id].acid : 1; hurtPlayer(Math.max(2, Math.round(9 * (feet == null ? 1 : Math.max(feet, .3)))), n.x, n.y); toast('A bolsa estourou e a bile espirrou!', 'bad'); } spendNode(n); }
 function triggerNerve(n) { if ((n.cd || 0) > 0) { floatTxt('cansado…', n.x, n.y - 16, '#d06a7e'); return; } n.cd = 18; n.shake = .4; burst(n.x, n.y - 8, '#fff7c8', 12); shakeA = Math.max(shakeA, 2); sfx('event');
   const f = folds[n.fold]; if (f && f.type === 'open' && f.closed) { f.closed = false; f.tempOpen = 12; burst(f.x, f.y, '#e392a3', 30); toast('O nervo se contrai: uma bolsa escondida se abriu por 12 segundos!', 'good'); } else toast('O nervo pulsa e a carne em volta estremece.'); }
+const bossLit = m => P.flare > 0 || (lightR() >= 90 && dist(m.x, m.y, P.x, P.y) < lightR() * .85);
+function bossMult(m, D, w) { if (!D.boss) return 1; const hid = equip.hand && equip.hand.id;
+  if (D.ai === 'bcrab') { if (m.st === 'stun') return 1.7; if (!w || w.dmg < 4) { floatTxt('a carapaça bloqueia!', m.x, m.y - 30, '#a2a6b8'); sfx('hit'); return 0; } return .4; }
+  if (D.ai === 'beel') { if (m.inv) { floatTxt('submersa', m.x, m.y - 18, '#c6e34a'); return 0; } return ['arpao', 'lanca_coral', 'lanca_esp'].includes(hid) ? 1.5 : 1; }
+  if (D.ai === 'bshade') { if (m.st === 'blink') return 0; if (!bossLit(m)) { floatTxt('precisa de luz forte', m.x, m.y - 30, '#a77ae6'); return 0; } return equip.body && equip.body.id === 'espelho' ? 2 : 1; }
+  return 1; }
+function denSpot(x, y, rmin, rmax) { if (!den) return null; for (let k = 0; k < 30; k++) { const i = pickR(den.tiles); if (i == null) return null; const tx = i % MW, ty = Math.floor(i / MW); if (tiles[i] !== FLOOR || isSolidT(tx, ty)) continue; const px_ = (tx + .5) * TS, py_ = (ty + .6) * TS, d = dist(px_, py_, x, y); if (d >= rmin && d <= rmax) return { x: px_, y: py_ }; } return null; }
+function denAcidNear(x, y) { if (!den) return null; let best = null, bd = 1e9; for (const i of den.tiles) { if (tiles[i] !== ACID || bridgeMap[i]) continue; const px_ = (i % MW + .5) * TS, py_ = (Math.floor(i / MW) + .6) * TS, d = Math.abs(dist(px_, py_, x, y) - 40) + Math.random() * 18; if (d < bd) { bd = d; best = { x: px_, y: py_ }; } } return best; }
+let BOSS = null;
+const BOSS_ID = { 1: 'bcrab', 2: 'beel', 3: 'bshade' };
+const BOSS_INFO = {
+  1: { img: 'boss1_couraca', kick: 'O GUARDIÃO DOS DESTROÇOS', title: 'Caranguejo-Couraça', body: 'Algo enorme se mexe entre as placas de metal do navio. A carapaça dele bloqueia golpes fracos. Use uma arma pesada (lança de osso ou melhor), desvie quando ele investir e ataque quando ele bater na parede.', win: 'O Caranguejo-Couraça desaba. Entre as placas, Jonas encontra uma garra dura como pedra: com ela dá para fazer um gancho.' },
+  2: { img: 'boss2_enguia', kick: 'A GUARDIÃ DO PÂNTANO', title: 'Enguia-Mãe', body: 'A bile borbulha. Uma enguia do tamanho de um mastro vive no fundo do poço. Ela só pode ser ferida quando emerge. Fique fora da linha dos jatos e use arma de alcance: arpão e lanças farpadas ferem mais.', win: 'A Enguia-Mãe afunda de vez. Uma escama espelhada fica boiando na bile: ela reflete a luz como um espelho.' },
+  3: { img: 'boss3_sombra', kick: 'O QUE JONAS CARREGA', title: 'Sombra Gigante', body: 'A sombra da fuga cresceu até ocupar o abismo inteiro. Ela só pode ser ferida dentro de uma luz forte: Lanterna viva ou Sinalizador. O Escudo-espelho dobra o dano.', win: 'A Sombra se desfaz como fumaça ao amanhecer. Jonas não precisa mais fugir. Ao longe, uma passagem se abre.' },
+};
+function bossTick(dt) { if (day > 3 || !den) { $('#bossBar').hidden = true; return; } const f = folds[den.fold]; const done = flags['boss' + day];
+  if (!BOSS) { if (f) f.closed = !(done || memCount(day) >= 6);
+    const inDen = regionMap[idx(Math.floor(P.x / TS), Math.floor(P.y / TS))] === (RG.covil && RG.covil.i);
+    if (!done && memCount(day) >= 6 && inDen && dist(P.x, P.y, den.x, den.y) < (den.r - 2.2) * TS) { const m = spawnMob(BOSS_ID[day], den.x + (day === 2 ? 0 : 0), den.y - 8); m.st = 'idle'; BOSS = { m }; if (f) { f.closed = true; if (f.tiles.includes(idx(Math.floor(P.x / TS), Math.floor(P.y / TS)))) unstick(); }
+      const I = BOSS_INFO[day]; sfx('event'); shakeA = 5; showCard({ img: I.img, kick: I.kick, title: I.title, body: I.body, btn: 'Lutar' }); } }
+  const bar = $('#bossBar'); if (BOSS && !BOSS.m.dead) { bar.hidden = false; $('#bossName').textContent = MOBS[BOSS.m.t].n; $('#bossHp').style.width = Math.max(0, BOSS.m.hp / BOSS.m.maxhp * 100) + '%'; } else bar.hidden = true;
+  if (day === 3) { const g3 = folds.find(x => x.key === 'G3'); if (g3 && flags.boss3) g3.closed = false; } }
+function bossDefeated(m) { if (!BOSS || BOSS.m !== m) return; BOSS = null; flags['boss' + day] = true; const f = den && folds[den.fold]; if (f) f.closed = false; $('#bossBar').hidden = true; shakeA = 6; sfx('event'); burst(m.x, m.y - 12, '#ffe170', 40);
+  for (const x of mobs) if (!x.dead && dist(x.x, x.y, m.x, m.y) < 200 && !MOBS[x.t].boss) { x.dead = x.gone = true; burst(x.x, x.y - 4, '#fff7c8', 6); }
+  GST.bosses = (GST.bosses || 0) + 1; if (day === 3) { const g3 = folds.find(x => x.key === 'G3'); if (g3) { g3.closed = false; burst(g3.x, g3.y, '#62f4e2', 40); } }
+  const I = BOSS_INFO[day]; showCard({ img: I.img, kick: 'GUARDIÃO DERROTADO', title: I.title, body: I.win, btn: 'Continuar', fn: () => { questTick(); writeSlot('auto', true); } }); }
 function inLight(x, y) { if (dist(x, y, P.x, P.y) < lightR() * .85) return true; for (const s of structs) if (s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, x, y) < 70) return true; return false; }
 
 function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - m.ly) > .15; m.lx = m.x; m.ly = m.y;
@@ -1206,7 +1376,7 @@ function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - 
   m.kx *= Math.pow(.004, dt); m.ky *= Math.pow(.004, dt);
   if (m.trapped > 0) { m.trapped -= dt; moveEnt(m, m.kx * dt, m.ky * dt); return; }
   if (m.stun > 0) { m.stun -= dt; moveEnt(m, m.kx * dt, m.ky * dt); return; }
-  for (const s of structs) if (s.k === 'trap' && s.uses > 0 && D.ai !== 'shade' && D.ai !== 'float' && dist(s.x, s.y, m.x, m.y) < 10) { m.trapped = 4; s.uses--; floatTxt('Preso!', m.x, m.y - 16, '#c6e34a'); sfx('craft'); return; }
+  for (const s of structs) if (s.k === 'trap' && s.uses > 0 && !D.boss && D.ai !== 'shade' && D.ai !== 'float' && dist(s.x, s.y, m.x, m.y) < 10) { m.trapped = 4; s.uses--; floatTxt('Preso!', m.x, m.y - 16, '#c6e34a'); sfx('craft'); return; }
   let tx = 0, ty = 0, spd = D.spd, contact = true;
   const wander = (f = .45) => { m.wt -= dt; if (m.wt <= 0) { m.wa = Math.random() * 6.28; m.wt = rr(1.2, 3); } tx = Math.cos(m.wa) * f; ty = Math.sin(m.wa) * f; };
   const chase = () => { if (dd < D.sense && !safe) { tx = ux; ty = uy; } else wander(); };
@@ -1269,18 +1439,42 @@ function mobUpdate(m, dt) { m.mv = m.lx != null && Math.hypot(m.x - m.lx, m.y - 
       if (m.st === 'aim') { m.stT -= dt; spd = 0; contact = false; if (m.stT <= 0) { m.st = 'idle'; m.cd = 3; if (dd < 118 && !safe) { hurtPlayer(D.dmg, null); P.kx = -ux * 280; P.ky = -uy * 280; m.lash = .3; sfx('whip'); if (!flags.lulaTip) { flags.lulaTip = true; toast('A lula puxa Jonas! Saia da linha quando o tentáculo mirar.', 'bad'); } } } }
       else { if (dd < D.sense && !safe) { if (dd < 45) { tx = -ux; ty = -uy; } else if (dd > 88) { tx = ux; ty = uy; } else { tx = -uy * .5; ty = ux * .5; } if (m.cd <= 0 && dd < 108) { m.st = 'aim'; m.stT = .7; m.ax = P.x; m.ay = P.y; } } else wander(); }
       break;
+    case 'bcrab':
+      contact = false; m.cyc = m.cyc || 0;
+      if (m.st === 'idle' || m.st === 'walk') { if (m.st === 'idle') { m.st = 'walk'; m.stT = 1.6; } m.stT -= dt; tx = ux; ty = uy; spd = D.spd; contact = true; if (m.stT <= 0) { m.st = 'wind'; m.stT = .85; sfx('growl'); } }
+      else if (m.st === 'wind') { m.stT -= dt; spd = 0; m.vx = ux; m.vy = uy; if (m.stT <= 0) { m.st = 'dash'; m.stT = 1.4; sfx('dash'); } }
+      else if (m.st === 'dash') { m.stT -= dt; spd = 205; tx = m.vx; ty = m.vy; contact = true; if (m.stT <= 0) { m.st = 'walk'; m.stT = 2; } }
+      else if (m.st === 'stun') { m.stT -= dt; spd = 0; if (m.stT <= 0) { m.st = 'walk'; m.stT = 2.2; m.cyc++; if (m.cyc % 2 === 0) { for (let k = 0; k < 3; k++) { const sp = denSpot(m.x, m.y, 30, 70); if (sp) spawnMob('piolho', sp.x, sp.y); } toast('O guardião chama os piolhos!', 'bad'); } } }
+      break;
+    case 'beel':
+      contact = false; spd = 0; m.bite = (m.bite || 0) - dt;
+      if (m.st === 'idle') { m.st = 'under'; m.stT = 1.2; }
+      if (m.st === 'under') { m.inv = true; m.stT -= dt; if (m.stT <= 0) { const sp = denAcidNear(P.x, P.y); if (sp) { m.x = sp.x; m.y = sp.y; } m.st = 'rise'; m.stT = .75; sfx('splash'); } }
+      else if (m.st === 'rise') { m.inv = true; m.stT -= dt; if (m.stT <= 0) { m.st = 'up'; m.stT = 2.8; m.inv = false; m.cd = .5; } }
+      else if (m.st === 'up') { m.inv = false; m.stT -= dt; if (m.cd <= 0) { m.cd = 1; for (const o of [-.32, 0, .32]) { const a = Math.atan2(dy, dx) + o; proj.push({ x: m.x, y: m.y - 14, vx: Math.cos(a) * 105, vy: Math.sin(a) * 105, life: 1.7, k: 'bilep', dmg: 8 }); } sfx('spit'); }
+        if (dd < 30 && m.bite <= 0) { m.bite = 1.3; hurtPlayer(D.dmg, m.x, m.y); }
+        if (m.stT <= 0) { m.st = 'under'; m.stT = 1.2 + Math.random() * .8; m.cyc = (m.cyc || 0) + 1; if (m.cyc % 3 === 0) { const sp = denAcidNear(P.x, P.y); if (sp) spawnMob('enguia', sp.x, sp.y); } } }
+      break;
+    case 'bshade': {
+      contact = false; const lit = bossLit(m); m.fade = Math.max(0, (m.fade || 0) - dt);
+      if (m.st === 'blink') { m.stT -= dt; spd = 0; m.inv = true; if (m.stT <= 0) { const a = Math.atan2(P.fy, P.fx) + Math.PI + rr(-.7, .7); const sp = denSpot(P.x + Math.cos(a) * 64, P.y + Math.sin(a) * 64, 0, 30); if (sp) { m.x = sp.x; m.y = sp.y; } m.st = 'hunt'; m.stT = 3.6; m.fade = .5; m.inv = false; sfx('roll'); } }
+      else { if (m.st !== 'hunt') { m.st = 'hunt'; m.stT = 3.6; } m.stT -= dt; m.lg = (m.lg || 0) - dt; if (m.lunge > 0) { m.lunge -= dt; tx = m.vx; ty = m.vy; spd = 135; } else if (lit) { const side = Math.sin(m.ph) > 0 ? 1 : -1; tx = -uy * side + (dd < 46 ? -ux : dd > 70 ? ux : 0) * .8; ty = ux * side + (dd < 46 ? -uy : dd > 70 ? uy : 0) * .8; spd = 40; if (m.lg <= 0 && dd < 90) { m.lg = 2.4; m.lunge = .35; m.vx = ux; m.vy = uy; sfx('dash'); } } else { tx = ux; ty = uy; spd = D.spd; }
+        if (m.stT <= 0) { m.st = 'blink'; m.stT = .6; m.cyc = (m.cyc || 0) + 1; if (m.cyc % 2 === 0 && mobs.filter(x => x.t === 'sombra' && !x.dead).length < 3) { for (let k = 0; k < 2; k++) { const sp = denSpot(m.x, m.y, 30, 80); if (sp) spawnMob('sombra', sp.x, sp.y); } } } }
+      if (dd < m.r + 8 && m.cd <= 0 && m.st !== 'blink') { m.cd = 1.2; hurtPlayer(D.dmg, m.x, m.y); if (equip.light) { equip.light.dur = Math.max(0, equip.light.dur - 30); toast('A Sombra suga a luz.', 'bad'); } }
+      break; }
     case 'roll':
       spd = D.spd; tx = m.vx; ty = m.vy; m.stT -= dt; if (m.stT <= 0 && dd < D.sense) { m.stT = 4; m.vx = ux; m.vy = uy; }
       break;
   }
-  if ((P.repel || 0) > 0 && dd < 90 && D.ai !== 'ambush') { tx = -ux; ty = -uy; spd = Math.max(spd, 34); contact = false; }
+  if ((P.repel || 0) > 0 && dd < 90 && D.ai !== 'ambush' && !D.boss) { tx = -ux; ty = -uy; spd = Math.max(spd, 34); contact = false; }
   if (inSafe(m.x, m.y) && !m.npc) { const d = dist(m.x, m.y, shelter.x, shelter.y) || 1; tx = (m.x - shelter.x) / d; ty = (m.y - shelter.y) / d; spd = Math.max(spd, 30); }
   const hl = Math.hypot(tx, ty); if (hl > 1) { tx /= hl; ty /= hl; }
   if (tx) m.flip = tx < 0;
   const bumped = moveEnt(m, (tx * spd + m.kx) * dt + windX * dt * .6, (ty * spd + m.ky) * dt + windY * dt * .6);
+  if (D.ai === 'bcrab' && m.st === 'dash' && bumped) { m.st = 'stun'; m.stT = 2.6; shakeA = Math.max(shakeA, 5); sfx('boom'); burst(m.x, m.y - 10, '#fff7c8', 16); floatTxt('ATORDOADO!', m.x, m.y - 34, '#ffe170'); }
   if (D.ai === 'roll' && bumped) { if (isSolidP(m.x + m.vx * 8, m.y)) m.vx *= -1; if (isSolidP(m.x, m.y + m.vy * 8)) m.vy *= -1; if (bumped) { m.vx += rr(-.3, .3); m.vy += rr(-.3, .3); const l = Math.hypot(m.vx, m.vy); m.vx /= l; m.vy /= l; } }
   if (contact && dd < m.r + 6 && m.cd <= 0) { m.cd = .9; hurtPlayer(D.dmg, m.x, m.y); }
-  if (dd > 420 && !m.npc) m.dead = m.gone = true;
+  if (dd > 420 && !m.npc && !D.boss) m.dead = m.gone = true;
 }
 
 /* ================= FX ================= */
@@ -1441,17 +1635,48 @@ function placeNode(k, list, opt = {}) { for (let tr = 0; tr < 60; tr++) { const 
 function setupNodes4() { nodes = []; R = mulberry(4041);
   const add = (k, tx, ty, data = {}) => { const n = { k, x: (tx + .5) * TS, y: (ty + .65) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, ...data }; nodes.push(n); return n; };
   const free = (tx, ty) => inB(tx, ty) && tiles[idx(tx, ty)] === FLOOR && !solid[idx(tx, ty)] && !nodes.some(n => Math.abs(n.x - (tx + .5) * TS) < 20 && Math.abs(n.y - (ty + .65) * TS) < 16);
-  const scatter = (k, count, pred, data) => { let c = 0; for (let tr = 0; tr < count * 80 && c < count; tr++) { const tx = 1 + Math.floor(R() * (MW - 2)), ty = 1 + Math.floor(R() * (MH - 2)); if (!free(tx, ty) || !pred(tx, ty)) continue; add(k, tx, ty, typeof data === 'function' ? data() : data || {}); c++; } };
-  PLAZAS.forEach((p, i) => { add('plaza', p.x, p.y, { pi: i }); add('well', p.x + 3, p.y - 2); add('palm', p.x - 4, p.y - 2); add('palm', p.x + 4, p.y + 3); });
-  add('king', 71, 42); add('site', 96, 37);
-  scatter('stall', 10, (x, y) => inCityT(x, y) && (y === 34 || y === 40) && !pave[idx(x, y)]);
-  scatter('pot', 16, (x, y) => inCityT(x, y) && !pave[idx(x, y)]);
-  scatter('palm', 16, (x, y) => !inCityT(x, y) && (x < 19 || x > 82) && Math.hypot(x - 96, y - 37) > 5);
-  scatter('sheep', 8, (x, y) => x > 84 && Math.hypot(x - 96, y - 37) > 5 && Math.hypot(x - 96, y - 37) < 15);
-  scatter('sheep', 3, (x, y) => x < 18);
-  scatter('tuft', 20, (x, y) => Math.hypot(x - 96, y - 37) < 10);
-  scatter('npc', 38, (x, y) => inCityT(x, y) && pave[idx(x, y)], () => ({ c: Math.floor(R() * NPC_COLS.length), conv: false, wt: R() * 2, vx: 0, vy: 0 }));
-  for (const n of nodes) { if (n.k === 'npc') { n.hx = n.x; n.hy = n.y; } if (['well', 'stall', 'palm'].includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; } }
+  const scatter = (k, count, pred, data) => { let c = 0; for (let tr = 0; tr < count * 120 && c < count; tr++) { const tx = 1 + Math.floor(R() * (MW - 2)), ty = 1 + Math.floor(R() * (MH - 2)); if (!free(tx, ty) || !pred(tx, ty)) continue; add(k, tx, ty, typeof data === 'function' ? data() : data || {}); c++; } };
+  const npc = (tx, ty, role, extra = {}) => add('npc', tx, ty, { c: Math.floor(R() * NPC_COLS.length), conv: false, wt: R() * 2, vx: 0, vy: 0, role, ...extra });
+  const { X0, X1, gy0, gy1, PX0, PX1, PY0, HX0, HX1, HY0, HY1, door0, door1 } = NC, gm = (gy0 + gy1) / 2;
+  // plazas: pedestal, obelisk, well, palms
+  PLAZAS.forEach((p, i) => { add('plaza', p.x, p.y, { pi: i }); add('obelisk', p.x, p.y - 4); add('well', p.x + 4, p.y + 2); add('palm', p.x - 5, p.y - 2); add('palm', p.x + 5, p.y - 3); add('palm', p.x - 4, p.y + 4); });
+  add('fountain', PLAZAS[1].x - 4, PLAZAS[1].y + 3);
+  // winged bulls guard both city gates and the palace gate
+  for (const gx of [X0 + 3, X1 - 3]) { add('lamassu', gx, gy0 - 2, { flip: gx > 60 }); add('lamassu', gx, gy1 + 2, { flip: gx > 60 }); }
+  add('lamassu', door0 - 3, PY0 + 2); add('lamassu', door1 + 3, PY0 + 2, { flip: true });
+  // banners along the main avenue
+  for (let x = X0 + 8; x < X1 - 6; x += 8) { add('banner', x, gy0 - 1); add('banner', x + 4, gy1 + 1); }
+  // palace courtyard
+  add('fountain', PX0 + 5, PY0 + 5); add('fountain', PX1 - 5, PY0 + 5); add('palm', PX0 + 3, PY0 + 3); add('palm', PX1 - 3, PY0 + 3); add('palm', PX0 + 9, HY0 - 2); add('palm', PX1 - 9, HY0 - 2);
+  add('brazier', door0 - 2, HY0 - 1); add('brazier', door1 + 2, HY0 - 1);
+  npc(door0 - 1, PY0 + 1, 'guard'); npc(door1 + 1, PY0 + 1, 'guard'); npc(door0 - 2, HY0 - 2, 'guard'); npc(door1 + 2, HY0 - 2, 'guard');
+  // throne hall: columns, braziers, the king on his throne
+  for (const cy of [HY0 + 4, HY0 + 8, HY0 + 12]) { add('column', HX0 + 4, cy); add('column', HX1 - 4, cy); }
+  add('brazier', door0 - 5, HY1 - 3); add('brazier', door1 + 5, HY1 - 3);
+  add('king', (door0 + door1) / 2, HY1 - 3);
+  npc(door0 - 3, HY1 - 5, 'guard'); npc(door1 + 3, HY1 - 5, 'guard'); npc(HX0 + 3, HY0 + 2, 'noble'); npc(HX1 - 3, HY0 + 2, 'noble'); npc(HX0 + 6, HY1 - 3, 'noble');
+  // gardens
+  scatter('palm', 14, (x, y) => pave[idx(x, y)] === 2); scatter('flowers', 18, (x, y) => pave[idx(x, y)] === 2); add('fountain', 36, 23);
+  // market and streets
+  scatter('stall', 22, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && !pave[idx(x, y)] && [31, 34, 49, 55, 71, 74].includes(y));
+  for (const n of nodes.filter(n => n.k === 'stall')) { const tx = Math.floor(n.x / TS), ty = Math.floor(n.y / TS) + (ty0 => ty0)(1); if (free(tx, ty)) npc(tx, ty, 'seller', { still: true }); }
+  scatter('pot', 34, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && !pave[idx(x, y)]);
+  scatter('cart', 8, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && pave[idx(x, y)] === 1 && (y === gy0 || y === gy1 || y === 32 || y === 33));
+  scatter('goat', 10, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && !pave[idx(x, y)]);
+  scatter('statue', 6, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && pave[idx(x, y)] === 1 && [32, 33, 72, 73].includes(y) && x % 3 === 0);
+  // outside the walls: caravan, camels, flocks, the hill
+  scatter('camel', 5, (x, y) => x < X0 - 2 && Math.abs(y - gm) < 12); add('cart', X0 - 6, gm - 4); add('cart', X0 - 9, gm + 5);
+  add('site', HILL.x, HILL.y);
+  scatter('palm', 22, (x, y) => !inCityT(x, y) && (x < X0 - 2 || x > X1 + 2) && Math.hypot(x - HILL.x, y - HILL.y) > 5);
+  scatter('sheep', 10, (x, y) => x > X1 + 4 && Math.hypot(x - HILL.x, y - HILL.y) > 5 && Math.hypot(x - HILL.x, y - HILL.y) < 16);
+  scatter('sheep', 4, (x, y) => x < X0 - 3); scatter('camel', 2, (x, y) => x > X1 + 4);
+  scatter('tuft', 28, (x, y) => Math.hypot(x - HILL.x, y - HILL.y) < 11);
+  // townsfolk and children
+  scatter('npc', 58, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && pave[idx(x, y)] === 1, () => ({ c: Math.floor(R() * NPC_COLS.length), conv: false, wt: R() * 2, vx: 0, vy: 0, role: 'adult' }));
+  scatter('npc', 14, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && pave[idx(x, y)] >= 1, () => ({ c: Math.floor(R() * NPC_COLS.length), conv: false, wt: R() * 2, vx: 0, vy: 0, role: 'kid' }));
+  scatter('npc', 4, (x, y) => inCityT(x, y) && !inPalaceT(x, y) && pave[idx(x, y)] === 1 && (y === gy0 || y === gy1) && (x < X0 + 6 || x > X1 - 6), () => ({ c: 0, conv: false, wt: 9, vx: 0, vy: 0, role: 'guard' }));
+  const SOLID4 = ['well', 'stall', 'palm', 'lamassu', 'obelisk', 'fountain', 'column', 'king', 'cart', 'statue', 'brazier', 'camel'];
+  for (const n of nodes) { if (n.k === 'npc') { n.hx = n.x; n.hy = n.y; } if (SOLID4.includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; } }
 function setupNodes() { if (day === 4) { setupNodes4(); return; }
   nodes = [];
   const spec = {
@@ -1463,6 +1688,7 @@ function setupNodes() { if (day === 4) { setupNodes4(); return; }
     central: [['salt', 2], ['vent', 1], ['bones', 3], ['mush', 3], ['papila', 2]],
     silencio: [['mush', 4]],
   };
+  for (const o of obst) { const n = { k: 'obst', type: o.type, tiles: o.tiles, x: (o.gx + .5) * TS, y: (o.gy + .5) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, open: false }; nodes.push(n); for (const i of o.tiles) solid[i] = 1; }
   const lists = {}; for (const id in RG) lists[id] = regionTiles(id);
   const C0 = { x: RG.destrocos.x * TS, y: RG.destrocos.y * TS };
   placeNode('hull', lists.destrocos, { gap: 40, far: { x: C0.x, y: C0.y, d: 40 } });
@@ -1470,19 +1696,21 @@ function setupNodes() { if (day === 4) { setupNodes4(); return; }
   const MEM_REG = { 1: ['destrocos', 'juncao', 'costelas', 'costelas', 'cilios', 'central'], 2: ['costelas', 'costelas', 'cilios', 'cilios', 'lago', 'juncao'], 3: ['costelas', 'costelas', 'lago', 'cilios', 'central', 'juncao'] };
   const farFrom = (list, d) => { const l = list.filter(i => Math.hypot(i % MW - RG.destrocos.x, Math.floor(i / MW) - RG.destrocos.y) > d); return l.length > 4 ? l : list; };
   const outer = (list, r) => { const l = list.filter(i => Math.hypot(i % MW - r.x, Math.floor(i / MW) - r.y) > r.r * .45); return l.length > 4 ? l : list; };
-  const need = MEM_ACT[day].length - memCount(day);
-  MEM_REG[day].slice(0, need).forEach(reg => { let n = placeNode('memory', farFrom(outer(lists[reg], RG[reg]), 7), { gap: 120, data: { mem: 1 } }); for (const alt of ['costelas', 'cilios', 'juncao', 'lago', 'central']) { if (n) break; n = placeNode('memory', lists[alt], { gap: 30, data: { mem: 1 } }); } });
+  let need = MEM_ACT[day].length - memCount(day);
+  for (const o of obst) { if (need <= 0) break; nodes.push({ k: 'memory', x: (o.cx + .5) * TS, y: (o.cy + .65) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, mem: 1 }); need--; }
+  const MEM_FREE = { 1: ['destrocos', 'juncao', 'costelas', 'cilios'], 2: ['juncao', 'costelas', 'cilios', 'lago'], 3: ['juncao', 'costelas', 'lago', 'cilios'] };
+  MEM_FREE[day].slice(0, need).forEach(reg => { let n = placeNode('memory', farFrom(outer(lists[reg], RG[reg]), 7), { gap: 120, data: { mem: 1 } }); for (const alt of ['costelas', 'cilios', 'juncao', 'lago', 'central']) { if (n) break; n = placeNode('memory', lists[alt], { gap: 30, data: { mem: 1 } }); } });
   const REFL_BY_DAY = { 1: [[1, 'destrocos'], [3, 'juncao'], [7, 'cilios']], 2: [[2, 'lago'], [4, 'cilios'], [8, 'costelas']], 3: [[5, 'costelas'], [6, 'lago'], [9, 'central']] };
   for (const [rf, reg] of REFL_BY_DAY[day]) placeNode('reflect', outer(lists[reg], RG[reg]), { gap: 30, data: { rf, used: refl.has(rf) }, far: reg === 'destrocos' ? { x: C0.x, y: C0.y, d: 50 } : null });
   if (day === 1) placeNode('bottle', lists.destrocos, { gap: 26 });
   if (day === 2) { placeNode('bottle', lists.lago); placeNode('chest', lists.costelas, { gap: 30 }); }
   if (day === 3) { const r = RG.silencio; const near = lists.silencio.filter(i => Math.hypot(i % MW - r.x, Math.floor(i / MW) - r.y) < 2.5); placeNode('altar', near.length ? near : lists.silencio, { gap: 10 }); }
-  for (const id in spec) for (const [k, n0] of spec[id]) { const n = k === 'vent' ? n0 : Math.round(n0 * 1.5); for (let c = 0; c < n; c++) placeNode(k, lists[id], { gap: k === 'rib' ? 70 : k === 'cilia' ? 16 : 22, far: id === 'destrocos' ? { x: C0.x, y: C0.y, d: 26 } : null }); }
+  for (const id in spec) for (const [k, n0] of spec[id]) { const n = k === 'vent' ? n0 + 1 : Math.round(n0 * 2.4); for (let c = 0; c < n; c++) placeNode(k, lists[id], { gap: k === 'rib' ? 70 : k === 'cilia' ? 16 : 22, far: id === 'destrocos' ? { x: C0.x, y: C0.y, d: 26 } : null }); }
   for (const p of pockets) { const list = []; for (let y = Math.floor(p.y / TS) - 2; y <= Math.floor(p.y / TS) + 2; y++) for (let x = Math.floor(p.x / TS) - 2; x <= Math.floor(p.x / TS) + 2; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0) list.push(idx(x, y)); if (list.length) placeNode('cache', list, { gap: 8 });
     const nl = []; const ox = Math.floor(p.out.x / TS), oy = Math.floor(p.out.y / TS); for (let y = oy - 3; y <= oy + 3; y++) for (let x = ox - 3; x <= ox + 3; x++) if (inB(x, y) && tiles[idx(x, y)] === FLOOR && foldAt[idx(x, y)] < 0 && regionMap[idx(x, y)] < REGIONS.length && !solid[idx(x, y)]) nl.push(idx(x, y)); if (nl.length) placeNode('nerve', nl, { gap: 12, data: { fold: p.fold } }); }
 }
 const QUESTS4 = [
-  { id: 'enter', t: 'Entre em Nínive pelo portão oeste', target: () => ({ x: 22 * TS, y: 37.5 * TS }), check: () => inCityT(Math.floor(P.x / TS), Math.floor(P.y / TS)), done: () => showCard({ img: 'ninive_cidade', kick: 'NÍNIVE', title: 'A grande cidade', body: 'Ruas cheias, mercados barulhentos, portões guardados por touros alados. Ninguém aqui conhece o Deus de Jonas. Ele respira fundo: é hora de falar.', btn: 'Seguir para as praças' }) },
+  { id: 'enter', t: 'Entre em Nínive pelo portão oeste', target: () => ({ x: (NC.X0 - 1) * TS, y: 52.5 * TS }), check: () => inCityT(Math.floor(P.x / TS), Math.floor(P.y / TS)), done: () => showCard({ img: 'ninive_cidade', kick: 'NÍNIVE', title: 'A grande cidade', body: 'Ruas cheias, mercados barulhentos, portões guardados por touros alados. Ninguém aqui conhece o Deus de Jonas. Ele respira fundo: é hora de falar.', btn: 'Seguir para as praças' }) },
   { id: 'proclaim', t: 'Anuncie a mensagem nas três praças', req: ['enter'], sub: () => `${flags.procl || 0}/3 praças`, target: () => nodes.find(n => n.k === 'plaza' && !(flags.proc || {})[n.pi]), check: () => (flags.procl || 0) >= 3 },
   { id: 'king', t: 'Vá ao palácio e fale com o rei', req: ['proclaim'], target: () => nodes.find(n => n.k === 'king'), check: () => flags.kingDone },
   { id: 'hill', t: 'Saia pelo portão leste e suba a colina', req: ['king'], target: () => nodes.find(n => n.k === 'site'), check: () => flags.booth },
@@ -1493,21 +1721,25 @@ const QUESTS = {
     { id: 'basics', t: 'Reúna madeira, corda e tecido nos destroços', sub: () => `Madeira ${Math.min(got.madeira || 0, 3)}/3 · Corda ${Math.min(got.corda || 0, 1)}/1 · Tecido ${Math.min(got.tecido || 0, 1)}/1`, check: () => (got.madeira || 0) >= 3 && (got.corda || 0) >= 1 && (got.tecido || 0) >= 1 },
     { id: 'light', t: 'A escuridão engole tudo. Faça uma fonte de luz', sub: () => 'Tocha ou fogueira, na aba Luz (C)', check: () => crafted.tocha || crafted.fogueira },
     { id: 'shelter', t: 'O chão treme. Construa um abrigo seguro', sub: () => 'Aba Sobrevivência. Madeira 4, tecido 3, corda 2', check: () => !!shelter },
+    { id: 'bench', t: 'Monte uma bancada perto do abrigo', req: ['shelter'], sub: () => 'Aba Sobrevivência. Armas e ferramentas precisam dela', check: () => structs.some(s => s.k === 'bench') },
     { id: 'quake', t: 'Sobreviva à grande contração', req: ['shelter'], sub: () => DIR.ev === 'grande' ? 'Aguente firme!' : 'Ela está vindo…', check: () => flags.bigDone, start: () => forceEvent('grande', 6) },
-    { id: 'mem1', t: 'Siga as lembranças: o que aconteceu?', req: ['quake'], sub: () => `${memCount(1)}/6 lembranças · procure nos cantos mais distantes`, target: () => memNode(), check: () => memCount(1) >= 6 },
-    { id: 'rest', t: 'Volte ao abrigo e descanse', req: ['mem1'], target: () => shelter, sub: () => 'Interaja com o abrigo para encerrar o dia', check: () => flags.rested },
+    { id: 'mem1', t: 'Siga as lembranças: o que aconteceu?', req: ['quake'], sub: () => `${memCount(1)}/6 lembranças · algumas estão atrás de obstáculos`, target: () => memNode(), check: () => memCount(1) >= 6, done: denOpenToast },
+    { id: 'boss1', t: 'Enfrente o guardião: Caranguejo-Couraça', req: ['mem1'], sub: () => 'Leve uma arma pesada. Ele fica atordoado ao bater na parede', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss1 || !den },
+    { id: 'rest', t: 'Volte ao abrigo e descanse', req: ['boss1'], target: () => shelter, sub: () => 'Interaja com o abrigo para encerrar o dia', check: () => flags.rested },
   ],
   2: [
     { id: 'explore', t: 'Procure uma saída: explore três regiões', sub: () => ['costelas', 'lago', 'cilios'].map(k => (visited.has(k) ? '■ ' : '□ ') + RG[k].n.split(' ').slice(-1)[0]).join('  '), check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia2_explorar', kick: 'AS PROFUNDEZAS', title: 'Nenhuma saída à vista', body: 'Jonas percorreu as três regiões, e a baleia parece não ter fim. Se existe uma saída, ela está mais para dentro.', btn: 'Continuar' }) },
     { id: 'tool', t: 'Crie algo para atravessar o ácido', sub: () => 'Ponte, botas ou sandálias (aba Travessia)', check: () => crafted.ponte || crafted.botas || crafted.sandalias },
-    { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças`, target: () => memNode(), check: () => memCount(2) >= 6 },
+    { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças · algumas estão atrás de obstáculos`, target: () => memNode(), check: () => memCount(2) >= 6, done: denOpenToast },
+    { id: 'boss2', t: 'Enfrente a guardiã: Enguia-Mãe', req: ['nineve'], sub: () => 'Ataque quando ela emergir. Arpão fere mais', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss2 || !den },
     { id: 'pattern', t: 'Observe o padrão das contrações', sub: () => `${Math.min(contrCount, 2)}/2 contrações`, check: () => contrCount >= 2, done: () => { flags.pattern = true; toast('Jonas agora sente o ritmo. O mostrador avisa a próxima contração.', 'good'); } },
-    { id: 'central', t: 'Alcance a Câmara Central', req: ['explore', 'tool'], target: () => ({ x: RG.central.x * TS, y: RG.central.y * TS }), sub: () => qDone('nineve') && qDone('pattern') ? 'A saída deve estar lá' : 'Conclua as outras missões antes', check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'central' && qDone('nineve') && qDone('pattern'); }, done: () => climax2() },
+    { id: 'central', t: 'Alcance a Câmara Central', req: ['explore', 'tool'], target: () => ({ x: RG.central.x * TS, y: RG.central.y * TS }), sub: () => qDone('nineve') && qDone('boss2') && qDone('pattern') ? 'A saída deve estar lá' : 'Conclua as outras missões antes', check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'central' && qDone('nineve') && qDone('boss2') && qDone('pattern'); }, done: () => climax2() },
   ],
   3: [
     { id: 'revisit', t: 'Revisite as regiões transformadas', sub: () => `${['costelas', 'lago', 'cilios'].filter(k => visited.has(k)).length}/3`, check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia3_ajoelhar', kick: 'DAS PROFUNDEZAS À LUZ', title: 'Parar de procurar', body: 'As regiões mudaram e não há porta em lugar nenhum. Pela primeira vez, Jonas para de procurar uma saída e se ajoelha.', btn: 'Continuar' }) },
-    { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças`, target: () => memNode(), check: () => memCount(3) >= 6, done: () => { const g = folds.find(f => f.key === 'G3'); if (g) { g.closed = false; burst(g.x, g.y, '#62f4e2', 40); } toast(`Uma passagem se abriu: ${RG.cilios.n}.`, 'good'); } },
-    { id: 'gauntlet', t: 'Atravesse a passagem final', req: ['mems'], target: () => { const g = folds.find(f => f.key === 'G3'); return g && !flags.gEntered ? g : { x: RG.silencio.x * TS, y: RG.silencio.y * TS }; }, check: () => flags.gauntlet },
+    { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças`, target: () => memNode(), check: () => memCount(3) >= 6, done: denOpenToast },
+    { id: 'boss3', t: 'Enfrente a Sombra Gigante', req: ['mems'], sub: () => 'Só a luz forte a fere: Lanterna viva ou Sinalizador', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss3 || !den },
+    { id: 'gauntlet', t: 'Atravesse a passagem final', req: ['boss3'], target: () => { const g = folds.find(f => f.key === 'G3'); return g && !flags.gEntered ? g : { x: RG.silencio.x * TS, y: RG.silencio.y * TS }; }, check: () => flags.gauntlet },
     { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; }, done: () => showCard({ img: 'dia3_camara_silencio', kick: 'A CÂMARA DO SILÊNCIO', title: 'Silêncio', body: 'Nenhum som, nenhum movimento. Só um feixe de luz caindo sobre uma pedra lisa, como um altar.', btn: 'Aproximar-se' }) },
     { id: 'pray', t: 'Ajoelhe-se e ore', req: ['silence'], target: () => nodes.find(n => n.k === 'altar'), check: () => flags.prayed },
   ],
@@ -1515,18 +1747,20 @@ const QUESTS = {
 };
 let qState = {};
 const qDone = id => qState[id] === 'done';
+function denOpenToast() { if (!den) { if (day === 3) { const g3 = folds.find(x => x.key === 'G3'); if (g3) g3.closed = false; } return; } const f = folds[den.fold]; if (f) { f.closed = false; burst(f.x, f.y, '#ffe170', 40); } shakeA = Math.max(shakeA, 4); toast(`Todas as lembranças do dia. Um rugido: a passagem para o ${RG.covil ? RG.covil.n : 'covil'} se abriu.`, 'good'); }
 const memNode = () => { let b = null, bd = 1e9; for (const n of nodes) if (n.k === 'memory' && !n.gone) { const d = dist(n.x, n.y, P.x, P.y); if (d < bd) { bd = d; b = n; } } return b; };
 function questTick() { let changed = false; for (const q of QUESTS[day]) { if (qState[q.id] === 'done') continue; if (q.req && !q.req.every(qDone)) continue; if (!qState[q.id]) { qState[q.id] = 'active'; changed = true; if (q.start) q.start(); } if (q.check()) { qState[q.id] = 'done'; changed = true; sfx('quest'); toast('✓ ' + q.t, 'good'); if (q.done) q.done(); if (state === 'play') writeSlot('auto', true); } } if (changed) buildQuests(); }
 
 function startDay(n, data) {
   day = n; state = 'play'; reveal = null;
   genWorld(day);
-  mobs = []; pickups = []; fx = []; proj = []; visited = new Set(); qState = {}; contrCount = 0; merchant = null; tideLevel = 0;
+  mobs = []; pickups = []; fx = []; proj = []; BOSS = null; visited = new Set(); qState = {}; contrCount = 0; merchant = null; tideLevel = 0;
   flags = Object.assign({}, { merchantT: rr(110, 200), bottleRead: flags && flags.bottleRead }, data && data.flags || {});
-  const keep = day === 1 ? structs.filter(s => s.k === 'shelter' || s.k === 'fire') : []; structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
+  const keep = day === 1 ? structs.filter(s => s.k === 'shelter' || s.k === 'fire' || s.k === 'bench') : []; structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
   shelter = null;
-  for (const s of keep) { if (tileAt(s.x, s.y) !== FLOOR) continue; if (s.k === 'shelter') { shelter = s; solid[idx(Math.floor(s.x / TS), Math.floor(s.y / TS))] = 1; } structs.push(s); }
+  for (const s of keep) { if (tileAt(s.x, s.y) !== FLOOR) continue; if (s.k === 'shelter') shelter = s; if (s.k === 'shelter' || s.k === 'bench') solid[idx(Math.floor(s.x / TS), Math.floor(s.y / TS))] = 1; structs.push(s); }
   if (day >= 2 && day < 4 && !shelter) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); solid[idx(Math.floor(sp.x / TS), Math.floor(sp.y / TS))] = 1; } }
+  if (day >= 2 && day < 4 && shelter && !structs.some(s => s.k === 'bench')) { const bp = nearestFree(shelter.x - 34, shelter.y + 6, 6); if (bp) { structs.push({ k: 'bench', x: bp.x, y: bp.y }); solid[idx(Math.floor(bp.x / TS), Math.floor(bp.y / TS))] = 1; } }
   if (day >= 2) { const g = folds.find(f => f.key === 'G1'); if (g) g.closed = false; }
   setupNodes();
   renderGround();
@@ -1548,12 +1782,12 @@ function climax2() { shakeA = 6; sfx('boom'); setTimeout(() => playCut('dive', (
 /* ================= SPECIAL INTERACTIONS ================= */
 function interactTarget() { let best = null, bd = 1e9;
   const fx_ = P.x + P.fx * 6, fy_ = P.y + P.fy * 5;
-  for (const n of nodes) { if (n.gone || n.hidden || NODES[n.k].decor || (n.k === 'site' && n.built)) continue; const r = n.k === 'hull' ? 34 : n.k === 'altar' ? 26 : 20; const d = dist(n.x, n.y - 2, fx_, fy_); if (d < r && d < bd) { bd = d; best = { kind: 'node', n }; } }
+  for (const n of nodes) { if (n.gone || n.hidden || NODES[n.k].decor || (n.k === 'site' && n.built) || (n.k === 'obst' && n.open)) continue; const r = n.k === 'hull' ? 34 : n.k === 'altar' ? 26 : n.k === 'obst' ? 30 : 20; const d = dist(n.x, n.y - 2, fx_, fy_); if (d < r && d < bd) { bd = d; best = { kind: 'node', n }; } }
   if (shelter) { const d = dist(shelter.x, shelter.y, fx_, fy_); if (d < 26 && d < bd) { bd = d; best = { kind: 'shelter' }; } }
   if (merchant && !merchant.dead) { const d = dist(merchant.x, merchant.y, fx_, fy_); if (d < 24 && d < bd) { bd = d; best = { kind: 'merchant' }; } }
   for (const s of structs) if (s.k === 'fire') { const d = dist(s.x, s.y, fx_, fy_); if (d < 20 && d < bd && count('madeira') > 0) { bd = d; best = { kind: 'fire', s }; } }
   return best; }
-function promptText(t) { if (!t) return ''; if (t.kind === 'shelter') return qState.rest === 'active' ? 'Descansar e encerrar o dia' : 'Descansar no abrigo'; if (t.kind === 'merchant') return 'Negociar com o Mercador Improvável'; if (t.kind === 'fire') return 'Alimentar fogueira (1 madeira)'; const D = NODES[t.n.k]; let s = `${D.act}: ${D.n}`; if (D.need === 'hand' && !equip.hand) s += ' (precisa de algo na mão)'; else if (D.need && D.need !== 'hand' && !hasKnife()) s += ' (precisa de Faca de concha)'; if (t.n.k === 'bile' && !hasKnife()) s = 'Estourar: Bolsa de bile (cuidado! com faca é seguro)'; if (t.n.k === 'nerve' && (t.n.cd || 0) > 0) s = 'Nódulo nervoso (recuperando)'; return s; }
+function promptText(t) { if (!t) return ''; if (t.kind === 'node' && t.n.k === 'obst') { const O = OBST[t.n.type]; return O.need() ? `${O.act}: ${O.n}` : `${O.n} · precisa de ${O.needTxt}`; } if (t.kind === 'shelter') return qState.rest === 'active' ? 'Descansar e encerrar o dia' : 'Descansar no abrigo'; if (t.kind === 'merchant') return 'Negociar com o Mercador Improvável'; if (t.kind === 'fire') return 'Alimentar fogueira (1 madeira)'; const D = NODES[t.n.k]; let s = `${D.act}: ${D.n}`; if (D.need === 'hand' && !equip.hand) s += ' (precisa de algo na mão)'; else if (D.need && D.need !== 'hand' && !hasKnife()) s += ' (precisa de Faca de concha)'; if (t.n.k === 'bile' && !hasKnife()) s = 'Estourar: Bolsa de bile (cuidado! com faca é seguro)'; if (t.n.k === 'nerve' && (t.n.cd || 0) > 0) s = 'Nódulo nervoso (recuperando)'; return s; }
 function interact() { if (state !== 'play' || paused) return; const t = interactTarget(); if (!t) return;
   if (t.kind === 'shelter') { if (qState.rest === 'active') { flags.rested = true; questTick(); endDay(); return; } if (P.restCd > 0) { toast('Jonas acabou de descansar.'); return; } P.restCd = 20; P.hp = clamp(P.hp + 30, 0, 100); P.food = clamp(P.food - 6, 0, 100); toast('Jonas descansa um pouco. Vida restaurada e jogo salvo.', 'good'); sfx('eat'); writeSlot('auto', true); return; }
   if (t.kind === 'merchant') { openTrade(); return; }
@@ -1570,6 +1804,7 @@ function interact() { if (state !== 'play' || paused) return; const t = interact
   sfx('pick'); n.uses--; n.shake = .25; burst(n.x, n.y - 6, '#eadab6', 5);
   if (n.uses <= 0) { if (D.regrow) { n.hidden = true; n.rg = D.regrow; } else n.gone = true; } }
 function special(n) { const D = NODES[n.k];
+  if (n.k === 'obst') { const O = OBST[n.type]; if (n.open) return; if (!O.need()) { toast(`${O.n}: precisa de ${O.needTxt}.`, 'bad'); sfx('warn'); return; } if (O.use) O.use(); openObst(n); invDirty = true; return; }
   if (n.k === 'bottle') { n.gone = true; sfx('pick'); showCard({ kick: 'A GARRAFA MISTERIOSA', title: 'Uma mensagem enrolada', body: pickM(BOTTLES), btn: 'Guardar a rolha', fn: () => addItem('concha', 1) }); return; }
   if (n.k === 'chest') { n.gone = true; sfx('mem'); showCard({ img: 'dia2_bau', kick: 'O TESOURO DECEPCIONANTE', title: 'Um baú dourado!', body: 'Jonas força a tampa, o coração acelerado. Dentro há… uma sandália. Uma só. Talvez com corda e gosma ela sirva para alguma coisa (aba Travessia).', btn: 'Pegar a sandália', fn: () => addItem('sandalia', 1) }); return; }
   if (n.k === 'memory') { n.gone = true; const act = MEM_ACT[day] || []; const id = act.find(k => !mems.has(k)); sfx('mem'); burst(n.x, n.y - 10, '#62f4e2', 30); if (!id) { toast('Uma lembrança já conhecida.'); return; } mems.add(id); if (Object.keys(MEMS).every(k => mems.has(k))) unlock('memorias'); if (buddy) buddy.happy = 2; const M = MEMS[id]; showCard({ img: MEM_IMG[id], kick: `LEMBRANÇA ${memCount(day)}/${act.length} · ${ACT_NAME[day].toUpperCase()}`, title: M.n, body: M.d, btn: 'Continuar', fn: questTick }); return; }
@@ -1577,7 +1812,7 @@ function special(n) { const D = NODES[n.k];
   if (n.k === 'bile') { if (hasKnife()) { addItem('bile', 1); sfx('pick'); burst(n.x, n.y - 6, '#b9dc3c', 6); spendNode(n); } else popBile(n); return; }
   if (n.k === 'nerve') { triggerNerve(n); return; }
   if (n.k === 'spore') { sfx('mem'); burst(n.x, n.y - 6, '#62f4e2', 16); if (equip.light) { const it = ITEMS[equip.light.id]; equip.light.dur = Math.min(it.fuel, equip.light.dur + it.fuel * .4); toast(`Os esporos renovam a luz da ${it.n.toLowerCase()}.`, 'good'); invDirty = true; } else { P.spore = 25; toast('Os esporos grudam em Jonas e brilham por um tempo.', 'good'); } spendNode(n); return; }
-  if (n.k === 'npc') { const lines = n.conv ? NPC_AFTER : NPC_BEFORE; toast(`Ninivita: “${lines[(n.ph * 10 | 0) % lines.length]}”`); n.wt = 3; n.vx = n.vy = 0; return; }
+  if (n.k === 'npc') { const lines = n.conv ? (NPC_ROLE_AFTER[n.role] || NPC_AFTER) : (NPC_ROLE[n.role] || NPC_BEFORE); const who = { guard: 'Guarda', kid: 'Criança', seller: 'Vendedor', noble: 'Nobre' }[n.role] || 'Ninivita'; toast(`${who}: “${lines[(n.ph * 10 | 0) % lines.length]}”`); n.wt = 3; n.vx = n.vy = 0; return; }
   if (n.k === 'plaza') { flags.proc = flags.proc || {}; if (flags.proc[n.pi]) { toast('Esta praça já ouviu a mensagem.'); return; } flags.proc[n.pi] = 1; flags.procl = (flags.procl || 0) + 1; sfx('mem'); burst(n.x, n.y - 14, '#ffe170', 20);
     for (const m of nodes) if (m.k === 'npc' && (flags.procl >= 3 || dist(m.x, m.y, n.x, n.y) < 13 * TS)) m.conv = true;
     const R3 = ['Um mercador larga a balança no meio da conta. Uma mãe puxa o filho para perto. Ninguém ri do estrangeiro com cheiro de peixe.', 'Os anciãos se entreolham. Alguém rasga a própria roupa. A notícia corre mais rápido do que Jonas consegue andar.', 'Do maior ao menor, a cidade inteira se veste de pano de saco e começa a jejuar. Até o gado fica sem comer.'];
@@ -1712,7 +1947,7 @@ function achCard() { showCard({ kick: `CONQUISTAS · ${Object.keys(ACH).length}/
 function newGameCard() { let sel = 'normal', rnd = false;
   const html = `<div class="diffs">${Object.entries(DIFFS).map(([k, v]) => `<button class="diff" data-df="${k}" aria-pressed="${k === sel}"><b>${v.n}</b><span>${v.d}</span></button>`).join('')}</div>
     <div class="opt"><span>Mapa da baleia<br><small class="note">Aleatório gera outro interior a cada partida.</small></span><button class="btn alt" id="mapT">Clássico</button></div>`;
-  showCard({ kick: 'NOVA JORNADA', title: 'Escolha a dificuldade', html, buttons: [{ label: 'Começar', fn: () => { freshRun(); DIFF = sel; SEED = 20261105; if (rnd) { toast('Gerando um novo interior…'); findSeed(); } playCut('intro', () => startDay(1)); } }, { label: 'Voltar', fn: titleScreen }] });
+  showCard({ kick: 'NOVA JORNADA', title: 'Escolha a dificuldade', html, buttons: [{ label: 'Começar', fn: () => { freshRun(); DIFF = sel; SEED = 20261109; if (rnd) { toast('Gerando um novo interior…'); findSeed(); } playCut('intro', () => startDay(1)); } }, { label: 'Voltar', fn: titleScreen }] });
   document.querySelectorAll('.diff').forEach(b => b.onclick = () => { sel = b.dataset.df; document.querySelectorAll('.diff').forEach(x => x.setAttribute('aria-pressed', x === b)); sfx('pick'); });
   $('#mapT').onclick = function () { rnd = !rnd; this.textContent = rnd ? 'Aleatório' : 'Clássico'; this.classList.toggle('alt', !rnd); sfx('pick'); }; }
 function endRunAch() { if (deaths === 0) unlock('sem_desmaio'); if (playTime < 2700) unlock('rapido'); if (DIFF === 'dificil') unlock('pesadelo'); }
@@ -1756,9 +1991,9 @@ function rollCredits(done) { if (menuOpen()) closeMenu(); const ov = $('#overlay
   setTimeout(() => { try { $('#rollSkip').focus({ preventScroll: true }); } catch (e) {} }, 60); }
 function finalCard() { const memN = Object.keys(MEMS).filter(k => mems.has(k)).length;
   showCard({ img: 'creditos', kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira perdoada e uma lição para levar: ninguém está longe demais da misericórdia de Deus.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${memN}/${MEM_TOTAL}</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
-function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv) continue; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < .4) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * 10; n.vy = Math.sin(a) * 8; } n.wt = rr(1.5, 4); }
-  if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < 48 && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
-function specialsTick(dt) { tutTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
+function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv || n.role === 'guard' || n.still) continue; const kid = n.role === 'kid', sp = kid ? 22 : 10; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < (kid ? .15 : .4)) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * sp; n.vy = Math.sin(a) * sp * .8; } n.wt = rr(kid ? .8 : 1.5, kid ? 2 : 4); }
+  if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < (kid ? 90 : n.role === 'noble' ? 30 : 56) && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
+function specialsTick(dt) { tutTick(dt); bossTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
   if (day === 1 && !buddy && playTime > 75) { buddy = { x: P.x - 20, y: P.y, happy: 0, scared: 0 }; toast('Um peixinho começou a seguir Jonas. Ele não ajuda nem atrapalha.', 'mem'); }
   if (buddy) { const tx = P.x - P.fx * 16 - 10, ty = P.y - 10 - P.fy * 6; buddy.x = lerp(buddy.x, tx, Math.min(1, dt * 2.4)); buddy.y = lerp(buddy.y, ty, Math.min(1, dt * 2.4)); buddy.happy = Math.max(0, buddy.happy - dt); buddy.scared = Math.max(0, buddy.scared - dt); if (isContract(DIR.ev)) buddy.scared = .5; }
   flags.merchantT -= dt;
@@ -1784,7 +2019,7 @@ let prayT = 0;
 function ending() { endRunAch(); state = 'ending'; paused = true; $('#hud').hidden = true; const ov = $('#overlay'); ov.onclick = null; ov.className = 'clear'; ov.hidden = true; endT = 0;
   setTimeout(() => playCut('exit', () => showCard({ img: 'final_04_terra_firme', kick: 'JONAS 2:10', title: 'Terra firme', body: 'E o Senhor falou ao peixe, e o peixe vomitou Jonas na terra seca. A areia está quente. O caminho para Nínive começa aqui.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas vistas</div><div><b>${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL}</b>lembranças</div></div>`, buttons: [{ label: 'Seguir para o Epílogo: Nínive', fn: () => startDay(4) }, { label: 'Tela inicial', fn: titleScreen }] })), 1200); }
 const fmtTime = s => `${Math.floor(s / 60)}m${String(Math.floor(s % 60)).padStart(2, '0')}`;
-function die() { deaths++; const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < DF().lose) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
+function die() { deaths++; if (BOSS) { BOSS.m.dead = BOSS.m.gone = true; BOSS = null; $('#bossBar').hidden = true; for (const x of mobs) if (x.t === 'piolho' || x.t === 'sombra') x.dead = x.gone = true; } const lost = []; for (const s of inv.slice()) if (stackable(s.id) && Math.random() < DF().lose) { const n = Math.ceil(s.n * .4); take(s.id, n); lost.push(`${n} ${ITEMS[s.id].n}`); }
   const sp = shelter ? nearestFree(shelter.x, shelter.y + 18, 6) : nearestFree(REGIONS[0].x * TS, REGIONS[0].y * TS, 6); if (sp) { P.x = sp.x; P.y = sp.y; }
   P.hp = 60; P.food = Math.max(P.food, 45); P.latched = null; for (const m of mobs) { if (m.latched) m.latched = false; if (dist(m.x, m.y, P.x, P.y) < 150) m.dead = m.gone = true; }
   showCard({ img: 'extra_desmaio', kick: 'JONAS DESMAIOU', title: 'A escuridão por um instante', body: `Ele acorda ${shelter ? 'no abrigo' : 'entre os destroços'}, dolorido. ${lost.length ? 'Perdeu pelo caminho: ' + lost.join(', ') + '.' : 'Nada se perdeu.'}`, btn: 'Levantar' }); }
@@ -1802,15 +2037,19 @@ function playerTick(dt) {
   const ml = Math.hypot(mx, my); P.moving = ml > .15 && !(P.roll > 0);
   if (P.moving) { if (ml > 1) { mx /= ml; my /= ml; } const a = Math.round(Math.atan2(my, mx) / (Math.PI / 4)) * Math.PI / 4; P.fx = Math.cos(a); P.fy = Math.sin(a); if (Math.abs(P.fy) > .9) P.face = P.fy > 0 ? 'f' : 'b'; else { P.face = 's'; P.flip = P.fx < 0; } }
   const feet = equip.feet ? ITEMS[equip.feet.id] : null; const acid = isAcidAt(P.x, P.y);
-  let spd = 62 * (feet && feet.spd || 1) * (P.latched ? .55 : 1) * (acid ? .78 : 1);
+  let spd = 62 * (feet && feet.spd || 1) * (P.latched ? .55 : 1) * (acid ? .78 : 1) * (P.food < 20 && day < 4 ? .85 : 1);
   P.kx *= Math.pow(.002, dt); P.ky *= Math.pow(.002, dt);
   const bx = P.x, by = P.y; moveEnt(P, mx * spd * dt + P.kx * dt + windX * dt, my * spd * dt + P.ky * dt + windY * dt);
   if (P.moving && bx === P.x && by === P.y && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => boxHit(P.x + a * 2, P.y + b * 2, P.r))) { P.trapT = (P.trapT || 0) + dt; if (P.trapT > .8) { P.trapT = 0; P.safe = null; unstick('Jonas se soltou da carne.'); } } else P.trapT = 0;
   P.anim += P.moving ? dt * 8 : 0;
   if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .3 / (feet && feet.spd || 1); sfx(acid ? 'stepAcid' : 'step'); } }
   if (acid) { const mult = feet ? feet.acid : 1; if (mult > 0) { P.hp -= 9 * mult * DF().dmg * dt; hurtFlash = Math.max(hurtFlash, .12); if (Math.random() < .3) fx.push({ x: P.x + rr(-5, 5), y: P.y, vx: 0, vy: -20, life: .5, max: .5, col: '#c6e34a', sz: 1 }); } }
-  if (day === 4) P.food = 100; else P.food = Math.max(0, P.food - dt * (day === 1 ? .17 : .2) * DF().food); if (P.food <= 0) P.hp -= dt * 1.1;
-  if (P.food > 55 && P.hp < 100) P.hp = Math.min(100, P.hp + dt * .45);
+  if (day === 4) P.food = 100; else P.food = Math.max(0, P.food - dt * (day === 1 ? .23 : .27) * DF().food); if (P.food <= 0) P.hp -= dt * 1.2;
+  if (P.food < 20 && day < 4 && T - (flags.hungryT || -99) > 45) { flags.hungryT = T; toast('Jonas está fraco de fome e anda mais devagar. Coma algo (melhor cozido).', 'bad'); }
+  if (P.food > 60 && P.hp < 100) P.hp = Math.min(100, P.hp + dt * .3);
+  // darkness: without any light, the cold of the deep slowly hurts
+  if (day < 4 && state === 'play') { const rgn = regionOf(P.x, P.y); const lit = lightR() >= 40 || inSafe(P.x, P.y) || structs.some(s => s.k === 'fire' && s.fuel > 0 && dist(s.x, s.y, P.x, P.y) < 80) || (rgn && rgn.id === 'silencio');
+    if (lit) P.darkT = 0; else { P.darkT = (P.darkT || 0) + dt; if (P.darkT > 14) { P.hp -= dt * 1.1 * DF().dmg; hurtFlash = Math.max(hurtFlash, .06); if (T - (flags.darkWarnT || -99) > 25) { flags.darkWarnT = T; toast('A escuridão gela Jonas. Acenda uma luz ou volte para perto do fogo.', 'bad'); } } } }
   if (inSafe(P.x, P.y) && P.hp < 100) P.hp = Math.min(100, P.hp + dt * 1.2);
   if (equip.light) { equip.light.dur -= dt; if (equip.light.dur <= 0) { const it = ITEMS[equip.light.id]; if (it.refill && count(it.refill)) { take(it.refill, 1); equip.light.dur = it.fuel; toast(`${it.n} reabastecida com ${ITEMS[it.refill].n}.`); } else { toast(`${it.n} apagou.`, 'bad'); equip.light = null; } invDirty = true; } }
   P.iframe -= dt; P.atk -= dt; P.swing -= dt; P.flare = Math.max(0, P.flare - dt); P.restCd -= dt; P.repel = Math.max(0, (P.repel || 0) - dt); P.spore = Math.max(0, (P.spore || 0) - dt);
@@ -1824,7 +2063,7 @@ function playerTick(dt) {
   else { P.stuckT = 0; const ti = idx(Math.floor(P.x / TS), Math.floor(P.y / TS)); if (foldAt[ti] < 0 && tiles[ti] === FLOOR && !(P.roll > 0)) P.safe = { x: P.x, y: P.y }; }
 }
 let regionTimer = 0;
-function showRegion(n) { const el = $('#region'); el.textContent = n; el.classList.add('on'); clearTimeout(regionTimer); regionTimer = setTimeout(() => el.classList.remove('on'), 2400); }
+function showRegion(n) { if (day === 4 && n === 'Palácio do Rei' && !flags.palaceSeen) { flags.palaceSeen = true; setTimeout(() => { if (state === 'play' && $('#overlay').hidden) showCard({ img: 'ninive_palacio', kick: 'O PALÁCIO', title: 'Touros alados e paredes azuis', body: 'Tijolos esmaltados de azul e ouro, fontes no pátio, guardas de lança. Lá dentro, no fim do tapete vermelho, o rei de Nínive está sentado no trono.', btn: 'Entrar' }); }, 400); } const el = $('#region'); el.textContent = n; el.classList.add('on'); clearTimeout(regionTimer); regionTimer = setTimeout(() => el.classList.remove('on'), 2400); }
 
 /* ================= UPDATE ================= */
 function update(dt) {
@@ -1889,6 +2128,16 @@ function drawTiles() {
       else { ctx.fillStyle = warn && Math.floor(T * 6) % 2 ? 'rgba(226,70,60,.55)' : 'rgba(30,6,14,.35)'; ctx.fillRect(sx, sy + 4, TS, 2); ctx.fillRect(sx, sy + 11, TS, 2); if (warn) { ctx.fillStyle = 'rgba(226,70,60,.18)'; ctx.fillRect(sx, sy, TS, TS); } } }
   }
 }
+function drawObst(n) { const t = n.type, op = n.open;
+  for (const i of n.tiles) { const x = (i % MW) * TS, y = Math.floor(i / MW) * TS, w = Math.sin(T * 2 + i) ;
+    if (t === 'fenda') { px(x, y + 2, 16, 12, '#05020a'); if (!op) { px(x, y + 2, 16, 1, '#c55a6e'); px(x, y + 13, 16, 1, '#3a0e1a'); px(x + 3, y + 6, 2, 1, '#2b0a14'); } else { for (let k = 0; k < 4; k++) px(x + k * 4, y + 3, 3, 10, k % 2 ? '#b8813f' : '#a07040'); px(x, y + 4, 16, 1, '#5a361c'); px(x, y + 11, 16, 1, '#5a361c'); } }
+    else if (t === 'membrana') { if (!op) { px(x, y, 16, 16, 'rgba(227,146,163,.93)'); for (let k = 0; k < 3; k++) px(x + k * 5 + 3 + Math.round(w), y, 1, 16, '#8a2c41'); px(x, y + 8 + Math.round(Math.sin(T * 3 + i) * 2), 16, 1, '#c55a6e'); } else { px(x, y, 2, 16, '#c55a6e'); px(x + 14, y, 2, 16, '#c55a6e'); } }
+    else if (t === 'trevas' || t === 'trevas2') { if (!op) { px(x, y, 16, 16, t === 'trevas2' ? 'rgba(10,2,18,.97)' : 'rgba(5,2,10,.93)'); for (let k = 0; k < 3; k++) { const a = T * 1.3 + i * .7 + k * 2; px(x + 8 + Math.cos(a) * 6, y + 8 + Math.sin(a) * 6, 2, 2, t === 'trevas2' ? '#4a2a6a' : '#2b1a3a'); } } }
+    else if (t === 'veneno') { if (!op) { px(x, y, 16, 16, 'rgba(111,143,28,.55)'); for (let k = 0; k < 3; k++) { const a = T * .9 + i + k * 2.1; px(x + 8 + Math.cos(a) * 6, y + 8 + Math.sin(a * 1.3) * 6, 3, 3, 'rgba(167,122,230,.75)'); } } else if ((i + Math.floor(T * 2)) % 3 === 0) px(x + 7, y + 7, 2, 2, 'rgba(185,220,60,.35)'); }
+    else if (t === 'alto') { if (!op) { px(x, y, 16, 16, '#d8c8a8'); px(x, y, 16, 2, '#f3e6cf'); px(x, y + 14, 16, 2, '#8e7a58'); for (let k = 0; k < 3; k++) px(x + k * 5 + 2, y + 4, 1, 8, '#b59e74'); } else { px(x, y + 12, 16, 4, '#b59e74'); px(x + 7, y, 2, 16, '#d0a860'); } }
+    else if (t === 'sombras') { if (!op) { px(x, y, 16, 16, 'rgba(27,13,28,.88)'); const b = Math.round(Math.sin(T * 3 + i) * 1.5); px(x + 4, y + 6 + b, 2, 1, '#a77ae6'); px(x + 9, y + 6 + b, 2, 1, '#a77ae6'); } }
+    else if (t === 'casca') { if (!op) { px(x, y, 16, 16, '#c8c0b0'); px(x, y, 16, 2, '#eee6d6'); px(x + 3, y + 5, 6, 1, '#8e8678'); px(x + 8, y + 9, 5, 1, '#8e8678'); px(x + 5, y + 12, 1, 3, '#8e8678'); } else { px(x + 2, y + 10, 3, 2, '#c8c0b0'); px(x + 10, y + 4, 2, 2, '#c8c0b0'); } } }
+  if (!n.open) { const O = OBST[n.type]; if (dist(P.x, P.y, n.x, n.y) < 70) txt(O.need() ? '!' : '?', n.x, n.y - 22 + Math.sin(T * 4) * 2, O.need() ? '#c6e34a' : '#e2a0b0'); } }
 function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.shake ? Math.round(Math.sin(n.shake * 60) * 1.5) : 0;
   if (n.hidden) { if (n.k === 'mush' || n.k === 'kelp' || n.k === 'spore' || n.k === 'bile') { px(n.x - 2, n.y - 2, 4, 2, '#3c1020'); } else if (n.k === 'cilia') { for (let k = 0; k < 4; k++) px(n.x - 6 + k * 4, n.y - 3, 1, 3, '#8a2c41'); } return; }
   switch (n.k) {
@@ -1896,8 +2145,14 @@ function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.sh
     case 'hull': shadow(n.x, n.y, 30); sprAt(HULL, n.x + sh, n.y + 3); break;
     case 'cilia': { for (let k = 0; k < 4; k++) { const bx = n.x + (k - 1.5) * 4, h = 16 + ((k * 7 + n.ph * 10) % 13); let x = bx, y = n.y; for (let s = 0; s < h; s++) { x = bx + Math.sin(T * 1.6 + n.ph + s * .2 + k) * s * .12; y = n.y - s; px(x, y, 1, 1, s > h - 3 ? '#62f4e2' : s % 5 === 0 ? '#8a2c41' : '#d06a7e'); } } break; }
     case 'memory': { const b = Math.sin(T * 2 + n.ph) * 2; shadow(n.x, n.y, 4); const cx = n.x, cy = n.y - 12 + b; px(cx - 1, cy - 4, 2, 8, '#fff7c8'); px(cx - 4, cy - 1, 8, 2, '#fff7c8'); px(cx - 2, cy - 2, 4, 4, '#62f4e2'); for (let k = 0; k < 3; k++) { const a = T * 1.5 + k * 2.1; px(cx + Math.cos(a) * 8, cy + Math.sin(a) * 5, 1, 1, '#b8fff6'); } break; }
-    case 'npc': { const S = NPC_SP[n.c || 0]; const mv = n.vx || n.vy; if (n.conv) { shadow(n.x, n.y, 5); sprAt(NPC_KNEEL, n.x, n.y + 1); } else { shadow(n.x, n.y, 4); sprAt(n.vx < 0 ? S.l : S.r, n.x, n.y - (mv && Math.floor(T * 6 + n.ph) % 2 ? 1 : 0)); } break; }
-    case 'king': { if (n.conv) { shadow(n.x, n.y, 6); px(n.x - 9, n.y - 2, 18, 3, '#6b6670'); px(n.x - 7, n.y - 3, 14, 1, '#8a8590'); sprAt(KING_KNEEL, n.x, n.y + 1); } else { shadow(n.x, n.y, 5); sprAt(KING_SP.r, n.x, n.y + 1); if (qState.king === 'active') txt('!', n.x, n.y - 30 + Math.sin(T * 5) * 2, '#ffe170'); } break; }
+    case 'npc': { const S = n.role === 'guard' ? GUARD_SP : n.role === 'noble' ? NOBLE_SP : n.role === 'kid' ? KID_SP[n.c || 0] : NPC_SP[n.c || 0]; const mv = n.vx || n.vy;
+      if (n.conv && n.role !== 'kid') { shadow(n.x, n.y, 5); sprAt(NPC_KNEEL, n.x, n.y + 1); } else { shadow(n.x, n.y, n.role === 'kid' ? 3 : 4); sprAt(n.vx < 0 ? S.l : S.r, n.x, n.y - (mv && Math.floor(T * (n.role === 'kid' ? 10 : 6) + n.ph) % 2 ? 1 : 0)); if (n.role === 'guard') { px(n.x + 6, n.y - 28, 1, 27, '#8a5a32'); px(n.x + 5, n.y - 31, 3, 3, '#a2a6b8'); } } break; }
+    case 'obst': drawObst(n); break;
+    case 'lamassu': { shadow(n.x, n.y, 9); sprAt(n.flip ? NSP.lamassuF : NSP.lamassu, n.x, n.y + 1); break; }
+    case 'fountain': { shadow(n.x, n.y, 7); sprAt(NSP.fountain, n.x, n.y + 1); for (let k = 0; k < 6; k++) { const t = (T * 1.6 + k / 6) % 1; const a = k / 6 * 6.28; px(n.x + Math.cos(a) * t * 7, n.y - 9 - Math.sin(t * Math.PI) * 6 + t * 4, 1, 1, t < .5 ? '#b8e0ff' : '#5b8ff0'); } break; }
+    case 'brazier': { shadow(n.x, n.y, 4); sprAt(NSP.brazier, n.x, n.y + 1); for (let k = 0; k < 4; k++) { const h = (T * 18 + k * 3.7) % 7; px(n.x - 2 + k, n.y - 6 - h, 1, 2, h < 3 ? '#ffe170' : h < 5 ? '#f39046' : '#e2463c'); } break; }
+    case 'goat': case 'camel': { shadow(n.x, n.y, 5); const c = NSP[n.k]; sprAt(n.ph > 3 ? flipC(c) : c, n.x, n.y + 1 - (Math.floor(T * 1.3 + n.ph) % 4 === 0 ? 1 : 0)); break; }
+    case 'king': { shadow(n.x, n.y - 4, 8); sprAt(NSP.throne, n.x, n.y - 3); if (n.conv) { shadow(n.x, n.y + 12, 6); px(n.x - 9, n.y + 9, 18, 3, '#6b6670'); px(n.x - 7, n.y + 8, 14, 1, '#8a8590'); sprAt(KING_KNEEL, n.x, n.y + 12); } else { sprAt(KING_SP.r, n.x, n.y - 4); if (qState.king === 'active') txt('!', n.x, n.y - 36 + Math.sin(T * 5) * 2, '#ffe170'); } break; }
     case 'site': { if (n.built) { shadow(n.x, n.y, 12); sprAt(NSP.booth, n.x, n.y + 1); } else if (qState.hill === 'active') { for (let k = 0; k < 12; k++) { const a = k / 12 * 6.28 + T; px(n.x + Math.cos(a) * 10, n.y - 2 + Math.sin(a) * 4, 2, 1, '#ffe170'); } } break; }
     case 'plantN': { const g = n.grow == null ? 1 : n.grow; if (g <= 0) break; const c = (n.wither || 0) > .5 ? NSP.plantDead : NSP.plantN; const w = Math.max(1, Math.round(c.width * g)), h = Math.max(1, Math.round(c.height * g)); ctx.drawImage(c, Math.round(n.x - CX - w / 2), Math.round(n.y - CY - 6 - h)); break; }
     case 'worm': { sprAt(NSP.worm, n.x + Math.sin(T * 8) * 1, n.y + 1); break; }
@@ -1911,6 +2166,9 @@ function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.sh
   }
 }
 function drawMob(m) { const D = MOBS[m.t], S = SP[m.t]; let c = m.hit > 0 ? (m.flip ? S.wl : S.w) : (m.flip ? S.l : S.r); let bob = Math.round(Math.abs(Math.sin(T * 8 + m.ph)) * 1.2); let a = 1;
+  if (D.ai === 'beel') { if (m.st === 'under') { for (let k = 0; k < 10; k++) { const a2 = k / 10 * 6.28 + T * 2; px(m.x + Math.cos(a2) * 9, m.y + Math.sin(a2) * 4, 2, 1, '#efffa8'); } return; } if (m.st === 'rise') { const h = Math.round((1 - m.stT / .75) * c.height * .6); shadow(m.x, m.y, 10); ctx.drawImage(c, 0, 0, c.width, h, Math.round(m.x - CX - c.width / 2), Math.round(m.y - CY - h), c.width, h); return; } }
+  if (D.ai === 'bshade') { a = bossLit(m) ? .95 : .45 + Math.sin(T * 4) * .08; if (m.st === 'blink') a = .15; if (m.fade > 0) a *= 1 - m.fade; bob = Math.round(Math.sin(T * 2.4) * 3) + 4; }
+  if (D.ai === 'bcrab') { if (m.st === 'wind') { bob = Math.floor(T * 30) % 2 * 2; txt('!', m.x, m.y - c.height - 4, '#e2463c'); } if (m.st === 'stun') { bob = 0; for (let k = 0; k < 3; k++) { const a2 = T * 5 + k * 2.1; px(m.x + Math.cos(a2) * 12, m.y - c.height - 2 + Math.sin(a2) * 3, 2, 2, '#ffe170'); } } }
   if (D.ai === 'float') bob = Math.round(Math.sin(T * 2 + m.ph) * 2) + 6;
   if (D.ai === 'ambush' && m.st === 'hidden') { const w = Math.sin(T * 6 + m.ph) > 0; px(m.x - 4, m.y - 1, 8, 1, D.where === 'acid' ? '#efffa8' : '#3c1020'); if (w) px(m.x - 2, m.y - 3, 4, 1, D.where === 'acid' ? '#e5f58a' : '#8a2c41'); return; }
   if (D.ai === 'shade') { a = inLight(m.x, m.y) ? .9 : .28 + Math.sin(T * 5 + m.ph) * .08; bob = Math.round(Math.sin(T * 3 + m.ph) * 2) + 2; }
@@ -1923,7 +2181,7 @@ function drawMob(m) { const D = MOBS[m.t], S = SP[m.t]; let c = m.hit > 0 ? (m.f
   if (m.trapped > 0) { sprAt(NSP.trap, m.x, m.y + 2); }
   shadow(m.x, m.y, Math.max(3, c.width / 2 - 2));
   { const sq = m.mv ? Math.round(Math.sin(T * 16 + m.ph) * 1.3) : Math.round(Math.sin(T * 2.6 + m.ph) * .7); if (sq) { const w = c.width - sq, h = c.height + sq; ctx.globalAlpha = a; ctx.drawImage(c, Math.round(m.x - CX - w / 2), Math.round(m.y - bob - CY - h), w, h); ctx.globalAlpha = 1; } else sprAt(c, m.x, m.y - bob, a); }
-  if (m.hpShow > 0 && !m.dead) { const w = 16, fr = clamp(m.hp / D.hp, 0, 1), bx = m.x - w / 2, by = m.y - c.height - bob - 4; ctx.globalAlpha = Math.min(1, m.hpShow); px(bx - 1, by - 1, w + 2, 4, '#120810'); px(bx, by, w, 2, '#3a1a28'); px(bx, by, Math.max(1, Math.round(w * fr)), 2, fr > .5 ? '#c6e34a' : fr > .25 ? '#f2a640' : '#e2463c'); ctx.globalAlpha = 1; }
+  if (m.hpShow > 0 && !m.dead && !D.boss) { const w = 16, fr = clamp(m.hp / D.hp, 0, 1), bx = m.x - w / 2, by = m.y - c.height - bob - 4; ctx.globalAlpha = Math.min(1, m.hpShow); px(bx - 1, by - 1, w + 2, 4, '#120810'); px(bx, by, w, 2, '#3a1a28'); px(bx, by, Math.max(1, Math.round(w * fr)), 2, fr > .5 ? '#c6e34a' : fr > .25 ? '#f2a640' : '#e2463c'); ctx.globalAlpha = 1; }
   if (m.trapped > 0) { ctx.globalAlpha = .7; sprAt(NSP.trap, m.x, m.y - 2); ctx.globalAlpha = 1; }
   if (m.loot && m.loot.n) { const ic = ICON[m.loot.id]; if (ic) sprAt(ic, m.x, m.y - c.height - 2); } }
 function drawPlayer() { const set = JON[P.face]; const frame = P.moving ? (Math.floor(P.anim) % 2 ? 1 : 2) : 0; const S = set[frame]; let c = P.flip ? S.l : S.r; if (P.iframe > 0 && Math.floor(T * 20) % 2) c = P.flip ? S.wl : S.w;
@@ -1947,7 +2205,8 @@ function drawPlayer() { const set = JON[P.face]; const frame = P.moving ? (Math.
 }
 function drawStruct(s) { if (s.k === 'shelter') { shadow(s.x, s.y + 1, 15); sprAt(TENT, s.x, s.y + 2); if (inSafe(P.x, P.y)) { for (let k = 0; k < 24; k++) { const a = k / 24 * 6.28 + T * .2; px(s.x + Math.cos(a) * SAFE_R, s.y + Math.sin(a) * SAFE_R * .6, 1, 1, 'rgba(98,244,226,.5)'); } } }
   else if (s.k === 'fire') { shadow(s.x, s.y, 6); sprAt(NSP.logs, s.x, s.y + 1); if (s.fuel > 0) { const h = Math.min(1, s.fuel / 60); for (let k = 0; k < 7; k++) { const fh = Math.floor((3 + Math.random() * 6) * (0.5 + h * .5)); px(s.x - 4 + k + (k > 3 ? 1 : 0), s.y - 4 - fh, 1, fh, k % 3 === 0 ? '#ffe170' : '#e2463c'); } px(s.x - 1, s.y - 6, 2, 2, '#fff7c8'); } }
-  else if (s.k === 'trap') { if (s.uses > 0) sprAt(NSP.trap, s.x, s.y + 1, .85); } }
+  else if (s.k === 'trap') { if (s.uses > 0) sprAt(NSP.trap, s.x, s.y + 1, .85); }
+  else if (s.k === 'bench') { shadow(s.x, s.y, 8); sprAt(NSP.bench, s.x, s.y + 1); } }
 function drawWorld() {
   const sk = OPTS.calm ? 0 : shakeA * 2, sx = (Math.random() - .5) * sk, sy = (Math.random() - .5) * sk;
   CX = Math.round(clamp(cam.x + sx, 0, MW * TS - VW)); CY = Math.round(clamp(cam.y + sy, 0, MH * TS - VH));
@@ -1965,7 +2224,7 @@ function drawWorld() {
   if (state !== 'title') ents.push([P.y, 5, P]); else ents.push([P.y, 5, P]);
   ents.sort((a, b) => a[0] - b[0]);
   for (const [, k, e] of ents) { if (k === 0) drawNode(e); else if (k === 1) drawMob(e); else if (k === 2) drawStruct(e); else if (k === 3) { shadow(e.x, e.y, 7); const c = SP.merchant[Math.sin(T) > 0 ? 'r' : 'l']; sprAt(c, e.x, e.y - Math.round(Math.abs(Math.sin(T * 3)) * 1)); if (dist(P.x, P.y, e.x, e.y) < 60) txt('troca?', e.x, e.y - 22, '#f4cd4f'); } else if (k === 4) { const sh = e.scared ? Math.round(Math.sin(T * 40)) : 0; const b = e.happy ? -Math.abs(Math.sin(T * 10)) * 4 : Math.sin(T * 3) * 1.5; shadow(e.x, e.y + 12, 2); sprAt(P.x < e.x ? SP.peixinho.l : SP.peixinho.r, e.x + sh, e.y + b); } else drawPlayer(); }
-  for (const p of proj) { if (p.k === 'bomb') { const z = Math.sin((1 - p.life / .45) * Math.PI) * 8; px(p.x - 2, p.y - 2 - z, 5, 5, '#1a0a10'); px(p.x - 1, p.y - 1 - z, 3, 3, '#c6e34a'); px(p.x, p.y - 4 - z, 1, 2, '#ffe170'); continue; } if (p.k === 'ink') { px(p.x - 2, p.y - 2, 4, 4, '#1b0d1c'); px(p.x - 1, p.y - 1, 2, 2, '#4a2a6a'); } else { px(p.x - 1, p.y - 1, 3, 1, '#f4cd4f'); px(p.x, p.y - 2, 1, 3, '#f4cd4f'); } }
+  for (const p of proj) { if (p.k === 'bomb') { const z = Math.sin((1 - p.life / .45) * Math.PI) * 8; px(p.x - 2, p.y - 2 - z, 5, 5, '#1a0a10'); px(p.x - 1, p.y - 1 - z, 3, 3, '#c6e34a'); px(p.x, p.y - 4 - z, 1, 2, '#ffe170'); continue; } if (p.k === 'ink') { px(p.x - 2, p.y - 2, 4, 4, '#1b0d1c'); px(p.x - 1, p.y - 1, 2, 2, '#4a2a6a'); } else if (p.k === 'bilep') { px(p.x - 2, p.y - 2, 5, 5, '#6f8f1c'); px(p.x - 1, p.y - 1, 3, 3, '#e5f58a'); } else { px(p.x - 1, p.y - 1, 3, 1, '#f4cd4f'); px(p.x, p.y - 2, 1, 3, '#f4cd4f'); } }
   for (const f of fx) if (!f.txt) { ctx.globalAlpha = clamp(f.life / f.max * 1.4, 0, 1); px(f.x, f.y, f.sz || 1, f.sz || 1, f.col); } ctx.globalAlpha = 1;
   // ambient spores
   for (let k = 0; k < 26; k++) { const x = ((hash2(k, 1, 3) * VW * 1.5 + T * (6 + k % 5) - CX * .2) % (VW + 20) + VW + 20) % (VW + 20) - 10, y = ((hash2(k, 2, 3) * VH - T * (3 + k % 4) - CY * .2) % VH + VH) % VH; ctx.fillStyle = day === 4 ? (k % 3 ? 'rgba(255,240,200,.35)' : 'rgba(255,255,255,.4)') : k % 3 ? 'rgba(255,190,205,.35)' : 'rgba(98,244,226,.5)'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
@@ -2022,7 +2281,7 @@ function drawEnding() { const W = VW, H = VH, t = endT; const sky = ['#2b1a3a', 
   const S = JON.f[0].r; const jy = sy + 18; ctx.drawImage(S, Math.round(W * .5 - S.width / 2), jy - S.height); ctx.fillStyle = 'rgba(60,30,10,.35)'; ctx.fillRect(Math.round(W * .5 - 6), jy - 1, 12, 2); }
 
 /* ================= HUD ================= */
-function buildHotbar() { const sl = $('#slots'); let h = ''; for (let i = 0; i < MAXS; i++) { const s = inv[i]; h += `<button class="slot ${GP.on && i === GP.sel ? 'sel' : ''}" data-i="${i}" aria-label="${s ? ITEMS[s.id].n : 'vazio'}">${i < 10 ? `<span class="k">${(i + 1) % 10}</span>` : ''}${s ? iconImg(s.id, 3) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') : ''}${s && s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''}</button>`; } sl.innerHTML = h;
+function buildHotbar() { const sl = $('#slots'); let h = ''; const q = quickIdx(); for (let j = 0; j < MAXS; j++) { const i = q[j] != null ? q[j] : -1; const s = inv[i]; h += `<button class="slot ${GP.on && j === GP.sel ? 'sel' : ''}" data-i="${i}" aria-label="${s ? ITEMS[s.id].n : 'vazio'}"><span class="k">${(j + 1) % 10}</span>${s ? iconImg(s.id, 3) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') : ''}${s && s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''}</button>`; } sl.innerHTML = h;
   const eq = $('#equip'); eq.innerHTML = [['hand', 'Mão'], ['hand2', 'Reserva'], ['light', 'Luz'], ['body', 'Corpo'], ['feet', 'Pés']].map(([k, l]) => { const e = equip[k]; return `<button class="slot eq ${e ? 'on' : ''}" data-eq="${k}" aria-label="${l}: ${e ? ITEMS[e.id].n : 'vazio'}">${e ? iconImg(e.id, 3) : `<span class="lbl" style="font-size:8px">${l}</span>`}${e && k === 'light' ? `<span class="fuel"><i style="width:${Math.round(e.dur / ITEMS[e.id].fuel * 100)}%"></i></span>` : ''}</button>`; }).join('');
   sl.querySelectorAll('.slot').forEach(b => { let lp = 0, fired = false; b.oncontextmenu = e => { e.preventDefault(); dropSlot(+b.dataset.i); };
     b.onpointerdown = e => { if (e.pointerType !== 'mouse') { fired = false; lp = setTimeout(() => { fired = true; dropSlot(+b.dataset.i); }, 550); } }; b.onpointerup = b.onpointercancel = b.onpointerleave = () => clearTimeout(lp);
@@ -2033,7 +2292,19 @@ function tipFor(el, id, extra) { if (!id) return hideTip(); const it = ITEMS[id]
 function hideTip() { tip.hidden = true; }
 /* ================= PAUSE MENU ================= */
 const TABNAME = { luz: 'Luz', armas: 'Armas', vida: 'Sobrevivência', trav: 'Travessia', prot: 'Proteção' };
-const SOURCES = { madeira: 'Destroços, casco do navio, Grande gole', corda: 'Cordames e caixas do navio', tecido: 'Velas rasgadas e caixas', concha: 'Conchas no chão (muitas no Lago Ácido), piolhos', osso: 'Ossadas pelo chão, ratos', alga: 'Algas verdes (voltam a crescer)', cogumelo: 'Cogumelos-luz azuis (voltam a crescer)', oleo: 'Barris; gordura branca com a Faca de concha', pregos: 'Destroços, caixas, Caranguejo de Lata', gosma: 'Papilas rosadas com a faca, larvas, águas-vivas', peixe: 'Grande gole, Enguia Ácida, Lampreia', tinta: 'Polvo de Tinta (Dia 2)', espinho: 'Baiacu-Bolha (Dia 2), Ouriço-Rolante (Dia 3)', carapaca: 'Caranguejo de Lata, Isópode Colossal', dente: 'Cação Faminto (Dia 3)', bulbo: 'Peixe-Lanterna (Dia 3)', perola: 'Caixas escondidas que só abrem nas contrações', sandalia: 'Baú dourado na Galeria das Costelas (Dia 2)', coral: 'Corais laranja no Lago Ácido e na Floresta de Cílios (precisa de algo na mão)', sal: 'Cristais brancos na Galeria das Costelas, no Lago e na Câmara Central (faca)', fibra: 'Cílios rosados da Floresta de Cílios (faca)', ambar: 'Às vezes aparece ao cortar gordura', bile: 'Bolsas verdes de bile (com faca, sem se queimar), Arraia-Elétrica' };
+const SOURCES = { garra: 'Derrote o Caranguejo-Couraça (guardião do Dia 1)', escama: 'Derrote a Enguia-Mãe (guardiã do Dia 2)', prancha: 'Criada na bancada', madeira: 'Destroços, casco do navio, Grande gole', corda: 'Cordames e caixas do navio', tecido: 'Velas rasgadas e caixas', concha: 'Conchas no chão (muitas no Lago Ácido), piolhos', osso: 'Ossadas pelo chão, ratos', alga: 'Algas verdes (voltam a crescer)', cogumelo: 'Cogumelos-luz azuis (voltam a crescer)', oleo: 'Barris; gordura branca com a Faca de concha', pregos: 'Destroços, caixas, Caranguejo de Lata', gosma: 'Papilas rosadas com a faca, larvas, águas-vivas', peixe: 'Grande gole, Enguia Ácida, Lampreia', tinta: 'Polvo de Tinta (Dia 2)', espinho: 'Baiacu-Bolha (Dia 2), Ouriço-Rolante (Dia 3)', carapaca: 'Caranguejo de Lata, Isópode Colossal', dente: 'Cação Faminto (Dia 3)', bulbo: 'Peixe-Lanterna (Dia 3)', perola: 'Caixas escondidas que só abrem nas contrações', sandalia: 'Baú dourado na Galeria das Costelas (Dia 2)', coral: 'Corais laranja no Lago Ácido e na Floresta de Cílios (precisa de algo na mão)', sal: 'Cristais brancos na Galeria das Costelas, no Lago e na Câmara Central (faca)', fibra: 'Cílios rosados da Floresta de Cílios (faca)', ambar: 'Às vezes aparece ao cortar gordura', bile: 'Bolsas verdes de bile (com faca, sem se queimar), Arraia-Elétrica' };
+const NPC_ROLE = {
+  guard: ['Ninguém chega perto do rei sem motivo.', 'O rei está na sala do trono, depois do pátio.', 'Ande devagar. E tire esse cheiro de peixe da frente.', 'Já vi profetas antes. Nenhum saiu de dentro de um peixe.'],
+  kid: ['Moço, por que a sua pele é tão branca?', 'Você saiu mesmo de dentro de um peixe? Que nojo! Conta de novo!', 'Minha mãe disse para não falar com estranhos que cheiram a peixe.', 'Aposto que eu corro mais rápido que você!'],
+  seller: ['Tâmaras frescas! Figos! Para você, preço de estrangeiro.', 'Tecido de Damasco, o melhor da cidade!', 'Compra um amuleto? Protege contra peixes grandes.', 'Se quiser trocar conchas, procure aquele caranguejo… espera, o quê?'],
+  noble: ['O rei não recebe qualquer um.', 'Este palácio levou anos para ficar pronto.', 'Dizem que os touros alados protegem a cidade.', 'Um hebreu? Aqui? Que ousadia.'],
+};
+const NPC_ROLE_AFTER = {
+  guard: ['Até o rei está de pano de saco. Eu também.', 'Ninguém comeu hoje. Nem os cavalos.', 'Se Deus perdoar a cidade, vou ser um guarda melhor.'],
+  kid: ['A gente não pode comer hoje. Nem os cabritos!', 'Meu pai chorou. Eu nunca tinha visto.', 'Você acha que Deus vai deixar a gente viver?'],
+  seller: ['Fechei a banca. Hoje não se vende nada.', 'Devolvi o que cobrei a mais. Todo mundo devolveu.', 'Pano de saco é o único tecido que se usa agora.'],
+  noble: ['Rasguei minhas roupas finas. Não servem para nada agora.', 'O rei nos mandou clamar a Deus com força.', 'Quem sabe Ele volte atrás.'],
+};
 const NPC_BEFORE = ['Forasteiro, a cidade é grande: são três dias para atravessá-la.', 'Você está cheirando a peixe. Muito.', 'Os deuses de Nínive são muitos. O seu é qual?', 'Cuidado com as carroças na rua principal.', 'Dizem que o rei não dorme desde a última guerra.'];
 const NPC_AFTER = ['Pano de saco é áspero, mas é o que temos.', 'Até o gado está jejuando.', 'Quem sabe Ele tenha compaixão de nós.', 'Joguei fora os meus ídolos. Não serviam para nada.', 'Meu vizinho devolveu o que roubou. Ninguém acreditou.'];
 const MENU_TABS = [['craft', 'Criar', 'i_craft', 'C'], ['bag', 'Mochila', 'i_bag', 'I'], ['quests', 'Diário', 'i_quest', 'Q'], ['map', 'Mapa', 'i_map', 'M'], ['best', 'Bestiário', 'i_best', 'B'], ['ach', 'Conquistas', 'i_ach', ''], ['save', 'Salvar', 'i_save', ''], ['opts', 'Ajustes', 'i_gear', '']];
@@ -2053,7 +2324,7 @@ function renderMenu(keepScroll, anim) { const m = $('#menu'); const sc = keepScr
   <div class="mtabs" role="tablist">${MENU_TABS.map(([k, l, ic, key]) => `<button class="mtab" role="tab" aria-selected="${menuTab === k}" data-mt="${k}">${iconImg(ic, 2)}<span>${l}</span>${key ? `<kbd>${key}</kbd>` : ''}${k === 'craft' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div><div class="mbody" id="mBody"></div></div>`;
   $('#mClose').onclick = closeMenu; m.onclick = e => { if (e.target === m) closeMenu(); };
   m.querySelectorAll('.mtab').forEach(b => b.onclick = () => { menuTab = b.dataset.mt; if (menuTab === 'craft') TUTF.craftMenu = true; renderMenu(); sfx('pick'); });
-  const b = $('#mBody'); ({ craft: renderCraftTab, bag: renderBagTab, quests: renderQuestTab, map: renderMapTab, best: renderBestTab, save: renderSaveTab, ach: b => { b.innerHTML = `<div class="pad"><span class="lbl">${Object.keys(ACH).length}/${ACHS.length} conquistas · dificuldade ${DF().n}${SEED !== 20261105 ? ' · mapa aleatório' : ''}</span>${achListHtml()}</div>`; }, opts: renderOptsTab })[menuTab](b);
+  const b = $('#mBody'); ({ craft: renderCraftTab, bag: renderBagTab, quests: renderQuestTab, map: renderMapTab, best: renderBestTab, save: renderSaveTab, ach: b => { b.innerHTML = `<div class="pad"><span class="lbl">${Object.keys(ACH).length}/${ACHS.length} conquistas · dificuldade ${DF().n}${SEED !== 20261109 ? ' · mapa aleatório' : ''}</span>${achListHtml()}</div>`; }, opts: renderOptsTab })[menuTab](b);
   const sc2 = keepScroll && m.querySelector('.rgrid, .bagr, .qcol'); if (sc2) sc2.scrollTop = top; }
 function propsOf(id) { const it = ITEMS[id]; if (!it) return []; const p = []; const slotN = { hand: 'Mão', light: 'Luz', body: 'Corpo', feet: 'Pés' };
   if (it.slot) p.push('Equipa em: ' + slotN[it.slot]); if (it.dmg) p.push('Dano ' + it.dmg); if (it.reach) p.push('Alcance ' + it.reach); if (it.kb) p.push('Empurrão forte'); if (it.light) p.push('Luz ' + it.light); if (it.fuel) p.push('Dura ' + Math.round(it.fuel / 60 * 10) / 10 + ' min'); if (it.refill) p.push('Recarga: ' + ITEMS[it.refill].n); if (it.armor) p.push('Armadura ' + Math.round(it.armor * 100) + '%'); if (it.acid != null) p.push(it.acid === 0 ? 'Imune a ácido' : 'Ácido −' + Math.round((1 - it.acid) * 100) + '%'); if (it.spd) p.push('Velocidade +' + Math.round((it.spd - 1) * 100) + '%'); if (it.food) p.push('Fome +' + it.food); if (it.hp) p.push((it.hp > 0 ? 'Vida +' : 'Vida ') + it.hp); return p; }
@@ -2072,11 +2343,11 @@ function drawRecipeGrid() { const list = filteredRecipes(); if (!list.find(r => 
   g.querySelectorAll('.rt').forEach(t => { t.onclick = () => { craftSel = t.dataset.r; g.querySelectorAll('.rt').forEach(x => x.setAttribute('aria-selected', x === t)); drawRecipeDetail(); }; t.ondblclick = () => { if (canCraft(RECIPES.find(r => r.id === t.dataset.r))) craft(t.dataset.r); }; }); }
 function drawRecipeDetail() { const d = $('#cDet'); if (!d) return; const r = RECIPES.find(x => x.id === craftSel); if (!r) { d.innerHTML = '<p>Escolha uma receita.</p>'; return; }
   const ok = canCraft(r), lock = r.day > day, missing = Object.entries(r.in).filter(([k, v]) => count(k) < v);
-  let why = ''; if (lock) why = `Disponível a partir do Dia ${r.day}.`; else if (missing.length) why = 'Faltam materiais. Veja abaixo onde encontrá-los.'; else if (r.fire && !nearFire()) why = 'Precisa estar perto de uma fogueira acesa.';
+  let why = ''; if (lock) why = `Disponível a partir do Dia ${r.day}.`; else if (missing.length) why = 'Faltam materiais. Veja abaixo onde encontrá-los.'; else if (r.fire && !nearFire()) why = 'Precisa estar perto de uma fogueira acesa.'; else if (r.bench && !nearBench()) why = 'Precisa estar perto da bancada. Monte uma no acampamento (aba Sobrevivência).';
   const props = r.place ? ['Construção', 'Montado à frente de Jonas'] : [...(r.out > 1 ? ['Rende ' + r.out] : []), ...propsOf(recOut(r))];
   d.innerHTML = `<div class="dhead"><div class="big">${iconImg(r.id, 6)}</div><div><span class="lbl">${TABNAME[r.tab]}</span><h3>${recName(r)}</h3><span class="st ${ok ? 'ok' : lock ? '' : 'no'}">${ok ? 'PRONTO PARA CRIAR' : lock ? 'BLOQUEADO' : 'FALTA ALGO'}</span></div></div>
     <p>${recDesc(r)}</p>${props.length ? `<div class="props">${props.map(x => `<span class="prop">${x}</span>`).join('')}</div>` : ''}
-    <div class="lbl">Materiais</div><ul class="ings">${Object.entries(r.in).map(([k, v]) => { const h = count(k), miss = h < v; return `<li class="${miss ? 'miss' : ''}"><span class="ii">${iconImg(k, 3)}</span><b>${ITEMS[k].n}</b><span class="q">${h}/${v}</span>${miss ? `<small>Onde achar: ${SOURCES[k] || '—'}</small>` : ''}</li>`; }).join('')}${r.fire ? `<li class="${nearFire() ? '' : 'miss'}"><span class="ii">${iconImg('fogueira', 3)}</span><b>Fogueira acesa por perto</b><span class="q">${nearFire() ? 'OK' : '✗'}</span></li>` : ''}</ul>
+    <div class="lbl">Materiais</div><ul class="ings">${Object.entries(r.in).map(([k, v]) => { const h = count(k), miss = h < v; return `<li class="${miss ? 'miss' : ''}"><span class="ii">${iconImg(k, 3)}</span><b>${ITEMS[k].n}</b><span class="q">${h}/${v}</span>${miss ? `<small>Onde achar: ${SOURCES[k] || '—'}</small>` : ''}</li>`; }).join('')}${r.fire ? `<li class="${nearFire() ? '' : 'miss'}"><span class="ii">${iconImg('fogueira', 3)}</span><b>Fogueira acesa por perto</b><span class="q">${nearFire() ? 'OK' : '✗'}</span></li>` : ''}${r.bench ? `<li class="${nearBench() ? '' : 'miss'}"><span class="ii">${iconImg('bancada', 3)}</span><b>Bancada por perto</b><span class="q">${nearBench() ? 'OK' : '✗'}</span></li>` : ''}</ul>
     ${why ? `<div class="why">${why}</div>` : ''}<button class="btn wide" id="doCraft" ${ok ? '' : 'disabled'}>${r.place ? 'Montar agora' : 'Criar'} <kbd>Enter</kbd></button>`;
   $('#doCraft').onclick = () => craft(r.id); }
 function moveCraftSel(dx) { const list = filteredRecipes(); if (!list.length) return; let i = list.findIndex(r => r.id === craftSel); const g = $('#rGrid'); let cols = 1; if (g) cols = Math.max(1, getComputedStyle(g).gridTemplateColumns.split(' ').length); i = clamp(i + (Math.abs(dx) === 1 ? dx : Math.sign(dx) * cols), 0, list.length - 1); craftSel = list[i].id; drawRecipeGrid(); drawRecipeDetail(); const el = g && g.querySelector('[aria-selected="true"]'); if (el) el.scrollIntoView({ block: 'nearest' }); }
@@ -2087,14 +2358,14 @@ function renderBagTab(b) { const eqS = [['hand', 'Mão'], ['light', 'Luz'], ['bo
   let port = ''; try { port = JON.f[0].r.toDataURL(); } catch (e) {}
   b.innerHTML = `<div class="bagwrap"><div class="doll"><div class="lbl">Equipamento</div><div class="dgrid">${eqBtn(eqS[0])}<div class="portrait"><img class="pi" src="${port}" width="${JON.f[0].r.width * 5}" height="${JON.f[0].r.height * 5}" alt="Jonas"></div>${eqBtn(eqS[1])}${eqBtn(eqS[4])}${eqBtn(eqS[3])}${eqBtn(eqS[2])}</div>
     <div class="sgrid"><div><b>${Math.ceil(P.hp)}</b>Vida</div><div><b>${Math.ceil(P.food)}</b>Fome</div><div><b>${w ? w.dmg : 1}</b>Dano${w ? '' : ' (soco)'}</div><div><b>${Math.round(arm * 100)}%</b>Armadura</div><div><b>${Math.round(lightR())}</b>Raio de luz</div><div><b>${feet ? (feet.acid === 0 ? 'Imune' : '−' + Math.round((1 - feet.acid) * 100) + '%') : '0%'}</b>Proteção ácido</div></div></div>
-    <div class="bagr"><div class="lbl">Mochila · ${inv.length}/${MAXS}</div><div class="igrid">${Array.from({ length: MAXS }, (_, i) => { const s = inv[i]; return slotBtn(s ? iconImg(s.id, 4) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') + (s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : '') : '', { data: `data-i="${i}"`, label: s ? ITEMS[s.id].n : 'vazio' }, bagSel && bagSel.i === i && s); }).join('')}</div><div id="iDet"></div></div></div>`;
+    <div class="bagr"><div class="lbl">Mochila · sem limite · ${inv.reduce((a, s) => a + s.n, 0)} itens</div>${['Equipamentos', 'Para usar e comer', 'Materiais'].map((cat, ci) => { const idx = inv.map((s, i) => i).filter(i => itemCat(inv[i].id) === ci); return idx.length ? `<div class="lbl" style="opacity:.75;margin-top:2px">${cat}</div><div class="igrid">${idx.map(i => { const s = inv[i]; return slotBtn(iconImg(s.id, 4) + (s.n > 1 ? `<span class="c">${s.n}</span>` : '') + (s.dur && ITEMS[s.id].fuel ? `<span class="fuel"><i style="width:${Math.round(s.dur / ITEMS[s.id].fuel * 100)}%"></i></span>` : ''), { data: `data-i="${i}"`, label: ITEMS[s.id].n }, bagSel && bagSel.i === i); }).join('')}</div>` : ''; }).join('') || '<p class="lbl">A mochila está vazia.</p>'}<div id="iDet"></div></div></div>`;
   b.querySelectorAll('[data-i]').forEach(x => x.onclick = () => { if (!inv[+x.dataset.i]) return; bagSel = { i: +x.dataset.i }; renderMenu(true); });
   b.querySelectorAll('[data-eq]').forEach(x => x.onclick = () => { if (!equip[x.dataset.eq]) return; bagSel = { eq: x.dataset.eq }; renderMenu(true); });
   drawItemDetail(); }
 function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null, acts = [];
   if (bagSel && bagSel.i != null && inv[bagSel.i]) { const s = inv[bagSel.i], it = ITEMS[s.id]; id = s.id; if (it.slot) acts.push(['equip', 'Equipar']); if (it.food || it.hp) acts.push(['use', it.food ? 'Comer' : 'Usar']); if (it.use === 'flare') acts.push(['use', 'Acender']); acts.push(['drop1', 'Soltar 1']); if (s.n > 1) acts.push(['dropall', 'Soltar tudo']); }
   else if (bagSel && bagSel.eq && equip[bagSel.eq]) { id = equip[bagSel.eq].id; acts.push(['unequip', 'Desequipar']); }
-  if (!id) { d.innerHTML = `<div class="idet" style="grid-template-columns:1fr"><p>Toque num item para ver detalhes, equipar, comer ou soltar. Fora do menu, clique no item da barra de baixo para usar rápido.</p></div>`; return; }
+  if (!id) { d.innerHTML = `<div class="idet" style="grid-template-columns:1fr"><p>Toque num item para ver detalhes, equipar, comer ou soltar. A mochila não tem limite. Armas, luzes e comida aparecem também na barra de baixo para uso rápido (teclas 1 a 0).</p></div>`; return; }
   const it = ITEMS[id], pr = propsOf(id);
   d.innerHTML = `<div class="idet"><div class="big" style="width:76px;height:76px;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)">${iconImg(id, 6)}</div><div><h3>${it.n}</h3><p>${it.d}</p>${pr.length ? `<div class="props">${pr.map(x => `<span class="prop">${x}</span>`).join('')}</div>` : ''}${!it.slot && SOURCES[id] ? `<p style="margin-top:8px;font-size:12px;color:var(--bone-dim)">Onde achar: ${SOURCES[id]}</p>` : ''}<div class="acts">${acts.map(([a, l], i) => `<button class="btn ${i ? 'alt' : ''}" data-a="${a}">${l}</button>`).join('')}</div></div></div>`;
   d.querySelectorAll('[data-a]').forEach(x => x.onclick = () => { const a = x.dataset.a;
@@ -2180,27 +2451,27 @@ function bigMap() { openMenu('map'); }
 const SLOT_KEYS = ['auto', '1', '2', '3'];
 function packBits(a) { let s = ''; for (let i = 0; i < a.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) if (a[i + j]) b |= 1 << j; s += String.fromCharCode(b); } return btoa(s); }
 function unpackBits(str, n) { const a = new Uint8Array(n); try { const s = atob(str || ''); for (let i = 0; i < s.length; i++) { const b = s.charCodeAt(i); for (let j = 0; j < 8; j++) if ((b >> j) & 1) a[i * 8 + j] = 1; } } catch (e) {} return a; }
-function serialize() { return { v: 3, t: Date.now(), diff: DIFF, seed: SEED, deaths, day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
+function serialize() { return { v: 4, t: Date.now(), diff: DIFF, seed: SEED, deaths, day, region: (regionOf(P.x, P.y) || {}).n || '', playTime, P: { x: P.x, y: P.y, hp: P.hp, food: P.food, fx: P.fx, fy: P.fy }, inv, equip, got, crafted, flags, mems: [...mems], refl: [...refl], seen: [...seen], kills, qState, contrCount, visited: [...visited], structs: structs.filter(s => s.k !== 'bridge'), bridges: structs.filter(s => s.k === 'bridge').map(s => s.i), nodes, reveal: packBits(reveal), totalKills, buddy: !!buddy }; }
 function save() { writeSlot('auto', true); }
 function snap() { return state === 'play' ? serialize() : null; }
 function writeSlot(k, quiet) { if (state !== 'play' || !P) return false; try { localStorage.setItem('jonah-slot-' + k, JSON.stringify(serialize())); if (!quiet) toast(k === 'auto' ? 'Jogo salvo.' : `Jogo salvo no espaço ${k}.`, 'good'); return true; } catch (e) { if (!quiet) toast('Não foi possível salvar neste navegador.', 'bad'); return false; } }
-function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-slot-' + k) || 'null'); return d && (d.v === 2 || d.v === 3) ? d : null; } catch (e) { return null; } }
+function readSlot(k) { try { const d = JSON.parse(localStorage.getItem('jonah-slot-' + k) || 'null'); return d && d.v >= 2 && d.v <= 4 ? d : null; } catch (e) { return null; } }
 function latestSlot() { let best = null; for (const k of SLOT_KEYS) { const d = readSlot(k); if (d && (!best || d.t > best.d.t)) best = { k, d }; } return best; }
-function nodeSolids(n) { const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
+function nodeSolids(n) { if (n.k === 'obst') { if (!n.open) for (const i of n.tiles) solid[i] = 1; return; } const ty = Math.floor(n.y / TS); if (n.k === 'rib') { const tx = Math.round(n.x / TS); if (inB(tx - 2, ty) && inB(tx + 1, ty)) { solid[idx(tx - 2, ty)] = 1; solid[idx(tx + 1, ty)] = 1; } } if (n.k === 'hull') { const tx = Math.floor(n.x / TS); for (const o of [-2, -1, 0, 1]) if (inB(tx + o, ty)) solid[idx(tx + o, ty)] = 1; } }
 function loadGame(d) { EPI.night = 0; EPI.heat = 0; if (!d) { toast('Este jogo salvo não pôde ser lido.', 'bad'); return; } if (menuOpen()) closeMenu(); const ov = $('#overlay'); ov.hidden = true; ov.innerHTML = '';
-  freshRun(); day = d.day; inv = d.inv || []; equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0; DIFF = d.diff || 'normal'; SEED = d.seed || 20261105; deaths = d.deaths || 0;
+  freshRun(); day = d.day; inv = (d.inv || []).filter(s => ITEMS[s.id]); sortInv(); equip = Object.assign({ hand: null, hand2: null, light: null, body: null, feet: null }, d.equip || {}); got = d.got || {}; crafted = d.crafted || {}; mems = new Set(d.mems || []); refl = new Set(d.refl || []); seen = new Set(d.seen || []); kills = d.kills || {}; playTime = d.playTime || 0; totalKills = d.totalKills || 0; DIFF = d.diff || 'normal'; SEED = d.seed || 20261109; deaths = d.deaths || 0;
   P.hp = d.P.hp; P.food = d.P.food; P.fx = d.P.fx || 0; P.fy = d.P.fy == null ? 1 : d.P.fy;
-  genWorld(day); const OLD = d.v !== 3 && d.day !== 4; reveal = OLD ? new Uint8Array(MW * MH) : unpackBits(d.reveal, MW * MH);
-  mobs = []; pickups = []; fx = []; proj = []; merchant = null; tideLevel = 0;
+  genWorld(day); const OLD = d.v !== 4; reveal = OLD ? new Uint8Array(MW * MH) : unpackBits(d.reveal, MW * MH);
+  mobs = []; pickups = []; fx = []; proj = []; BOSS = null; merchant = null; tideLevel = 0;
   flags = d.flags || {}; qState = d.qState || {}; contrCount = d.contrCount || 0; visited = new Set(d.visited || []);
-  structs = OLD ? [] : d.structs || []; shelter = structs.find(s => s.k === 'shelter') || null;
+  structs = OLD ? [] : d.structs || []; shelter = structs.find(s => s.k === 'shelter') || null; for (const b of structs) if (b.k === 'bench') solid[idx(Math.floor(b.x / TS), Math.floor(b.y / TS))] = 1;
   if (OLD && day < 4 && (day > 1 || (d.structs || []).some(s => s.k === 'shelter'))) { const sp = nearestFree(RG.destrocos.x * TS + 30, RG.destrocos.y * TS, 8); if (sp) { shelter = { k: 'shelter', x: sp.x, y: sp.y }; structs.push(shelter); } }
   if (shelter) solid[idx(Math.floor(shelter.x / TS), Math.floor(shelter.y / TS))] = 1;
   if (!OLD) for (const i of d.bridges || []) if (tiles[i] === ACID && !bridgeMap[i]) { bridgeMap[i] = 1; structs.push({ k: 'bridge', i }); }
   if (OLD) { nodes = []; setupNodes(); if (day === 4) { /* nodes rebuilt */ } d.P.x = (shelter ? shelter.x : RG[REGIONS[0].id].x * TS); d.P.y = (shelter ? shelter.y + 18 : RG[REGIONS[0].id].y * TS); } else { nodes = d.nodes || []; for (const n of nodes) nodeSolids(n); }
   if (day === 4) { for (const n of nodes) if (['well', 'stall', 'palm'].includes(n.k)) solid[idx(Math.floor(n.x / TS), Math.floor(n.y / TS))] = 1; if (flags.epi && flags.epi !== 'done') { nodes = nodes.filter(n => n.k !== 'plantN' && n.k !== 'worm'); flags.epi = 'night'; flags.epiT = 0; } }
   const g1 = folds.find(f => f.key === 'G1'); if (g1 && (day >= 2 || flags.bigDone)) g1.closed = false;
-  const g3 = folds.find(f => f.key === 'G3'); if (g3 && qState.mems === 'done') g3.closed = false;
+  const g3 = folds.find(f => f.key === 'G3'); if (g3 && flags.boss3) g3.closed = false; BOSS = null;
   renderGround(); P.x = d.P.x; P.y = d.P.y; if (boxHit(P.x, P.y, P.r)) { const f = nearestFree(P.x, P.y, 8); if (f) { P.x = f.x; P.y = f.y; } }
   cam.x = P.x - VW / 2; cam.y = P.y - VH / 2; buddy = d.buddy ? { x: P.x - 16, y: P.y - 10, happy: 0, scared: 0 } : null;
   newDirector(); spawnT = 8; autoT = 90; state = 'play'; paused = false; $('#hud').hidden = false;
@@ -2243,8 +2514,8 @@ function gpTick(dt) { const pads = navigator.getGamepads ? [...navigator.getGame
       if (menuTab === 'craft') { const d = navDir(); if (d) moveCraftSel(d); if (pr(0) && craftSel) craft(craftSel); } } }
   else if (state === 'play' && !paused) { if (mag > .25) { joy.on = true; joy.pad = true; joy.x = x; joy.y = y; } else if (joy.pad) { joy.on = false; joy.pad = false; joy.x = joy.y = 0; }
     if (pr(0)) attack(); if (pr(2)) interact(); if (pr(1)) dodge(); if (pr(3)) swapWeapons(); if (pr(9)) openMenu(); if (pr(8)) openMenu('map'); if (pr(6)) openMenu('craft');
-    if (pr(4) || pr(5)) { const n = Math.max(1, inv.length); GP.sel = (GP.sel + (pr(5) ? 1 : -1) + n) % n; buildHotbar(); const s = inv[GP.sel]; if (s) floatTxt(ITEMS[s.id].n, P.x, P.y - 26, '#62f4e2'); }
-    if (pr(7)) { useSlot(GP.sel); if (GP.sel >= inv.length) GP.sel = Math.max(0, inv.length - 1); } }
+    if (pr(4) || pr(5)) { const q = quickIdx(), n = Math.max(1, q.length); GP.sel = (GP.sel + (pr(5) ? 1 : -1) + n) % n; buildHotbar(); const s = inv[q[GP.sel]]; if (s) floatTxt(ITEMS[s.id].n, P.x, P.y - 26, '#62f4e2'); }
+    if (pr(7)) { const q = quickIdx(); if (q[GP.sel] != null) useSlot(q[GP.sel]); const n = quickIdx().length; if (GP.sel >= n) GP.sel = Math.max(0, n - 1); } }
   GP.prev = g.buttons.map(bt => bt.pressed); }
 addEventListener('gamepadconnected', () => audioInit());
 
@@ -2266,7 +2537,7 @@ addEventListener('keydown', e => { if (rebinding) { e.preventDefault(); if (e.co
   if (isKey(e.code, 'roll')) dodge();
   if (isKey(e.code, 'swap')) swapWeapons();
   if (isKey(e.code, 'interact')) interact();
-  const m = e.code.match(/^Digit(\d)$/); if (m) useSlot((+m[1] + 9) % 10);
+  const m = e.code.match(/^Digit(\d)$/); if (m) { const q = quickIdx(), i = q[(+m[1] + 9) % 10]; if (i != null) useSlot(i); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') writeSlot('auto', true); });
@@ -2285,7 +2556,7 @@ function resize() { const w = innerWidth, h = innerHeight; SCALE = w < 560 ? Mat
 addEventListener('resize', resize);
 let last = 0;
 function frame(now) { const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; try { gpTick(dt); update(dt); musicTick(dt); ctx.imageSmoothingEnabled = false; if (state === 'title') { const lg = document.getElementById('logo'); if (lg) drawLogo(lg, T); } if (state === 'cut') drawCut(); else if (state === 'ending') drawEnding(); else { drawWorld(); if (state === 'play') { drawOverlays(); updateHUD(dt); } } } catch (err) { console.error(err); } requestAnimationFrame(frame); }
-const ALL_FRAMES = [...CUTS_IMG.intro.fr, 'tela_titulo', 'dia1_titulo', ...CUTS_IMG.sleep.fr, ...Object.values(MEM_IMG), ...REFL_IMG.filter(Boolean), 'dia1_grande_contracao', 'dia2_titulo', 'dia2_explorar', 'dia2_bau', ...CUTS_IMG.dive.fr, 'dia2_sono', 'dia3_titulo', 'dia3_ajoelhar', 'dia3_camara_silencio', 'oracao_01', 'oracao_02', 'oracao_03', 'oracao_04', 'oracao_05', ...CUTS_IMG.exit.fr, 'final_04_terra_firme', 'ninive_titulo', 'ninive_cidade', 'ninive_proclamacao_1', 'ninive_proclamacao_2', 'ninive_proclamacao_3', 'ninive_rei', 'ninive_poupada', 'ninive_enramada', 'ninive_planta', 'ninive_verme_vento', 'ninive_pergunta', 'creditos', 'extra_mercador', 'extra_desmaio'];
+const ALL_FRAMES = [...CUTS_IMG.intro.fr, 'tela_titulo', 'dia1_titulo', ...CUTS_IMG.sleep.fr, ...Object.values(MEM_IMG), ...REFL_IMG.filter(Boolean), 'dia1_grande_contracao', 'dia2_titulo', 'dia2_explorar', 'dia2_bau', ...CUTS_IMG.dive.fr, 'dia2_sono', 'dia3_titulo', 'dia3_ajoelhar', 'dia3_camara_silencio', 'oracao_01', 'oracao_02', 'oracao_03', 'oracao_04', 'oracao_05', ...CUTS_IMG.exit.fr, 'final_04_terra_firme', 'ninive_titulo', 'ninive_cidade', 'ninive_proclamacao_1', 'ninive_proclamacao_2', 'ninive_proclamacao_3', 'ninive_rei', 'ninive_poupada', 'ninive_enramada', 'ninive_planta', 'ninive_verme_vento', 'ninive_pergunta', 'creditos', 'extra_mercador', 'extra_desmaio', 'boss1_couraca', 'boss2_enguia', 'boss3_sombra', 'ninive_palacio'];
 function preloadFrames() { let i = 0; const next = () => { if (i >= ALL_FRAMES.length) return; const f = loadFrame(ALL_FRAMES[i++]); const go = () => setTimeout(next, 0); if (f.ok || f.bad) go(); else { f.im.addEventListener('load', go, { once: true }); f.im.addEventListener('error', go, { once: true }); } }; for (let k = 0; k < 4; k++) next(); }
 function boot(data) { preloadFrames();
   resize(); freshRun();
@@ -2294,7 +2565,7 @@ function boot(data) { preloadFrames();
   day = 1; genWorld(1); mobs = []; pickups = []; fx = []; proj = []; visited = new Set(); nodes = []; setupNodes(); renderGround(); newDirector();
   P.x = RG.destrocos.x * TS + 8; P.y = RG.destrocos.y * TS + 8; const f = nearestFree(P.x, P.y, 6); if (f) { P.x = f.x; P.y = f.y; }
   window.claude?.hot?.snapshot?.(() => snap());
-  if (data && (data.v === 2 || data.v === 3)) loadGame(data); else titleScreen();
+  if (data && data.v >= 2 && data.v <= 4) loadGame(data); else titleScreen();
   requestAnimationFrame(t => { last = t; frame(t); });
 }
 const go = d => { try { boot(d && d.v === 2 ? d : null); } catch (e) { console.error(e); } };
