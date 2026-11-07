@@ -78,6 +78,8 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 .q.lock{color:#6b5560;font-style:italic}
 .q.cur b{border-color:var(--glow);animation:blink 1s steps(2) infinite}
 .q small{display:block;font-size:11px;color:var(--bone-dim);text-decoration:none}
+.q em{display:block;margin-top:3px;font-style:normal;font-size:11px;line-height:1.35;color:#c6e34a}
+#qHint{font-family:var(--f-label);font-size:10px;letter-spacing:.06em;padding:2px 6px;margin-right:6px;background:#2a3a10;color:#e5f58a;border:1px solid #6f8f1c;cursor:pointer}
 #quests.min .q:not(.cur){display:none}
 /* event banner */
 #event{position:absolute;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);min-width:240px;max-width:min(420px,58vw);padding:8px 14px;text-align:center;pointer-events:none}
@@ -92,7 +94,7 @@ button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
 #region{position:absolute;left:50%;top:32%;transform:translateX(-50%);font-family:var(--f-display);font-size:40px;color:var(--bone);text-shadow:3px 3px 0 var(--ink);opacity:0;transition:opacity .6s steps(4);pointer-events:none;white-space:nowrap}
 #region.on{opacity:1}
 #toasts{position:absolute;left:50%;bottom:calc(132px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column-reverse;align-items:center;gap:6px;pointer-events:none}
-.toast{padding:6px 12px;font-size:13px;background:var(--panel);border:2px solid var(--line);box-shadow:0 0 0 2px var(--ink);white-space:nowrap;animation:tin .25s steps(3)}
+.toast{padding:6px 12px;font-size:13px;background:var(--panel);border:2px solid var(--line);box-shadow:0 0 0 2px var(--ink);white-space:normal;max-width:min(640px,88vw);text-align:center;line-height:1.35;animation:tin .25s steps(3)}
 .toast.good{border-color:var(--acid)}.toast.bad{border-color:var(--blood)}.toast.mem{border-color:var(--glow)}
 @keyframes tin{from{transform:translateY(8px);opacity:0}}
 #prompt{position:absolute;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);padding:5px 12px;font-size:14px;pointer-events:none;white-space:nowrap}
@@ -439,7 +441,7 @@ body.big-ui #prompt{font-size:17px}body.big-ui .toast{font-size:16px}body.big-ui
         <div><div class="lbl">Capítulo</div><div id="dayName">Dia 1</div><div id="daySub">O Despertar</div><div id="pulse"></div></div>
       </div>
       <div id="miniWrap" class="px" title="Mapa (M)"><canvas id="mini"></canvas></div>
-      <div id="quests" class="px"><h3 id="qHead"><span id="qTitle">Missões</span><span id="qTog">−</span></h3><div id="qList"></div></div>
+      <div id="quests" class="px"><h3 id="qHead"><span id="qTitle">Missões</span><span><button id="qHint" title="Dica (H)">? dica</button> <span id="qTog">−</span></span></h3><div id="qList"></div></div>
     </div>
     <div id="bossBar" class="px" hidden><span id="bossName"></span><i><u id="bossHp"></u></i></div>
     <div id="event" class="px" hidden><div class="lbl"><span id="evTag">Evento</span><span id="evLvl"></span></div><div id="evName"></div><div id="evDesc"></div><span id="evTime"><i></i></span></div>
@@ -931,6 +933,7 @@ const OBST = {
   sombras: { n: 'Muralha de sombras', act: 'Dispersar', need: () => count('incenso') > 0 || (P.repel || 0) > 0, needTxt: 'Incenso de âmbar', use: () => { if (!((P.repel || 0) > 0)) take('incenso', 1); }, done: 'O perfume do âmbar espalha as sombras.' },
   casca: { n: 'Crosta calcificada', act: 'Explodir', need: () => count('bomba') > 0, needTxt: 'Bomba de bile', use: () => take('bomba', 1), done: 'A bomba estoura a crosta em pedaços.' },
 };
+function obstSeenTick() { for (const n of nodes) { if (n.k !== 'obst' || n.open || n.seen) continue; if (dist(P.x, P.y, n.x, n.y) < 110) { n.seen = true; const O = OBST[n.type]; toast(O.need() ? `${O.n}: chegue perto e aperte E para ${O.act.toLowerCase()}.` : `${O.n} bloqueia uma caverna. Precisa de ${O.needTxt}. Dica completa: H.`, O.need() ? 'good' : 'bad'); } } }
 function openObst(n, msg) { if (n.open) return; n.open = true; for (const i of n.tiles) solid[i] = 0; burst(n.x, n.y - 6, '#fff7c8', 24); shakeA = Math.max(shakeA, 2); sfx('craft'); toast(msg || OBST[n.type].done, 'good'); GST.obst = (GST.obst || 0) + 1; }
 const MEM_IMG = {}; [1, 2, 3].forEach(d => MEM_ACT[d].forEach((k, i) => MEM_IMG[k] = `dia${d}_mem0${i + 1}_${k}`));
 const REFL_IMG = [null, 'dia1_ref_tarsis', 'dia2_ref_marinheiros', 'dia1_ref_porao', 'dia2_ref_hebreu', 'dia3_ref_peixe', 'dia3_ref_templo', 'dia1_ref_vento', 'dia2_ref_dormindo', 'dia3_ref_culpa'];
@@ -1697,7 +1700,7 @@ function setupNodes() { if (day === 4) { setupNodes4(); return; }
   const farFrom = (list, d) => { const l = list.filter(i => Math.hypot(i % MW - RG.destrocos.x, Math.floor(i / MW) - RG.destrocos.y) > d); return l.length > 4 ? l : list; };
   const outer = (list, r) => { const l = list.filter(i => Math.hypot(i % MW - r.x, Math.floor(i / MW) - r.y) > r.r * .45); return l.length > 4 ? l : list; };
   let need = MEM_ACT[day].length - memCount(day);
-  for (const o of obst) { if (need <= 0) break; nodes.push({ k: 'memory', x: (o.cx + .5) * TS, y: (o.cy + .65) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, mem: 1 }); need--; }
+  for (const o of obst) { if (need <= 0) break; nodes.push({ k: 'memory', x: (o.cx + .5) * TS, y: (o.cy + .65) * TS, uses: 1, max: 1, rg: 0, ph: R() * 6, mem: 1, gate: { x: (o.gx + .5) * TS, y: (o.gy + .5) * TS } }); need--; }
   const MEM_FREE = { 1: ['destrocos', 'juncao', 'costelas', 'cilios'], 2: ['juncao', 'costelas', 'cilios', 'lago'], 3: ['juncao', 'costelas', 'lago', 'cilios'] };
   MEM_FREE[day].slice(0, need).forEach(reg => { let n = placeNode('memory', farFrom(outer(lists[reg], RG[reg]), 7), { gap: 120, data: { mem: 1 } }); for (const alt of ['costelas', 'cilios', 'juncao', 'lago', 'central']) { if (n) break; n = placeNode('memory', lists[alt], { gap: 30, data: { mem: 1 } }); } });
   const REFL_BY_DAY = { 1: [[1, 'destrocos'], [3, 'juncao'], [7, 'cilios']], 2: [[2, 'lago'], [4, 'cilios'], [8, 'costelas']], 3: [[5, 'costelas'], [6, 'lago'], [9, 'central']] };
@@ -1723,21 +1726,21 @@ const QUESTS = {
     { id: 'shelter', t: 'O chão treme. Construa um abrigo seguro', sub: () => 'Aba Sobrevivência. Madeira 4, tecido 3, corda 2', check: () => !!shelter },
     { id: 'bench', t: 'Monte uma bancada perto do abrigo', req: ['shelter'], sub: () => 'Aba Sobrevivência. Armas e ferramentas precisam dela', check: () => structs.some(s => s.k === 'bench') },
     { id: 'quake', t: 'Sobreviva à grande contração', req: ['shelter'], sub: () => DIR.ev === 'grande' ? 'Aguente firme!' : 'Ela está vindo…', check: () => flags.bigDone, start: () => forceEvent('grande', 6) },
-    { id: 'mem1', t: 'Siga as lembranças: o que aconteceu?', req: ['quake'], sub: () => `${memCount(1)}/6 lembranças · algumas estão atrás de obstáculos`, target: () => memNode(), check: () => memCount(1) >= 6, done: denOpenToast },
+    { id: 'mem1', t: 'Siga as lembranças: o que aconteceu?', req: ['quake'], sub: () => `${memCount(1)}/6 lembranças${memSub()}`, target: () => memNode(), check: () => memCount(1) >= 6, done: denOpenToast },
     { id: 'boss1', t: 'Enfrente o guardião: Caranguejo-Couraça', req: ['mem1'], sub: () => 'Leve uma arma pesada. Ele fica atordoado ao bater na parede', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss1 || !den },
     { id: 'rest', t: 'Volte ao abrigo e descanse', req: ['boss1'], target: () => shelter, sub: () => 'Interaja com o abrigo para encerrar o dia', check: () => flags.rested },
   ],
   2: [
     { id: 'explore', t: 'Procure uma saída: explore três regiões', sub: () => ['costelas', 'lago', 'cilios'].map(k => (visited.has(k) ? '■ ' : '□ ') + RG[k].n.split(' ').slice(-1)[0]).join('  '), check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia2_explorar', kick: 'AS PROFUNDEZAS', title: 'Nenhuma saída à vista', body: 'Jonas percorreu as três regiões, e a baleia parece não ter fim. Se existe uma saída, ela está mais para dentro.', btn: 'Continuar' }) },
     { id: 'tool', t: 'Crie algo para atravessar o ácido', sub: () => 'Ponte, botas ou sandálias (aba Travessia)', check: () => crafted.ponte || crafted.botas || crafted.sandalias },
-    { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças · algumas estão atrás de obstáculos`, target: () => memNode(), check: () => memCount(2) >= 6, done: denOpenToast },
+    { id: 'nineve', t: 'Encare os próprios erros: siga as lembranças', sub: () => `${memCount(2)}/6 lembranças${memSub()}`, target: () => memNode(), check: () => memCount(2) >= 6, done: denOpenToast },
     { id: 'boss2', t: 'Enfrente a guardiã: Enguia-Mãe', req: ['nineve'], sub: () => 'Ataque quando ela emergir. Arpão fere mais', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss2 || !den },
     { id: 'pattern', t: 'Observe o padrão das contrações', sub: () => `${Math.min(contrCount, 2)}/2 contrações`, check: () => contrCount >= 2, done: () => { flags.pattern = true; toast('Jonas agora sente o ritmo. O mostrador avisa a próxima contração.', 'good'); } },
     { id: 'central', t: 'Alcance a Câmara Central', req: ['explore', 'tool'], target: () => ({ x: RG.central.x * TS, y: RG.central.y * TS }), sub: () => qDone('nineve') && qDone('boss2') && qDone('pattern') ? 'A saída deve estar lá' : 'Conclua as outras missões antes', check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'central' && qDone('nineve') && qDone('boss2') && qDone('pattern'); }, done: () => climax2() },
   ],
   3: [
     { id: 'revisit', t: 'Revisite as regiões transformadas', sub: () => `${['costelas', 'lago', 'cilios'].filter(k => visited.has(k)).length}/3`, check: () => ['costelas', 'lago', 'cilios'].every(k => visited.has(k)), done: () => showCard({ img: 'dia3_ajoelhar', kick: 'DAS PROFUNDEZAS À LUZ', title: 'Parar de procurar', body: 'As regiões mudaram e não há porta em lugar nenhum. Pela primeira vez, Jonas para de procurar uma saída e se ajoelha.', btn: 'Continuar' }) },
-    { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças`, target: () => memNode(), check: () => memCount(3) >= 6, done: denOpenToast },
+    { id: 'mems', t: 'Culpa, entrega e perdão: siga as lembranças', sub: () => `${memCount(3)}/6 lembranças${memSub()}`, target: () => memNode(), check: () => memCount(3) >= 6, done: denOpenToast },
     { id: 'boss3', t: 'Enfrente a Sombra Gigante', req: ['mems'], sub: () => 'Só a luz forte a fere: Lanterna viva ou Sinalizador', target: () => den && { x: den.x, y: den.y }, check: () => flags.boss3 || !den },
     { id: 'gauntlet', t: 'Atravesse a passagem final', req: ['boss3'], target: () => { const g = folds.find(f => f.key === 'G3'); return g && !flags.gEntered ? g : { x: RG.silencio.x * TS, y: RG.silencio.y * TS }; }, check: () => flags.gauntlet },
     { id: 'silence', t: 'Encontre a Câmara do Silêncio', req: ['gauntlet'], target: () => ({ x: RG.silencio.x * TS, y: RG.silencio.y * TS }), check: () => { const r = regionOf(P.x, P.y); return r && r.id === 'silencio'; }, done: () => showCard({ img: 'dia3_camara_silencio', kick: 'A CÂMARA DO SILÊNCIO', title: 'Silêncio', body: 'Nenhum som, nenhum movimento. Só um feixe de luz caindo sobre uma pedra lisa, como um altar.', btn: 'Aproximar-se' }) },
@@ -1748,13 +1751,56 @@ const QUESTS = {
 let qState = {};
 const qDone = id => qState[id] === 'done';
 function denOpenToast() { if (!den) { if (day === 3) { const g3 = folds.find(x => x.key === 'G3'); if (g3) g3.closed = false; } return; } const f = folds[den.fold]; if (f) { f.closed = false; burst(f.x, f.y, '#ffe170', 40); } shakeA = Math.max(shakeA, 4); toast(`Todas as lembranças do dia. Um rugido: a passagem para o ${RG.covil ? RG.covil.n : 'covil'} se abriu.`, 'good'); }
-const memNode = () => { let b = null, bd = 1e9; for (const n of nodes) if (n.k === 'memory' && !n.gone) { const d = dist(n.x, n.y, P.x, P.y); if (d < bd) { bd = d; b = n; } } return b; };
+function gateOf(m) { if (!m) return null; let g = null, bd = 1e9; for (const n of nodes) { if (n.k !== 'obst') continue; const d = m.gate ? dist(n.x, n.y, m.gate.x, m.gate.y) : dist(n.x, n.y, m.x, m.y); if (d < bd) { bd = d; g = n; } } return g && bd < (m.gate ? 4 : 110) ? g : null; }
+function memPlan() { let best = null, bs = 1e12; for (const n of nodes) { if (n.k !== 'memory' || n.gone) continue; const g = gateOf(n), blocked = g && !g.open, can = blocked && OBST[g.type].need();
+    const score = dist(n.x, n.y, P.x, P.y) + (blocked ? (can ? 1500 : 6000) : 0); if (score < bs) { bs = score; best = { m: n, g: blocked ? g : null, can }; } } return best; }
+const memNode = () => { const p = memPlan(); return p ? (p.g ? p.g : p.m) : null; };
+function recipeLine(id) { const r = RECIPES.find(x => x.id === id); if (!r) return ITEMS[id] ? ITEMS[id].n : id; const tab = (TABS.find(t => t[0] === r.tab) || [0, ''])[1];
+  const ins = Object.entries(r.in).map(([k, n]) => { const have = count(k); return `${n} ${(ITEMS[k] ? ITEMS[k].n : k).toLowerCase()}${have >= n ? ' ✓' : ` (tem ${have})`}`; }).join(', ');
+  return `${(ITEMS[id] || r).n}: ${ins} · menu C, aba ${tab}${r.bench ? ', perto da bancada' : ''}${r.fire ? ', perto do fogo' : ''}`; }
+const OBST_ITEM = { fenda: 'prancha', membrana: 'foice', trevas: 'tocha', trevas2: 'lanterna_viva', veneno: 'mascara', alto: 'gancho', sombras: 'incenso', casca: 'bomba' };
+function obstHint(g) { const O = OBST[g.type]; if (O.need()) return `A próxima lembrança está atrás de: ${O.n}. Você já tem o que precisa: chegue perto e aperte E (${O.act}).`;
+  let h = `A próxima lembrança está atrás de: ${O.n}. Precisa de ${O.needTxt}. Faça: ${recipeLine(OBST_ITEM[g.type])}.`;
+  if (g.type === 'trevas') h = `A próxima lembrança está atrás de uma ${O.n}. Equipe uma tocha acesa (ou lanterna) e aperte E perto dela. ${recipeLine('tocha')}.`;
+  if (g.type === 'trevas2') h += ' Um Sinalizador aceso também serve.';
+  if (g.type === 'alto' && !count('garra') && !hasTool('gancho')) h += ' A garra vem do Caranguejo-Couraça (Dia 1); se não tiver, o mercador caranguejo às vezes vende.';
+  if (['fenda', 'alto'].includes(g.type) && !structs.some(s => s.k === 'bench')) h += ' Primeiro monte uma Bancada (aba Sobrevivência).';
+  return h; }
+function memSub() { const p = memPlan(); if (!p || !p.g) return ''; const O = OBST[p.g.type]; return O.need() ? ` · próxima atrás de ${O.n}: você já pode passar (E)` : ` · próxima atrás de ${O.n}: precisa de ${O.needTxt}`; }
+function memHint() { const p = memPlan(); if (!p) return 'Todas as lembranças deste dia foram encontradas.'; if (p.g) return obstHint(p.g); return 'Siga a seta amarela: ela aponta para a lembrança mais próxima que você já consegue alcançar. Lembranças brilham em ciano.'; }
+const bestDmg = () => Math.max(1, ...['hand', 'hand2'].map(k => equip[k] && ITEMS[equip[k].id].dmg || 0), ...inv.map(s => ITEMS[s.id].dmg || 0));
+const QHINT = {
+  basics: () => 'Chegue perto de tábuas, caixotes, barris e da vela rasgada perto do navio e aperte E (ou toque) para coletar. Os caixotes também dão pregos.',
+  light: () => `Abra o menu com C (ou o botão de martelo) e faça na aba Luz. ${recipeLine('tocha')}. Depois equipe a tocha na barra de baixo.`,
+  shelter: () => `${recipeLine('abrigo')}. Escolha um lugar aberto: o abrigo é montado à sua frente.`,
+  bench: () => `${recipeLine('bancada')}. Pregos saem dos caixotes e barris. Monte perto do abrigo: armas e ferramentas só são feitas ali.`,
+  quake: () => 'Fique perto do abrigo e aguente firme. Quando a contração acabar, uma membrana se rasga e abre o caminho para o resto da baleia.',
+  mem1: memHint, nineve: memHint, mems: memHint,
+  boss1: () => bestDmg() < 4 ? `A carapaça só sente golpes fortes. ${recipeLine('lanca')}. Depois siga a seta até o covil.` : 'Siga a seta até o covil. Desvie quando ele tremer (vai investir) e ataque quando ele bater na parede e ficar atordoado.',
+  rest: () => 'Siga a seta até o abrigo e aperte E perto dele para dormir.',
+  explore: () => `Saia do abrigo pelos túneis. Falta visitar: ${['costelas', 'lago', 'cilios'].filter(k => !visited.has(k)).map(k => RG[k].n).join(', ') || 'nada'}. Abra o mapa com M.`,
+  tool: () => `Qualquer uma serve. ${recipeLine('botas')}. Ou ${recipeLine('ponte')}.`,
+  boss2: () => 'Siga a seta até o poço. Ela só pode ser ferida quando está fora da bile. Fuja dos jatos verdes e ataque quando ela emergir. ' + (hasTool('arpao') ? '' : recipeLine('arpao') + ' (fere mais).'),
+  pattern: () => 'As contrações vêm sozinhas de tempos em tempos. Continue explorando e sobreviva a duas; o mostrador no canto avisa quando vem uma.',
+  central: () => { const miss = ['explore', 'tool', 'nineve', 'boss2', 'pattern'].filter(k => !qDone(k)).map(k => QUESTS[2].find(q => q.id === k).t); return miss.length ? `Antes, conclua: ${miss.join(' · ')}.` : 'Siga a seta até a Câmara Central.'; },
+  revisit: () => `Volte às regiões: ${['costelas', 'lago', 'cilios'].filter(k => !visited.has(k)).map(k => RG[k].n).join(', ')}. Abra o mapa com M.`,
+  boss3: () => (lightR() >= 120 || count('sinalizador') > 0) ? 'Siga a seta até o abismo. Mantenha a Sombra dentro da sua luz forte e ataque; quando ela sumir, olhe para trás.' : `A Sombra só é ferida em luz forte. ${recipeLine('lanterna_viva')}. Ou leve Sinalizadores.`,
+  gauntlet: () => 'Siga a seta pela passagem que se abriu. As paredes se fecham em ritmo: passe quando estiverem abertas.',
+  silence: () => 'Siga a seta. A Câmara do Silêncio fica no fim da passagem.',
+  pray: () => 'Chegue perto da pedra iluminada e aperte E para orar.',
+};
+let qAge = {}, hintToastT = 0;
+function curQuest() { if (!QUESTS[day]) return null; return QUESTS[day].find(q => qState[q.id] === 'active') || null; }
+function questHint(q) { if (!q) return ''; const f = QHINT[q.id]; if (f) return f(); return q.target ? 'Siga a seta amarela na tela e no mapa (M).' : ''; }
+function showHint() { const q = curQuest(); const h = questHint(q); if (!h) { toast('Nenhuma missão ativa agora.'); return; } toast('Dica: ' + h, 'good'); if (q) qAge[q.id] = Math.max(qAge[q.id] || 0, 41); buildQuests(); }
+function hintTick(dt) { if (state !== 'play' || !QUESTS[day]) return; if (day < 4) obstSeenTick(); const q = curQuest(); if (!q) return; qAge[q.id] = (qAge[q.id] || 0) + dt;
+  if (qAge[q.id] > 100 && T - hintToastT > 120) { hintToastT = T; toast('Dica: ' + questHint(q), 'good'); } }
 function questTick() { let changed = false; for (const q of QUESTS[day]) { if (qState[q.id] === 'done') continue; if (q.req && !q.req.every(qDone)) continue; if (!qState[q.id]) { qState[q.id] = 'active'; changed = true; if (q.start) q.start(); } if (q.check()) { qState[q.id] = 'done'; changed = true; sfx('quest'); toast('✓ ' + q.t, 'good'); if (q.done) q.done(); if (state === 'play') writeSlot('auto', true); } } if (changed) buildQuests(); }
 
 function startDay(n, data) {
   day = n; state = 'play'; reveal = null;
   genWorld(day);
-  mobs = []; pickups = []; fx = []; proj = []; BOSS = null; visited = new Set(); qState = {}; contrCount = 0; merchant = null; tideLevel = 0;
+  mobs = []; pickups = []; fx = []; proj = []; BOSS = null; visited = new Set(); qState = {}; qAge = {}; contrCount = 0; merchant = null; tideLevel = 0;
   flags = Object.assign({}, { merchantT: rr(110, 200), bottleRead: flags && flags.bottleRead }, data && data.flags || {});
   const keep = day === 1 ? structs.filter(s => s.k === 'shelter' || s.k === 'fire' || s.k === 'bench') : []; structs = []; EPI.night = 0; EPI.heat = 0; if (day === 4) { flags.merchantDone = true; buddy = null; }
   shelter = null;
@@ -1993,7 +2039,7 @@ function finalCard() { const memN = Object.keys(MEMS).filter(k => mems.has(k)).l
   showCard({ img: 'creditos', kick: 'FIM', logo: true, title: 'Obrigado por jogar', body: 'Três dias no ventre do grande peixe, uma cidade inteira perdoada e uma lição para levar: ninguém está longe demais da misericórdia de Deus.', html: `<div class="stats3"><div><b>${fmtTime(playTime)}</b>tempo total</div><div><b>${seen.size}/${Object.keys(MOBS).length}</b>criaturas</div><div><b>${memN}/${MEM_TOTAL}</b>lembranças</div></div>`, buttons: [{ label: 'Jogar de novo', fn: newGameCard }, { label: 'Tela inicial', fn: titleScreen }] }); }
 function npcTick(dt) { for (const n of nodes) { if (n.k !== 'npc' || n.conv || n.role === 'guard' || n.still) continue; const kid = n.role === 'kid', sp = kid ? 22 : 10; n.wt -= dt; if (n.wt <= 0) { if (Math.random() < (kid ? .15 : .4)) { n.vx = n.vy = 0; } else { const a = Math.random() * 6.28; n.vx = Math.cos(a) * sp; n.vy = Math.sin(a) * sp * .8; } n.wt = rr(kid ? .8 : 1.5, kid ? 2 : 4); }
   if (n.vx || n.vy) { const nx = n.x + n.vx * dt, ny = n.y + n.vy * dt; if (!isSolidP(nx, ny) && dist(nx, ny, n.hx, n.hy) < (kid ? 90 : n.role === 'noble' ? 30 : 56) && tileAt(nx, ny) === FLOOR) { n.x = nx; n.y = ny; } else { n.vx = -n.vx; n.vy = -n.vy; } } } }
-function specialsTick(dt) { tutTick(dt); bossTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
+function specialsTick(dt) { tutTick(dt); bossTick(dt); hintTick(dt); if (day === 4) { npcTick(dt); epiTick(dt); return; }
   if (day === 1 && !buddy && playTime > 75) { buddy = { x: P.x - 20, y: P.y, happy: 0, scared: 0 }; toast('Um peixinho começou a seguir Jonas. Ele não ajuda nem atrapalha.', 'mem'); }
   if (buddy) { const tx = P.x - P.fx * 16 - 10, ty = P.y - 10 - P.fy * 6; buddy.x = lerp(buddy.x, tx, Math.min(1, dt * 2.4)); buddy.y = lerp(buddy.y, ty, Math.min(1, dt * 2.4)); buddy.happy = Math.max(0, buddy.happy - dt); buddy.scared = Math.max(0, buddy.scared - dt); if (isContract(DIR.ev)) buddy.scared = .5; }
   flags.merchantT -= dt;
@@ -2128,6 +2174,7 @@ function drawTiles() {
       else { ctx.fillStyle = warn && Math.floor(T * 6) % 2 ? 'rgba(226,70,60,.55)' : 'rgba(30,6,14,.35)'; ctx.fillRect(sx, sy + 4, TS, 2); ctx.fillRect(sx, sy + 11, TS, 2); if (warn) { ctx.fillStyle = 'rgba(226,70,60,.18)'; ctx.fillRect(sx, sy, TS, TS); } } }
   }
 }
+let LABELS = [];
 function drawObst(n) { const t = n.type, op = n.open;
   for (const i of n.tiles) { const x = (i % MW) * TS, y = Math.floor(i / MW) * TS, w = Math.sin(T * 2 + i) ;
     if (t === 'fenda') { px(x, y + 2, 16, 12, '#05020a'); if (!op) { px(x, y + 2, 16, 1, '#c55a6e'); px(x, y + 13, 16, 1, '#3a0e1a'); px(x + 3, y + 6, 2, 1, '#2b0a14'); } else { for (let k = 0; k < 4; k++) px(x + k * 4, y + 3, 3, 10, k % 2 ? '#b8813f' : '#a07040'); px(x, y + 4, 16, 1, '#5a361c'); px(x, y + 11, 16, 1, '#5a361c'); } }
@@ -2137,7 +2184,7 @@ function drawObst(n) { const t = n.type, op = n.open;
     else if (t === 'alto') { if (!op) { px(x, y, 16, 16, '#d8c8a8'); px(x, y, 16, 2, '#f3e6cf'); px(x, y + 14, 16, 2, '#8e7a58'); for (let k = 0; k < 3; k++) px(x + k * 5 + 2, y + 4, 1, 8, '#b59e74'); } else { px(x, y + 12, 16, 4, '#b59e74'); px(x + 7, y, 2, 16, '#d0a860'); } }
     else if (t === 'sombras') { if (!op) { px(x, y, 16, 16, 'rgba(27,13,28,.88)'); const b = Math.round(Math.sin(T * 3 + i) * 1.5); px(x + 4, y + 6 + b, 2, 1, '#a77ae6'); px(x + 9, y + 6 + b, 2, 1, '#a77ae6'); } }
     else if (t === 'casca') { if (!op) { px(x, y, 16, 16, '#c8c0b0'); px(x, y, 16, 2, '#eee6d6'); px(x + 3, y + 5, 6, 1, '#8e8678'); px(x + 8, y + 9, 5, 1, '#8e8678'); px(x + 5, y + 12, 1, 3, '#8e8678'); } else { px(x + 2, y + 10, 3, 2, '#c8c0b0'); px(x + 10, y + 4, 2, 2, '#c8c0b0'); } } }
-  if (!n.open) { const O = OBST[n.type]; if (dist(P.x, P.y, n.x, n.y) < 70) txt(O.need() ? '!' : '?', n.x, n.y - 22 + Math.sin(T * 4) * 2, O.need() ? '#c6e34a' : '#e2a0b0'); } }
+  if (!n.open) { const O = OBST[n.type], d = dist(P.x, P.y, n.x, n.y); if (d < 120) { const sx = n.x - CX, sy = n.y - CY; LABELS.push([O.need() ? '!' : '?', sx, sy - 30 + Math.sin(T * 4) * 2, O.need() ? '#c6e34a' : '#e2a0b0', 8]); if (d < 90) { LABELS.push([O.n, sx, sy - 20, '#fff7c8', 7]); LABELS.push([O.need() ? `E: ${O.act}` : `precisa: ${O.needTxt.replace(/ \(.*\)/, '')}`, sx, sy - 12, O.need() ? '#c6e34a' : '#e2a0b0', 7]); } } } }
 function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.shake ? Math.round(Math.sin(n.shake * 60) * 1.5) : 0;
   if (n.hidden) { if (n.k === 'mush' || n.k === 'kelp' || n.k === 'spore' || n.k === 'bile') { px(n.x - 2, n.y - 2, 4, 2, '#3c1020'); } else if (n.k === 'cilia') { for (let k = 0; k < 4; k++) px(n.x - 6 + k * 4, n.y - 3, 1, 3, '#8a2c41'); } return; }
   switch (n.k) {
@@ -2152,7 +2199,7 @@ function drawNode(n) { const D = NODES[n.k]; if (n.gone) return; const sh = n.sh
     case 'fountain': { shadow(n.x, n.y, 7); sprAt(NSP.fountain, n.x, n.y + 1); for (let k = 0; k < 6; k++) { const t = (T * 1.6 + k / 6) % 1; const a = k / 6 * 6.28; px(n.x + Math.cos(a) * t * 7, n.y - 9 - Math.sin(t * Math.PI) * 6 + t * 4, 1, 1, t < .5 ? '#b8e0ff' : '#5b8ff0'); } break; }
     case 'brazier': { shadow(n.x, n.y, 4); sprAt(NSP.brazier, n.x, n.y + 1); for (let k = 0; k < 4; k++) { const h = (T * 18 + k * 3.7) % 7; px(n.x - 2 + k, n.y - 6 - h, 1, 2, h < 3 ? '#ffe170' : h < 5 ? '#f39046' : '#e2463c'); } break; }
     case 'goat': case 'camel': { shadow(n.x, n.y, 5); const c = NSP[n.k]; sprAt(n.ph > 3 ? flipC(c) : c, n.x, n.y + 1 - (Math.floor(T * 1.3 + n.ph) % 4 === 0 ? 1 : 0)); break; }
-    case 'king': { shadow(n.x, n.y - 4, 8); sprAt(NSP.throne, n.x, n.y - 3); if (n.conv) { shadow(n.x, n.y + 12, 6); px(n.x - 9, n.y + 9, 18, 3, '#6b6670'); px(n.x - 7, n.y + 8, 14, 1, '#8a8590'); sprAt(KING_KNEEL, n.x, n.y + 12); } else { sprAt(KING_SP.r, n.x, n.y - 4); if (qState.king === 'active') txt('!', n.x, n.y - 36 + Math.sin(T * 5) * 2, '#ffe170'); } break; }
+    case 'king': { shadow(n.x, n.y - 4, 8); sprAt(NSP.throne, n.x, n.y - 3); if (n.conv) { shadow(n.x, n.y + 12, 6); px(n.x - 9, n.y + 9, 18, 3, '#6b6670'); px(n.x - 7, n.y + 8, 14, 1, '#8a8590'); sprAt(KING_KNEEL, n.x, n.y + 12); } else { sprAt(KING_SP.r, n.x, n.y - 4); if (qState.king === 'active') txt('!', n.x - CX, n.y - CY - 36 + Math.sin(T * 5) * 2, '#ffe170'); } break; }
     case 'site': { if (n.built) { shadow(n.x, n.y, 12); sprAt(NSP.booth, n.x, n.y + 1); } else if (qState.hill === 'active') { for (let k = 0; k < 12; k++) { const a = k / 12 * 6.28 + T; px(n.x + Math.cos(a) * 10, n.y - 2 + Math.sin(a) * 4, 2, 1, '#ffe170'); } } break; }
     case 'plantN': { const g = n.grow == null ? 1 : n.grow; if (g <= 0) break; const c = (n.wither || 0) > .5 ? NSP.plantDead : NSP.plantN; const w = Math.max(1, Math.round(c.width * g)), h = Math.max(1, Math.round(c.height * g)); ctx.drawImage(c, Math.round(n.x - CX - w / 2), Math.round(n.y - CY - 6 - h)); break; }
     case 'worm': { sprAt(NSP.worm, n.x + Math.sin(T * 8) * 1, n.y + 1); break; }
@@ -2229,6 +2276,7 @@ function drawWorld() {
   // ambient spores
   for (let k = 0; k < 26; k++) { const x = ((hash2(k, 1, 3) * VW * 1.5 + T * (6 + k % 5) - CX * .2) % (VW + 20) + VW + 20) % (VW + 20) - 10, y = ((hash2(k, 2, 3) * VH - T * (3 + k % 4) - CY * .2) % VH + VH) % VH; ctx.fillStyle = day === 4 ? (k % 3 ? 'rgba(255,240,200,.35)' : 'rgba(255,255,255,.4)') : k % 3 ? 'rgba(255,190,205,.35)' : 'rgba(98,244,226,.5)'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
   drawLighting();
+  for (const L of LABELS) txt(L[0], L[1], L[2], L[3], L[4]); LABELS = [];
   for (const f of fx) if (f.txt) { ctx.globalAlpha = clamp(f.life / f.max * 2, 0, 1); txt(f.txt, f.x - CX, f.y - CY, f.col); } ctx.globalAlpha = 1;
 }
 function addLight(L, x, y, r, col, a = 1) { L.push([x - CX, y - CY, r, col, a]); }
@@ -2365,7 +2413,7 @@ function renderBagTab(b) { const eqS = [['hand', 'Mão'], ['light', 'Luz'], ['bo
 function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null, acts = [];
   if (bagSel && bagSel.i != null && inv[bagSel.i]) { const s = inv[bagSel.i], it = ITEMS[s.id]; id = s.id; if (it.slot) acts.push(['equip', 'Equipar']); if (it.food || it.hp) acts.push(['use', it.food ? 'Comer' : 'Usar']); if (it.use === 'flare') acts.push(['use', 'Acender']); acts.push(['drop1', 'Soltar 1']); if (s.n > 1) acts.push(['dropall', 'Soltar tudo']); }
   else if (bagSel && bagSel.eq && equip[bagSel.eq]) { id = equip[bagSel.eq].id; acts.push(['unequip', 'Desequipar']); }
-  if (!id) { d.innerHTML = `<div class="idet" style="grid-template-columns:1fr"><p>Toque num item para ver detalhes, equipar, comer ou soltar. A mochila não tem limite. Armas, luzes e comida aparecem também na barra de baixo para uso rápido (teclas 1 a 0).</p></div>`; return; }
+  if (!id) { d.innerHTML = `<div class="idet" style="grid-template-columns:1fr"><p>Toque num item para ver detalhes, equipar, comer ou soltar. Ficou perdido? Aperte H (ou o botão "? dica" nas Missões) para ver o que fazer agora. Se demorar, a dica aparece sozinha. A mochila não tem limite. Armas, luzes e comida aparecem também na barra de baixo para uso rápido (teclas 1 a 0).</p></div>`; return; }
   const it = ITEMS[id], pr = propsOf(id);
   d.innerHTML = `<div class="idet"><div class="big" style="width:76px;height:76px;display:grid;place-items:center;background:#0b0408;border:2px solid var(--line)">${iconImg(id, 6)}</div><div><h3>${it.n}</h3><p>${it.d}</p>${pr.length ? `<div class="props">${pr.map(x => `<span class="prop">${x}</span>`).join('')}</div>` : ''}${!it.slot && SOURCES[id] ? `<p style="margin-top:8px;font-size:12px;color:var(--bone-dim)">Onde achar: ${SOURCES[id]}</p>` : ''}<div class="acts">${acts.map(([a, l], i) => `<button class="btn ${i ? 'alt' : ''}" data-a="${a}">${l}</button>`).join('')}</div></div></div>`;
   d.querySelectorAll('[data-a]').forEach(x => x.onclick = () => { const a = x.dataset.a;
@@ -2375,7 +2423,7 @@ function drawItemDetail() { const d = $('#iDet'); if (!d) return; let id = null,
     else if (a === 'unequip') { unequip(bagSel.eq); bagSel = null; }
     buildHotbar(); renderMenu(true); }); }
 function renderQuestTab(b) { const qs = QUESTS[day]; let lockShown = false;
-  const items = qs.map(q => { const st = qState[q.id]; if (!st) { if (lockShown) return ''; lockShown = true; return `<div class="qi lock"><b></b><span>Ainda desconhecido… conclua as missões acima.</span></div>`; } return `<div class="qi ${st === 'done' ? 'done' : 'act'}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }).join('');
+  const items = qs.map(q => { const st = qState[q.id]; if (!st) { if (lockShown) return ''; lockShown = true; return `<div class="qi lock"><b></b><span>Ainda desconhecido… conclua as missões acima.</span></div>`; } return `<div class="qi ${st === 'done' ? 'done' : 'act'}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}${st === 'active' && q === curQuest() && (qAge[q.id] || 0) > 40 && questHint(q) ? `<em>Dica: ${questHint(q)}</em>` : ''}</span></div>`; }).join('');
   const memHtml = [1, 2, 3].map(d => `<span class="lbl" style="margin-top:6px">Dia ${d} · ${ACT_NAME[d]}</span>` + MEM_ACT[d].map(k => mems.has(k) ? `<details class="mem"><summary>${MEMS[k].n}</summary><p>${imgTag(MEM_IMG[k], 'mthumb')}${MEMS[k].d}</p></details>` : `<div class="mem unk">Lembrança ainda não encontrada</div>`).join('')).join('');
   b.innerHTML = `<div class="qwrap"><div class="qcol"><span class="lbl">Dia ${day} · ${DAYS[day].name}</span><h3>Missões</h3>${items}<p style="margin:4px 0 0;font-size:12px;color:var(--bone-dim)">A seta verde na tela e o ponto piscando no mapa mostram o próximo objetivo.</p></div><div class="qcol"><span class="lbl">${Object.keys(MEMS).filter(k => mems.has(k)).length}/${MEM_TOTAL} encontradas</span><h3>Lembranças</h3>${memHtml}<span class="lbl" style="margin-top:8px">${refl.size}/9 momentos</span><h3>Reflexões</h3>${REFLECTS.map((R_, i) => !R_ ? '' : refl.has(i) ? `<details class="mem"><summary>${R_.ref}</summary><p>${imgTag(REFL_IMG[i], 'mthumb')}“${R_.q}”<br><br>${R_.d}</p></details>` : `<div class="mem unk">Lugar de reflexão ainda não encontrado</div>`).join('')}</div></div>`; }
 function renderMapTab(b) { const c = C(MW, MH); drawMini(c.getContext('2d')); let u = ''; try { u = c.toDataURL(); } catch (e) {}
@@ -2404,7 +2452,7 @@ function renderOptsTab(b) { b.innerHTML = `<div class="pad"><div class="opt"><sp
   $('#vSfx').oninput = e => { AUD.vs = e.target.value / 100; $('#vSfxN').textContent = e.target.value; applyVolumes(); sfx('pick'); }; }
 let qMin = innerWidth < 760;
 function buildQuests() { $('#qTitle').textContent = `Missões · Dia ${day}`; const qs = QUESTS[day]; let h = '', firstCur = true, lockShown = false;
-  for (const q of qs) { const st = qState[q.id]; if (!st) { if (!lockShown) { h += `<div class="q lock"><b></b><span>Ainda desconhecido…</span></div>`; lockShown = true; } continue; } const cur = st === 'active' && firstCur; if (cur) firstCur = false; h += `<div class="q ${st === 'done' ? 'done' : ''} ${cur ? 'cur' : ''}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}</span></div>`; }
+  for (const q of qs) { const st = qState[q.id]; if (!st) { if (!lockShown) { h += `<div class="q lock"><b></b><span>Ainda desconhecido…</span></div>`; lockShown = true; } continue; } const cur = st === 'active' && firstCur; if (cur) firstCur = false; h += `<div class="q ${st === 'done' ? 'done' : ''} ${cur ? 'cur' : ''}"><b></b><span>${q.t}${st === 'active' && q.sub ? `<small>${q.sub()}</small>` : ''}${st === 'active' && q === curQuest() && (qAge[q.id] || 0) > 40 && questHint(q) ? `<em>Dica: ${questHint(q)}</em>` : ''}</span></div>`; }
   $('#qList').innerHTML = h; $('#quests').classList.toggle('min', qMin); $('#qTog').textContent = qMin ? '+' : '−'; }
 function updateDayUI() { $('#dayName').textContent = day === 4 ? 'Epílogo' : `Dia ${day}`; $('#daySub').textContent = DAYS[day].name; }
 const dialC = $('#dial'), dctx = dialC.getContext('2d');
@@ -2422,7 +2470,7 @@ function updateHUD(dt) { hudT -= dt; const tg = interactTarget(); const pt = pro
   if (showEv) { const id = DIR.phase === 'warn' ? DIR.pend : DIR.ev, E = EVENTS[id]; ev.dataset.l = E.lvl; ev.classList.toggle('warn', DIR.phase === 'warn'); $('#evTag').textContent = DIR.phase === 'warn' ? `Aviso · em ${Math.ceil(DIR.warnT)}s` : 'Evento orgânico'; $('#evLvl').textContent = 'Nível ' + LVL[E.lvl]; $('#evName').textContent = E.n; $('#evDesc').textContent = E.d; const fr = DIR.phase === 'warn' ? 1 - DIR.warnT / E.warn : 1 - DIR.t / DIR.dur; const bar = $('#evTime i'); bar.style.width = clamp(fr * 100, 0, 100) + '%'; bar.style.background = LVLCOL[E.lvl]; }
   const pu = $('#pulse'); if (flags.pattern || day === 3) { const n = nextContractionIn(); pu.textContent = n == null ? '' : n <= 0 ? 'CONTRAÇÃO AGORA' : `Contração ~${Math.ceil(n)}s`; } else pu.textContent = '';
   if (invDirty) { invDirty = false; buildHotbar(); refreshMenus(); buildQuests(); }
-  miniT -= .12; if (miniT <= 0) { miniT = .5; drawMini(); if (qState && QUESTS[day] && QUESTS[day].some(q => qState[q.id] === 'active' && q.sub)) buildQuests(); } }
+  miniT -= .12; if (miniT <= 0) { miniT = .5; drawMini(); if (qState && QUESTS[day] && QUESTS[day].some(q => qState[q.id] === 'active')) buildQuests(); } }
 let miniT = 0; const mini = $('#mini'); mini.width = MW; mini.height = MH; const mctx = mini.getContext('2d'); let miniImg = null;
 function drawMini(target = mctx) { if (!miniImg) miniImg = mctx.createImageData(MW, MH); const d = miniImg.data;
   for (let i = 0; i < MW * MH; i++) { const o = i * 4; if (!reveal[i]) { d[o] = 18; d[o + 1] = 8; d[o + 2] = 16; d[o + 3] = 255; continue; } const t = tiles[i]; let c = day === 4 ? (t === WALL ? (wkind[i] ? [150, 110, 64] : [110, 82, 50]) : pave[i] ? [176, 160, 132] : [214, 182, 122]) : t === WALL ? [58, 16, 30] : t === ACID ? (bridgeMap[i] ? [160, 112, 60] : [169, 204, 47]) : [140, 52, 72]; const f = foldAt[i]; if (f >= 0 && folds[f].closed) c = folds[f].type === 'gate' ? [255, 111, 134] : [200, 90, 112]; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; }
@@ -2537,6 +2585,7 @@ addEventListener('keydown', e => { if (rebinding) { e.preventDefault(); if (e.co
   if (isKey(e.code, 'roll')) dodge();
   if (isKey(e.code, 'swap')) swapWeapons();
   if (isKey(e.code, 'interact')) interact();
+  if (e.code === 'KeyH') { showHint(); return; }
   const m = e.code.match(/^Digit(\d)$/); if (m) { const q = quickIdx(), i = q[(+m[1] + 9) % 10]; if (i != null) useSlot(i); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -2544,6 +2593,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && sta
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 $('#miniWrap').onclick = () => { if (state === 'play' && !paused) openMenu('map'); };
 $('#qHead').onclick = () => { qMin = !qMin; buildQuests(); };
+$('#qHint').onclick = e => { e.stopPropagation(); showHint(); };
 $('#qList').onclick = () => { if (state === 'play' && !paused) openMenu('quests'); };
 (() => { const st = $('#stick'), kn = $('#knob'); let id = null; const upd = e => { const r = st.getBoundingClientRect(); let x = (e.clientX - r.left - r.width / 2) / (r.width / 2), y = (e.clientY - r.top - r.height / 2) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; joy.on = true; kn.style.transform = `translate(${x * 36}px,${y * 36}px)`; };
   st.addEventListener('pointerdown', e => { audioInit(); id = e.pointerId; try { st.setPointerCapture(id); } catch (er) {} upd(e); });
